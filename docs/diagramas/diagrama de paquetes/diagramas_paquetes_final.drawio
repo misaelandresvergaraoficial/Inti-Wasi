@@ -1,0 +1,141 @@
+<mxfile host="Electron">
+  <diagram id="fOjtZSGM379rG5_d_Zm1" name="diagrama_De_paquetes">
+    <mxGraphModel dx="1885" dy="1121" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#1a1a2e;" value="Aplicación Web de Gestión de Inventario y Almacén - Inti Wasi S.A.C." vertex="1">
+          <mxGeometry height="40" width="1800" x="60" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="angular_container" parent="1" style="swimlane;startSize=54;fillColor=#dae8fc;strokeColor=#1e4d78;fontColor=#1e4d78;fontSize=12;fontStyle=1;rounded=1;arcSize=4;swimlaneLine=1;horizontal=1;align=center;verticalAlign=top;whiteSpace=wrap;" value="&#xa;Cliente Web - Angular" vertex="1">
+          <mxGeometry height="800" width="390" x="60" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_angular" parent="angular_container" style="swimlane;startSize=36;fillColor=#bdd7ee;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;fontStyle=1;rounded=1;arcSize=5;horizontal=1;align=center;verticalAlign=top;" value="Componentes Angular" vertex="1">
+          <mxGeometry height="230" width="350" x="20" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_login" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Login" vertex="1">
+          <mxGeometry height="34" width="145" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_catalogos" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Catálogos" vertex="1">
+          <mxGeometry height="34" width="145" x="185" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_ordenes" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Órdenes de Compra" vertex="1">
+          <mxGeometry height="34" width="145" x="20" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_inventario" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Inventario" vertex="1">
+          <mxGeometry height="34" width="145" x="185" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_dashboard" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Dashboard" vertex="1">
+          <mxGeometry height="34" width="145" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="comp_reportes" parent="comp_angular" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;arcSize=20;" value="Reportes" vertex="1">
+          <mxGeometry height="34" width="145" x="185" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="http_services" parent="angular_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdd7ee;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;fontStyle=1;arcSize=10;align=center;verticalAlign=middle;" value="&lt;b&gt;Servicios HTTP Angular&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;HttpClient / Consumo de API REST&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="350" x="20" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="routing_guards" parent="angular_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdd7ee;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;fontStyle=1;arcSize=10;align=center;verticalAlign=middle;" value="&lt;b&gt;Routing y Guards&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Protección de rutas por rol&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="350" x="20" y="404" as="geometry" />
+        </mxCell>
+        <mxCell id="session_mgmt" parent="angular_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdd7ee;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;fontStyle=1;arcSize=10;align=center;verticalAlign=middle;" value="&lt;b&gt;Gestión de Sesión&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Token JWT almacenado en el cliente&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="350" x="20" y="484" as="geometry" />
+        </mxCell>
+        <mxCell id="forms_validations" parent="angular_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdd7ee;strokeColor=#2e75b6;fontColor=#1e4d78;fontSize=11;fontStyle=1;arcSize=10;align=center;verticalAlign=middle;" value="&lt;b&gt;Formularios y Validaciones&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Mensajes de error y confirmación&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="350" x="20" y="564" as="geometry" />
+        </mxCell>
+        <mxCell id="springboot_container" parent="1" style="swimlane;startSize=54;fillColor=#d5e8d4;strokeColor=#2d6a2d;fontColor=#1a3d1a;fontSize=12;fontStyle=1;rounded=1;arcSize=4;swimlaneLine=1;horizontal=1;align=center;verticalAlign=top;whiteSpace=wrap;" value="&#xa;Servidor de Aplicación - Spring Boot" vertex="1">
+          <mxGeometry height="800" width="870" x="522" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_layer" parent="springboot_container" style="swimlane;startSize=36;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=11;fontStyle=1;rounded=1;arcSize=5;horizontal=1;align=center;verticalAlign=top;" value="Controller / API REST" vertex="1">
+          <mxGeometry height="160" width="530" x="20" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_auth" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="AuthController" vertex="1">
+          <mxGeometry height="30" width="150" x="10" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_usuario" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="UsuarioController" vertex="1">
+          <mxGeometry height="30" width="150" x="10" y="84" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_categoria" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="CategoriaController" vertex="1">
+          <mxGeometry height="30" width="150" x="10" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_producto" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="ProductoController" vertex="1">
+          <mxGeometry height="30" width="150" x="190" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_proveedor" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="ProveedorController" vertex="1">
+          <mxGeometry height="30" width="150" x="190" y="84" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_ordencompra" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="OrdenCompraController" vertex="1">
+          <mxGeometry height="30" width="150" x="190" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_inventario" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="InventarioController" vertex="1">
+          <mxGeometry height="30" width="150" x="370" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_reporte" parent="controller_layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;arcSize=20;" value="ReporteController" vertex="1">
+          <mxGeometry height="30" width="150" x="370" y="84" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_ctrl_svc" edge="1" parent="springboot_container" source="controller_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=block;endFill=1;startArrow=none;" target="service_layer" value="«usa»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="service_layer" parent="springboot_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=11;fontStyle=1;arcSize=5;align=center;verticalAlign=middle;" value="&lt;b&gt;Service&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Reglas de negocio · Control de roles · Operaciones transaccionales&lt;br&gt;Gestión de inventario · Órdenes de compra · Reportes&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="530" x="20" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_svc_repo" edge="1" parent="springboot_container" source="service_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=block;endFill=1;startArrow=none;" target="repository_layer" value="«usa»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="repository_layer" parent="springboot_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=11;fontStyle=1;arcSize=5;align=center;verticalAlign=middle;" value="&lt;b&gt;Repository&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Spring Data JPA / Hibernate · Usuarios · Categorías · Proveedores&lt;br&gt;Productos · ÓrdenesCompra · Documentos · MovimientosInventario&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="530" x="20" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_repo_entity" edge="1" parent="springboot_container" source="repository_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=block;endFill=1;startArrow=none;" target="entity_layer" value="«mapea»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_layer" parent="springboot_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1a3d1a;fontSize=11;fontStyle=1;arcSize=5;align=center;verticalAlign=middle;" value="&lt;b&gt;Entity y DTO&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Entidades JPA mapeadas a tablas MySQL · Objetos de transferencia de datos (DTO)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="530" x="20" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="security_layer" parent="springboot_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#b8860b;fontColor=#7d4e00;fontSize=11;fontStyle=1;arcSize=8;align=center;verticalAlign=middle;" value="&lt;b&gt;Spring Security&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px; font-style:italic;&quot;&gt;Autenticación · Autorización por roles&lt;br&gt;Validación JWT · Filtros de seguridad&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="200" x="640" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_sec_ctrl" edge="1" parent="springboot_container" source="security_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;strokeColor=#b8860b;fontColor=#7d4e00;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=open;endFill=0;" target="controller_layer" value="«protege»">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="640" y="215" />
+              <mxPoint x="596.2" y="215" />
+              <mxPoint x="596.2" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_sec_svc" edge="1" parent="springboot_container" source="security_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;strokeColor=#b8860b;fontColor=#7d4e00;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=open;endFill=0;" target="service_layer" value="«protege»">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="640" y="268" />
+              <mxPoint x="593.8" y="268" />
+              <mxPoint x="593.8" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mysql_container" parent="1" style="swimlane;startSize=55;fillColor=#ffd7d7;strokeColor=#8b1a1a;fontColor=#5a0000;fontSize=12;fontStyle=1;rounded=1;arcSize=4;swimlaneLine=1;horizontal=1;align=center;verticalAlign=top;whiteSpace=wrap;" value="&#xa;Servidor de Datos - MySQL" vertex="1">
+          <mxGeometry height="800" width="360" x="1480" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mysql_cylinder" parent="mysql_container" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=16;fillColor=#ffcccc;strokeColor=#8b1a1a;fontColor=#5a0000;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" value="&lt;b&gt;MySQL&lt;br&gt;BD_IntiWasi&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="200" x="80" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db_tables" parent="mysql_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#8b1a1a;fontColor=#5a0000;fontSize=11;fontStyle=1;arcSize=8;align=center;verticalAlign=middle;" value="&lt;b&gt;Tablas Relacionales&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px; font-style:italic;&#39;&gt;Claves primarias y foráneas&lt;br&gt;Restricciones de integridad&lt;br&gt;Índices de búsqueda&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="300" x="30" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="db_triggers" parent="mysql_container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#8b1a1a;fontColor=#5a0000;fontSize=11;fontStyle=1;arcSize=8;align=center;verticalAlign=middle;" value="&lt;b&gt;Triggers&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px; font-style:italic;&#39;&gt;Actualización atómica de stock&lt;br&gt;Cambio de orden a Recibida&lt;br&gt;Kardex inmutable&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="300" x="30" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_client_server" edge="1" parent="1" source="http_services" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1e4d78;fontColor=#1e4d78;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=block;endFill=1;startArrow=none;strokeWidth=2;" target="controller_layer" value="HTTPS · JSON · API REST · JWT">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_repo_mysql" edge="1" parent="1" source="repository_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#8b1a1a;fontColor=#8b1a1a;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;labelBorderColor=none;endArrow=block;endFill=1;startArrow=none;strokeWidth=2;" target="mysql_cylinder" value="JPA / Hibernate / SQL">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1382.2" y="585" />
+              <mxPoint x="1382.2" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

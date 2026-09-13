@@ -1,0 +1,6 @@
+{
+  "properties": [
+    { "name": "jwt.secreto", "type": "java.lang.String" },
+    { "name": "jwt.expiracion-ms", "type": "java.lang.Long" }
+  ]
+}
