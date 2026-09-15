@@ -1,14 +1,5 @@
 package com.intiwasi.backend.service.impl;
 
-<<<<<<< HEAD
- /*
-    hello pelotudo WTF
-    */
-    
-public class ProductoServiceIMPL {
-
-    
-=======
 import com.intiwasi.backend.dto.Producto.ProductoRequest;
 import com.intiwasi.backend.dto.Producto.ProductoResponse;
 import com.intiwasi.backend.entity.Categoria;
@@ -152,6 +143,5 @@ public class ProductoServiceIMPL {
         response.setEstado(producto.getEstado());
         return response;
     }
->>>>>>> e4bb43754628784f4ec6a3a63175e38785a780c3
     
 }
