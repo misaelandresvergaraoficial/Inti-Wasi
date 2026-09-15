@@ -33,17 +33,17 @@ public class Producto {
     // -------------------------------------------------------------
     // LLAVE FORÁNEA 1: Categoría (NOT NULL)
     // -------------------------------------------------------------
-    //@NotNull(message = "La categoría es obligatoria")
-    //@ManyToOne(fetch = FetchType.EAGER, optional = false)
-    //@JoinColumn(name = "IdCategoria", nullable = false)
-    //private Categoria categoria;
+    @NotNull(message = "La categoría es obligatoria")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "IdCategoria", nullable = false)
+    private Categoria categoria;
 
     // -------------------------------------------------------------
     // LLAVE FORÁNEA 2: Proveedor (NULL en el DDL)
     // -------------------------------------------------------------
-    //@ManyToOne(fetch = FetchType.EAGER, optional = true)
-    //@JoinColumn(name = "IdProveedor", nullable = true)
-    //private Proveedor proveedor;
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
+    @JoinColumn(name = "IdProveedor", nullable = true)
+    private Proveedor proveedor;
 
     @NotNull(message = "El precio es obligatorio")
     @DecimalMin(value = "0.00", message = "El precio no puede ser negativo")
