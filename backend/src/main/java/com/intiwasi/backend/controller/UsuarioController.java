@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,22 +27,26 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<List<UsuarioResponse>> listarActivos() {
         return ResponseEntity.ok(usuarioService.listarActivos());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<UsuarioResponse> obtenerPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(usuarioService.obtenerPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<UsuarioResponse> registrar(@Valid @RequestBody UsuarioRequest request) {
         UsuarioResponse nuevoUsuario = usuarioService.registrar(request);
         return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<UsuarioResponse> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody UsuarioRequest request) {
@@ -49,6 +54,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<Void> desactivar(@PathVariable Integer id) {
         usuarioService.desactivar(id);
         return ResponseEntity.noContent().build();

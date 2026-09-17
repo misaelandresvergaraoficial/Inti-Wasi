@@ -4,6 +4,7 @@ import com.intiwasi.backend.dto.Producto.ProductoRequest;
 import com.intiwasi.backend.dto.Producto.ProductoResponse;
 import com.intiwasi.backend.service.ProductoService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,10 +15,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
-
+@RequiredArgsConstructor
 public class ProductoController {
 
-    private ProductoService productoService;
+    private final ProductoService productoService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
