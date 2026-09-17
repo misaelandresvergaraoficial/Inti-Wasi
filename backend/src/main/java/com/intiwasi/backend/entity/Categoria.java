@@ -22,5 +22,5 @@ public class Categoria {
     private String nomCategoria;
     
     @Column (name = "Estado", nullable = false)
-    private Integer estado = 1;
+    private Byte estado = (byte) 1;
 }
