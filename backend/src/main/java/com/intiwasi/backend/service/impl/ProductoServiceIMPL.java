@@ -9,21 +9,22 @@ import com.intiwasi.backend.repository.CategoriaRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.ProveedorRepository;
 import com.intiwasi.backend.service.ProductoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors; 
 
-@Service 
-public class ProductoServiceIMPL {
+@Service
+@RequiredArgsConstructor
+public class ProductoServiceImpl implements ProductoService {
 
-    private ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
 
-    private CategoriaRepository categoriaRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    private ProveedorRepository proveedorRepository;
+    private final ProveedorRepository proveedorRepository;
 
     @Override
     @Transactional(readOnly = true)
