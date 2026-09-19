@@ -3,6 +3,7 @@ package com.intiwasi.backend.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
@@ -21,7 +22,10 @@ public class UsuarioRequest {
     private String contrasena;
 
     @NotBlank(message = "El rol es obligatorio")
-    @Size(max = 30, message = "El rol no debe superar los 30 caracteres")
+    @Pattern(
+            regexp = "^(Administrador|Operador de Almacén)$",
+            message = "El rol debe ser Administrador u Operador de Almacén"
+    )
     private String rol;
 
     @Size(max = 15, message = "El teléfono no debe superar los 15 caracteres")

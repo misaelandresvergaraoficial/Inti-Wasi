@@ -60,6 +60,7 @@ public class ProductoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Categoría no encontrada con ID: " + request.getIdCategoria()
                 ));
+        validarCategoriaActiva(categoria);
 
         Proveedor proveedor = null;
         if (request.getIdProveedor() != null) {
@@ -67,6 +68,7 @@ public class ProductoService {
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "Proveedor no encontrado con ID: " + request.getIdProveedor()
                     ));
+            validarProveedorActivo(proveedor);
         }
 
         Producto producto = Producto.builder()
@@ -99,6 +101,7 @@ public class ProductoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Categoría no encontrada con ID: " + request.getIdCategoria()
                 ));
+        validarCategoriaActiva(categoria);
 
         Proveedor proveedor = null;
         if (request.getIdProveedor() != null) {
@@ -106,6 +109,7 @@ public class ProductoService {
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "Proveedor no encontrado con ID: " + request.getIdProveedor()
                     ));
+            validarProveedorActivo(proveedor);
         }
 
         producto.setSku(request.getSku());
@@ -150,5 +154,21 @@ public class ProductoService {
         response.setStockActual(producto.getStockActual());
         response.setEstado(producto.getEstado());
         return response;
+    }
+
+    private void validarCategoriaActiva(Categoria categoria) {
+        if (!Byte.valueOf((byte) 1).equals(categoria.getEstado())) {
+            throw new com.intiwasi.backend.exception.ReglaNegocioException(
+                    "La categoría seleccionada está inactiva"
+            );
+        }
+    }
+
+    private void validarProveedorActivo(Proveedor proveedor) {
+        if (!Byte.valueOf((byte) 1).equals(proveedor.getEstado())) {
+            throw new com.intiwasi.backend.exception.ReglaNegocioException(
+                    "El proveedor seleccionado está inactivo"
+            );
+        }
     }
 }
