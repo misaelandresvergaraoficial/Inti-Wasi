@@ -11,8 +11,6 @@ Antes de ejecutar los comandos en la terminal, asegúrate de tener instalado en 
 * **Node.js**: Versión LTS (v20 o superior). [Descargar Node.js](https://nodejs.org/)
 
   * *Verificación en terminal:* `node -v` y `npm -v`
-* **VS Code** (o tu editor de código preferido).
-* **Git**: Para el control de versiones.
 
 ---
 
