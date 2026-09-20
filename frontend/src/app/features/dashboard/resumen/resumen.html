@@ -1,10 +1,75 @@
-<div class="p-8 bg-slate-50 min-h-screen">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold text-slate-800">Panel Principal (Dashboard)</h1>
-    <p class="text-slate-500 mt-2">Bienvenido a Inti Wasi S.A.C.</p>
-    
-    <button class="mt-6 bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition">
-      Cerrar Sesión
-    </button>
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-slate-800">Panel Principal</h1>
+  <p class="text-sm text-slate-500">Resumen general del estado del almacén Inti Wasi.</p>
+</div>
+
+<!-- Estado de Carga -->
+<div *ngIf="loading" class="flex justify-center items-center h-40">
+  <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600"></div>
+</div>
+
+<!-- Mensaje de Error -->
+<div *ngIf="errorMessage" class="bg-red-50 text-red-600 p-4 rounded-lg border border-red-200">
+  {{ errorMessage }}
+</div>
+
+<!-- Grid de Tarjetas -->
+<div *ngIf="!loading && !errorMessage && resumen" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  
+  <!-- Tarjeta 1: Total Productos -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+      <!-- Ícono SVG (Caja) -->
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-slate-500">Total Productos</p>
+      <p class="text-2xl font-bold text-slate-800">{{ resumen.totalProductos }}</p>
+    </div>
   </div>
+
+  <!-- Tarjeta 2: Bajo Stock -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+      <!-- Ícono SVG (Alerta) -->
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-slate-500">Bajo Stock</p>
+      <p class="text-2xl font-bold text-slate-800">{{ resumen.productosBajoStock }}</p>
+    </div>
+  </div>
+
+  <!-- Tarjeta 3: Órdenes Pendientes -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+    <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+      <!-- Ícono SVG (Carrito/Orden) -->
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-slate-500">Órdenes Pendientes</p>
+      <p class="text-2xl font-bold text-slate-800">{{ resumen.totalOrdenesPendientes }}</p>
+    </div>
+  </div>
+
+  <!-- Tarjeta 4: Movimientos de Hoy -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+      <!-- Ícono SVG (Flechas) -->
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-slate-500">Movimientos Hoy</p>
+      <p class="text-2xl font-bold text-slate-800">{{ resumen.movimientosHoy }}</p>
+    </div>
+  </div>
+
 </div>
