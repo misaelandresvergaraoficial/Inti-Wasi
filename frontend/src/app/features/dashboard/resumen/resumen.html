@@ -13,62 +13,100 @@
   {{ errorMessage }}
 </div>
 
-<!-- Grid de Tarjetas -->
-<div *ngIf="!loading && !errorMessage && resumen" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Contenedor Principal (Solo se muestra si hay datos) -->
+<div *ngIf="!loading && !errorMessage && resumen">
   
-  <!-- Tarjeta 1: Total Productos -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
-    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
-      <!-- Ícono SVG (Caja) -->
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-      </svg>
+  <!-- Grid de Tarjetas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    
+    <!-- Tarjeta 1: Total Productos Activos -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+      <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500">Productos Activos</p>
+        <p class="text-2xl font-bold text-slate-800">{{ resumen.totalProductosActivos }}</p>
+      </div>
     </div>
-    <div>
-      <p class="text-sm font-medium text-slate-500">Total Productos</p>
-      <p class="text-2xl font-bold text-slate-800">{{ resumen.totalProductos }}</p>
+
+    <!-- Tarjeta 2: Bajo Stock -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+      <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500">Alertas de Stock</p>
+        <p class="text-2xl font-bold text-slate-800">{{ resumen.productosConStockBajo }}</p>
+      </div>
+    </div>
+
+    <!-- Tarjeta 3: Entradas del Día -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+      <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500">Entradas Hoy</p>
+        <p class="text-2xl font-bold text-slate-800">{{ resumen.entradasDelDia }}</p>
+      </div>
+    </div>
+
+    <!-- Tarjeta 4: Salidas del Día -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
+      <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500">Salidas Hoy</p>
+        <p class="text-2xl font-bold text-slate-800">{{ resumen.salidasDelDia }}</p>
+      </div>
     </div>
   </div>
 
-  <!-- Tarjeta 2: Bajo Stock -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
-    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
-      <!-- Ícono SVG (Alerta) -->
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-      </svg>
+  <!-- Tabla Detallada de Productos por Reponer -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+      <h2 class="text-lg font-semibold text-slate-800">Productos Críticos (Por Reponer)</h2>
+      <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">
+        {{ resumen.productosPorReponer.length }} alertas
+      </span>
     </div>
-    <div>
-      <p class="text-sm font-medium text-slate-500">Bajo Stock</p>
-      <p class="text-2xl font-bold text-slate-800">{{ resumen.productosBajoStock }}</p>
-    </div>
-  </div>
-
-  <!-- Tarjeta 3: Órdenes Pendientes -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
-    <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-      <!-- Ícono SVG (Carrito/Orden) -->
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </div>
-    <div>
-      <p class="text-sm font-medium text-slate-500">Órdenes Pendientes</p>
-      <p class="text-2xl font-bold text-slate-800">{{ resumen.totalOrdenesPendientes }}</p>
-    </div>
-  </div>
-
-  <!-- Tarjeta 4: Movimientos de Hoy -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center space-x-4">
-    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-      <!-- Ícono SVG (Flechas) -->
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-      </svg>
-    </div>
-    <div>
-      <p class="text-sm font-medium text-slate-500">Movimientos Hoy</p>
-      <p class="text-2xl font-bold text-slate-800">{{ resumen.movimientosHoy }}</p>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm text-slate-600">
+        <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="px-6 py-3 font-medium">SKU / Producto</th>
+            <th class="px-6 py-3 font-medium">Categoría</th>
+            <th class="px-6 py-3 font-medium text-center">Stock Actual</th>
+            <th class="px-6 py-3 font-medium text-center">Mínimo</th>
+            <th class="px-6 py-3 font-medium text-center">A Reponer</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          <!-- Bucle ngFor para imprimir cada producto que viene del backend -->
+          <tr *ngFor="let prod of resumen.productosPorReponer" class="hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <div class="font-medium text-slate-800">{{ prod.nomProducto }}</div>
+              <div class="text-xs text-slate-400">{{ prod.sku }} | {{ prod.nomProveedor || 'Sin proveedor' }}</div>
+            </td>
+            <td class="px-6 py-4">{{ prod.nomCategoria }}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-700 bg-red-100 rounded-full">
+                {{ prod.stockActual }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center text-slate-500">{{ prod.stockMinimo }}</td>
+            <td class="px-6 py-4 text-center font-semibold text-amber-600">+{{ prod.unidadesPorReponer }}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Mensaje por si no hay productos bajo stock -->
+      <div *ngIf="resumen.productosPorReponer.length === 0" class="p-6 text-center text-slate-500">
+        Todos los productos tienen stock suficiente.
+      </div>
     </div>
   </div>
 

@@ -8,10 +8,9 @@ import { DashboardResumen } from '../models/dashboard.model';
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/dashboard';
 
   getResumen(): Observable<DashboardResumen> {
-    // Gracias a tu Interceptor, esta petición ya lleva el token automáticamente
-    return this.http.get<DashboardResumen>(`${this.apiUrl}/resumen`);
+    // Apuntamos directamente a la ruta que te funcionó en Thunder Client
+    return this.http.get<DashboardResumen>('http://localhost:8080/api/dashboard/resumen');
   }
 }

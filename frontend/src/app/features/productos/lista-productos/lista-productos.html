@@ -1,0 +1,142 @@
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Catálogo de Productos</h1>
+    <p class="text-sm text-slate-500">Gestión de inventario y mercadería activa.</p>
+  </div>
+  <button (click)="abrirModalNuevo()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm flex items-center space-x-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    <span>Nuevo Producto</span>
+  </button>
+</div>
+
+<div class="bg-white p-4 rounded-t-xl border border-slate-200 border-b-0 flex items-center">
+  <div class="relative w-full md:w-1/3">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </div>
+    <input type="text" [(ngModel)]="terminoBusqueda" (input)="filtrarProductos()"
+      class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm"
+      placeholder="Buscar por código, nombre o categoría...">
+  </div>
+</div>
+
+<div *ngIf="loading" class="bg-white p-12 border border-slate-200 rounded-b-xl flex justify-center">
+  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+</div>
+
+<div *ngIf="errorMessage" class="bg-red-50 text-red-600 p-4 border-x border-b border-red-200 rounded-b-xl">
+  {{ errorMessage }}
+</div>
+
+<div *ngIf="!loading && !errorMessage" class="bg-white border border-slate-200 rounded-b-xl overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm text-slate-600">
+      <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-xs">
+        <tr>
+          <th class="px-6 py-4 font-semibold">SKU / Producto</th>
+          <th class="px-6 py-4 font-semibold">Categoría</th>
+          <th class="px-6 py-4 font-semibold text-right">Precio Unit.</th>
+          <th class="px-6 py-4 font-semibold text-center">Stock</th>
+          <th class="px-6 py-4 font-semibold text-center">Estado</th>
+          <th class="px-6 py-4 font-semibold text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200">
+        <tr *ngFor="let prod of productosFiltrados" class="hover:bg-slate-50 transition">
+          <td class="px-6 py-4">
+            <div class="font-medium text-slate-800">{{ prod.nomProducto }}</div>
+            <div class="text-xs text-slate-400 mt-1 flex items-center space-x-2">
+              <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-mono">{{ prod.sku }}</span>
+              <span>• {{ prod.nomProveedor || 'Sin Proveedor' }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4">{{ prod.nomCategoria }}</td>
+          <td class="px-6 py-4 text-right font-medium text-slate-700">S/ {{ prod.precio | number:'1.2-2' }}</td>
+          <td class="px-6 py-4 text-center">
+            <span [ngClass]="{'bg-red-100 text-red-700': prod.stockActual <= prod.stockMinimo, 'bg-emerald-100 text-emerald-700': prod.stockActual > prod.stockMinimo}"
+                  class="inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold rounded-full">
+              {{ prod.stockActual }}
+            </span>
+            <div class="text-[10px] text-slate-400 mt-1">Mín: {{ prod.stockMinimo }}</div>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span *ngIf="prod.estado === 1" class="inline-flex items-center space-x-1 text-emerald-600 text-xs font-medium"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span><span>Activo</span></span>
+            <span *ngIf="prod.estado === 0" class="inline-flex items-center space-x-1 text-slate-400 text-xs font-medium"><span class="w-2 h-2 bg-slate-300 rounded-full"></span><span>Inactivo</span></span>
+          </td>
+          <td class="px-6 py-4 text-right space-x-3">
+            <button (click)="abrirModalEditar(prod)" class="text-amber-600 hover:text-amber-800 font-medium text-sm transition">
+              Editar
+            </button>
+            <button (click)="eliminarProducto(prod.idProducto)" class="text-red-600 hover:text-red-800 font-medium text-sm transition">
+              <span *ngIf="prod.estado === 1">Desactivar</span>
+              <span *ngIf="prod.estado === 0">Activar</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de Nuevo Producto -->
+<div *ngIf="mostrarModal" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-slate-900/50 backdrop-blur-sm p-4 text-slate-800">
+  <div class="relative w-full max-w-lg bg-white rounded-xl shadow-2xl">
+    
+    <!-- Cabecera del Modal -->
+    <div class="flex items-center justify-between p-5 border-b border-slate-200">
+      <h3 class="text-xl font-bold text-slate-800">
+        {{ modoEdicion ? 'Editar Producto' : 'Registrar Nuevo Producto' }}
+      </h3>
+      <button (click)="cerrarModal()" class="text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Cuerpo del Formulario -->
+    <div class="p-6 space-y-4 text-sm">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="block font-medium text-slate-700 mb-1">Nombre del Producto *</label>
+          <input type="text" [(ngModel)]="nuevoProducto.nomProducto" placeholder="Ej. Cable Ethernet CAT6..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Código SKU *</label>
+          <input type="text" [(ngModel)]="nuevoProducto.sku" placeholder="PRO-GEN-002" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none uppercase">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Precio (S/) *</label>
+          <input type="number" [(ngModel)]="nuevoProducto.precio" placeholder="0.00" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ID Categoría</label>
+          <input type="number" [(ngModel)]="nuevoProducto.idCategoria" placeholder="Ej. 7" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">ID Proveedor</label>
+          <input type="number" [(ngModel)]="nuevoProducto.idProveedor" placeholder="Ej. 2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div class="col-span-2">
+          <label class="block font-medium text-slate-700 mb-1">Stock Mínimo de Alerta</label>
+          <input type="number" [(ngModel)]="nuevoProducto.stockMinimo" placeholder="Ej. 20" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie del Modal -->
+    <div class="flex items-center justify-end p-5 border-t border-slate-200 space-x-3 bg-slate-50 rounded-b-xl">
+      <button (click)="cerrarModal()" [disabled]="guardando" class="px-4 py-2 text-slate-600 hover:bg-slate-200 font-medium rounded-lg transition disabled:opacity-50">
+        Cancelar
+      </button>
+      <button (click)="guardarProducto()" [disabled]="guardando" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition shadow-sm disabled:opacity-50 flex items-center">
+        <span *ngIf="guardando" class="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full"></span>
+        {{ guardando ? 'Guardando...' : (modoEdicion ? 'Actualizar Producto' : 'Guardar Producto') }}
+      </button>
+    </div>
+
+  </div>
+</div>
