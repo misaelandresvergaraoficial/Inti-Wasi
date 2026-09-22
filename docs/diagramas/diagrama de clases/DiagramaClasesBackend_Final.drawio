@@ -1,0 +1,434 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram name="Diagrama de clases · Backend actual" id="intiwasi-clases-actual-2026-v2">
+    <mxGraphModel dx="4143" dy="2403" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="2650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="header" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#183A52;strokeColor=#183A52;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="102" width="1392" x="30" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=27;fontColor=#FFFFFF;fontStyle=1;spacing=0;" value="DIAGRAMA DE CLASES DEL BACKEND — INTI WASI" vertex="1">
+          <mxGeometry height="41" width="755.5" x="64" y="37" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#DCEAF3;fontStyle=0;spacing=0;" value="Spring Boot · Implementación actual · Arquitectura por capas" vertex="1">
+          <mxGeometry height="28" width="741" x="65" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="security_band" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#F3F8FE;strokeColor=#CCDFEF;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="255" width="1377" x="45" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="security_band_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=17;fontColor=#1F527C;fontStyle=1;spacing=0;" value="SEGURIDAD, CONFIGURACIÓN Y MANEJO DE ERRORES" vertex="1">
+          <mxGeometry height="29" width="1660" x="74" y="153" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_band" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#FBF8FF;strokeColor=#DED4EE;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="395" width="1377" x="45" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_band_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=17;fontColor=#543D79;fontStyle=1;spacing=0;" value="CAPA CONTROLLER · API REST" vertex="1">
+          <mxGeometry height="29" width="1660" x="74" y="433" as="geometry" />
+        </mxCell>
+        <mxCell id="service_band" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#FFFAF8;strokeColor=#EEDBD6;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="400" width="1377" x="45" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="service_band_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=17;fontColor=#8C493E;fontStyle=1;spacing=0;" value="CAPA SERVICE · REGLAS DE NEGOCIO" vertex="1">
+          <mxGeometry height="29" width="1660" x="74" y="858" as="geometry" />
+        </mxCell>
+        <mxCell id="repository_band" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#F8FCF9;strokeColor=#D7EADD;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="325" width="1377" x="45" y="1277" as="geometry" />
+        </mxCell>
+        <mxCell id="repository_band_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=17;fontColor=#326B47;fontStyle=1;spacing=0;" value="CAPA REPOSITORY · SPRING DATA JPA" vertex="1">
+          <mxGeometry height="29" width="1660" x="74" y="1283" as="geometry" />
+        </mxCell>
+        <mxCell id="domain_band" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#FAFBFD;strokeColor=#DCE3E9;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="850" width="1422" y="1623" as="geometry" />
+        </mxCell>
+        <mxCell id="domain_band_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=17;fontColor=#264257;fontStyle=1;spacing=0;" value="ENTIDADES JPA IMPLEMENTADAS · RELACIONES REALES" vertex="1">
+          <mxGeometry height="29" width="1660" x="74" y="1633" as="geometry" />
+        </mxCell>
+        <mxCell id="security_BackendApplication" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;BackendApplication&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«SpringBootApplication»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ main(String[]): void&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="366" x="220" y="183" as="geometry" />
+        </mxCell>
+        <mxCell id="security_SecurityConfig" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;SecurityConfig&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Configuration»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ securityFilterChain() · passwordEncoder() · corsConfigurationSource()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="400" x="606" y="182" as="geometry" />
+        </mxCell>
+        <mxCell id="security_AuthController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;AuthController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«REST» POST /api/auth/login&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ login(AuthRequest)&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="238" x="1036" y="182" as="geometry" />
+        </mxCell>
+        <mxCell id="security_JwtAuthenticationFilter" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;JwtAuthenticationFilter&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«OncePerRequestFilter»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;# doFilterInternal() · jwtUtil · userDetailsService&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="366" x="220" y="254" as="geometry" />
+        </mxCell>
+        <mxCell id="security_JwtUtil" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;JwtUtil&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Component»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ generarToken() · extraerCorreo() · validarToken()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="400" x="606" y="253" as="geometry" />
+        </mxCell>
+        <mxCell id="security_CustomUserDetailsService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;CustomUserDetailsService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«UserDetailsService»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ loadUserByUsername()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="238" x="1036" y="253" as="geometry" />
+        </mxCell>
+        <mxCell id="security_GlobalExceptionHandler" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;GlobalExceptionHandler&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«RestControllerAdvice»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ handleValidaciones() · handleConflicto() · handleAllExceptions()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="366" x="220" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="security_RestAuthenticationEntryPoint" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;RestAuthenticationEntryPoint&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«AuthenticationEntryPoint»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ commence()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="400" x="606" y="324" as="geometry" />
+        </mxCell>
+        <mxCell id="security_RestAccessDeniedHandler" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#EAF3FF;strokeColor=#8FB4D9;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#1F527C;&quot;&gt;RestAccessDeniedHandler&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«AccessDeniedHandler»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #8FB4D9;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ handle()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="63" width="238" x="1036" y="324" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_UsuarioController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;UsuarioController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/usuarios → UsuarioService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivos() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="266" x="178.13" y="462" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_CategoriaController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;CategoriaController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/categorias → CategoriaService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivas() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="464.13" y="461" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_ProveedorController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;ProveedorController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/proveedores → ProveedorService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivos() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="734.13" y="462" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_ProductoController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;ProductoController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/productos → ProductoService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarTodos() · obtenerPorId()&lt;br&gt;+ listarStockBajo() · crearProducto()&lt;br&gt;+ actualizarProducto() · desactivarProducto()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="274" x="1010.13" y="462" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_OrdenCompraController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;OrdenCompraController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/ordenes-compra → OrdenCompraService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarTodas() · obtenerPorId()&lt;br&gt;+ crear() · actualizar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="266" x="178.13" y="573" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_EntradaController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;EntradaController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/entradas → EntradaService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="464.13" y="572" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_SalidaController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;SalidaController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/salidas → SalidaService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="734.13" y="573" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_AjusteController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;AjusteController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/ajustes → AjusteService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="274" x="1010.13" y="573" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_MovimientoController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;MovimientoController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/movimientos → MovimientoConsultaService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ consultar() · obtener()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="266" x="178.13" y="684" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_DashboardController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;DashboardController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/dashboard → DashboardService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ resumen()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="464.13" y="683" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_ReporteController" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F6F0FF;strokeColor=#B4A0D8;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#543D79;&quot;&gt;ReporteController&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;/api/reportes → ReporteService&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #B4A0D8;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ inventario() · movimientos()&lt;br&gt;+ reposicion() · exportar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="250" x="734.13" y="684" as="geometry" />
+        </mxCell>
+        <mxCell id="service_UsuarioService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;UsuarioService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa UsuarioRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivos() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="274" x="164.38" y="883" as="geometry" />
+        </mxCell>
+        <mxCell id="service_CategoriaService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;CategoriaService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa CategoriaRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivas() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="260" x="460.38" y="883" as="geometry" />
+        </mxCell>
+        <mxCell id="service_ProveedorService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;ProveedorService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa ProveedorRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarActivos() · obtenerPorId()&lt;br&gt;+ registrar() · actualizar() · desactivar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="238" x="750.38" y="883" as="geometry" />
+        </mxCell>
+        <mxCell id="service_ProductoService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;ProductoService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Producto/Categoria/ProveedorRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarTodosActivos() · obtenerPorId()&lt;br&gt;+ listarProductosStockBajo() · crearProducto()&lt;br&gt;+ actualizarProducto() · desactivarProducto()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="283.5" x="1005.38" y="883" as="geometry" />
+        </mxCell>
+        <mxCell id="service_OrdenCompraService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;OrdenCompraService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa OrdenCompra + 3 repositorios&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listarTodas() · obtenerPorId()&lt;br&gt;+ crear() · actualizar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="274" x="164.38" y="994" as="geometry" />
+        </mxCell>
+        <mxCell id="service_EntradaService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;EntradaService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Entrada + 5 repositorios&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="260" x="460.38" y="994" as="geometry" />
+        </mxCell>
+        <mxCell id="service_SalidaService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;SalidaService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Salida + 4 repositorios&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="238" x="750.38" y="994" as="geometry" />
+        </mxCell>
+        <mxCell id="service_AjusteService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;AjusteService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Ajuste + 4 repositorios&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ listar() · obtener() · registrar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="283.5" x="1005.38" y="994" as="geometry" />
+        </mxCell>
+        <mxCell id="service_MovimientoConsultaService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;MovimientoConsultaService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa KardexRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ consultar() · obtener()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="274" x="164.38" y="1105" as="geometry" />
+        </mxCell>
+        <mxCell id="service_DashboardService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;DashboardService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Producto/Documento/StockBajoRepository&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ resumen()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="260" x="460.38" y="1105" as="geometry" />
+        </mxCell>
+        <mxCell id="service_ReporteService" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF2EF;strokeColor=#DAA69C;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:16px;font-weight:700;color:#8C493E;&quot;&gt;ReporteService&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;usa Producto/StockBajo + MovimientoConsulta&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #DAA69C;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:13px;color:#273949;&quot;&gt;+ inventario() · movimientos()&lt;br&gt;+ reposicion() · exportar()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="238" x="750.38" y="1105" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_note" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=13;fontColor=#685780;fontStyle=0;spacing=0;" value="11 controladores de negocio · AuthController se muestra en seguridad" vertex="1">
+          <mxGeometry height="60" width="283.5" x="1005.38" y="718" as="geometry" />
+        </mxCell>
+        <mxCell id="service_note" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=13;fontColor=#94645A;fontStyle=0;spacing=0;" value="11 servicios concretos" vertex="1">
+          <mxGeometry height="58" width="228" x="1012.38" y="1134" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_UsuarioRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;UsuarioRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Usuario, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findByCorreoAndEstado() · findByEstado()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="250" x="74" y="1317" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_CategoriaRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;CategoriaRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Categoria, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findByEstado() · existsByNomCategoria()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="228" x="340" y="1317" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_ProveedorRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;ProveedorRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Proveedor, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findByEstado() · existsByRuc()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="306" x="590" y="1317" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_ProductoRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;ProductoRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Producto, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findBySku() · obtenerProductosStockBajo()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="238" x="915" y="1319" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_OrdenCompraRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;OrdenCompraRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;OrdenCompra, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findByIdConDetallesForUpdate()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="222" x="1170" y="1317" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_DetalleOrdenCompraRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;DetalleOrdenCompraRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;DetalleOrdenCompra, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ CRUD heredado de JpaRepository&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="250" x="74" y="1402" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_EntradaRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;EntradaRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Entrada, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ existsByOrdenCompra_IdOrden()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="228" x="340" y="1402" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_SalidaRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;SalidaRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Salida, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findAllConRelaciones()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="306" x="590" y="1402" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_AjusteRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;AjusteRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«JpaRepository&amp;lt;Ajuste, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ findAllConRelaciones()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="238" x="915" y="1404" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_DocumentoRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;DocumentoRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Repository&amp;lt;Documento, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ saveAndFlush() · findById()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="222" x="1170" y="1402" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_MovimientoInventarioRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;MovimientoInventarioRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Repository&amp;lt;MovimientoInventario, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ saveAll() · flush()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="250" x="74" y="1487" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_KardexRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;KardexRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Repository&amp;lt;KardexMovimiento, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ buscar() · findById()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="228" x="340" y="1487" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_StockBajoRepository" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#F0FAF2;strokeColor=#96C5A4;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:14px;font-weight:700;color:#326B47;&quot;&gt;StockBajoRepository&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Repository&amp;lt;StockBajo, Integer&amp;gt;»&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #96C5A4;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:11px;color:#273949;&quot;&gt;+ buscar() · findTop20ByOrderByUnidadesPorReponerDesc()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="306" x="590" y="1487" as="geometry" />
+        </mxCell>
+        <mxCell id="repo_note" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontColor=#417255;fontStyle=0;spacing=0;" value="13 repositorios · las vistas se consultan mediante KardexRepository y StockBajoRepository" vertex="1">
+          <mxGeometry height="45" width="468.75" x="918" y="1502" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Usuario_Orden" edge="1" parent="1" source="entity_Usuario" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="entity_OrdenCompra" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Categoria_Producto" edge="1" parent="1" source="entity_Categoria" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="entity_Producto" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Proveedor_Orden" edge="1" parent="1" source="entity_Proveedor" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;entryX=0.95;entryY=0;entryDx=0;entryDy=0;" target="entity_OrdenCompra" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="1835" />
+              <mxPoint x="279.3" y="1835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="assoc_Proveedor_Producto" edge="1" parent="1" source="entity_Proveedor" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=1;exitY=0.48;exitDx=0;exitDy=0;" target="entity_Producto" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="698" y="1750.03" />
+              <mxPoint x="800.03" y="1750.03" />
+              <mxPoint x="800.03" y="1896.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="assoc_Orden_Detalle" edge="1" parent="1" source="entity_OrdenCompra" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=diamond;startFill=1;endArrow=none;dashed=0;dashPattern=6 4;exitX=1;exitY=0.55;exitDx=0;exitDy=0;entryX=0;entryY=0.55;entryDx=0;entryDy=0;" target="entity_DetalleOrdenCompra" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Detalle_Producto" edge="1" parent="1" source="entity_DetalleOrdenCompra" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=1;exitY=0.78;exitDx=0;exitDy=0;entryX=0;entryY=0.78;entryDx=0;entryDy=0;" target="entity_Producto" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Usuario_Documento" edge="1" parent="1" source="entity_Usuario" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0;exitY=0.48;exitDx=0;exitDy=0;entryX=0.008;entryY=0.832;entryDx=0;entryDy=0;entryPerimeter=0;" target="entity_Documento" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="75" y="1750" />
+              <mxPoint x="35" y="1750" />
+              <mxPoint x="35" y="2240" />
+              <mxPoint x="420" y="2240" />
+              <mxPoint x="420" y="2191" />
+              <mxPoint x="454" y="2191" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="assoc_Orden_Entrada" edge="1" parent="1" source="entity_OrdenCompra" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="entity_Entrada" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Documento_Entrada" edge="1" parent="1" source="entity_Documento" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0;exitY=0.52;exitDx=0;exitDy=0;entryX=1;entryY=0.52;entryDx=0;entryDy=0;" target="entity_Entrada" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Documento_Salida" edge="1" parent="1" source="entity_Documento" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=1;exitY=0.52;exitDx=0;exitDy=0;entryX=0;entryY=0.52;entryDx=0;entryDy=0;" target="entity_Salida" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assoc_Documento_Ajuste" edge="1" parent="1" source="entity_Documento" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="entity_Ajuste" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="497.05" y="2260.05" />
+              <mxPoint x="383.52" y="2260.05" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="assoc_Documento_Movimiento" edge="1" parent="1" source="entity_Documento" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=0.65;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="entity_MovimientoInventario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="614.48" y="2290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="assoc_Producto_Movimiento" edge="1" parent="1" source="entity_Producto" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#697D8B;strokeWidth=1.8;startArrow=none;startFill=0;endArrow=none;dashed=0;dashPattern=6 4;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="entity_MovimientoInventario" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1119" y="1938" />
+              <mxPoint x="1140" y="1938" />
+              <mxPoint x="1140" y="2362.57" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="entity_Usuario" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Usuario&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Usuarios&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idUsuario: Integer {PK}&lt;br&gt;+ nomUsuario: String&lt;br&gt;+ correo: String&lt;br&gt;+ rol: String&lt;br&gt;+ estado: Integer&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="205" x="75" y="1670" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Proveedor" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Proveedor&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Proveedores&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idProveedor: Integer {PK}&lt;br&gt;+ nomProveedor: String&lt;br&gt;+ ruc: String&lt;br&gt;+ estado: Byte&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="238" x="460" y="1672.5" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Categoria" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Categoria&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Categorias&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idCategoria: Integer {PK}&lt;br&gt;+ nomCategoria: String&lt;br&gt;+ estado: Byte&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="187.75" x="869" y="1672" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_OrdenCompra" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;OrdenCompra&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» OrdenesCompra&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idOrden: Integer {PK}&lt;br&gt;+ fechaEmision: LocalDate&lt;br&gt;+ estado: String&lt;br&gt;+ detalles: List&amp;lt;DetalleOrdenCompra&amp;gt;&lt;br&gt;+ agregarDetalle()&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="155" width="215" x="75" y="1860" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_DetalleOrdenCompra" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;DetalleOrdenCompra&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» DetalleOrdenCompra&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idDetalle: Integer {PK}&lt;br&gt;+ cantidad: Integer&lt;br&gt;+ precioUnitario: BigDecimal&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="155" width="205" x="470" y="1860" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Producto" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Producto&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Productos&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idProducto: Integer {PK}&lt;br&gt;+ sku: String&lt;br&gt;+ nomProducto: String&lt;br&gt;+ precio: BigDecimal&lt;br&gt;+ stockActual / stockMinimo: Integer&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="155" width="250" x="869" y="1870" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Entrada" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Entrada&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Entradas&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idEntrada: Integer {PK}&lt;br&gt;+ documentoRef: String&lt;br&gt;+ observaciones: String&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="215" x="75" y="2075" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Documento" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Documento&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Documentos · @Immutable&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idDocumento: Integer {PK}&lt;br&gt;+ tipoDocumento: TipoDocumento&lt;br&gt;+ fechaEmision: LocalDateTime&lt;br&gt;+ estado: Byte&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="250" x="452" y="2075" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Salida" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Salida&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Salidas&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idSalida: Integer {PK}&lt;br&gt;+ motivo: MotivoSalida&lt;br&gt;+ observaciones: String&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="238" x="869" y="2077" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_Ajuste" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;Ajuste&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» Ajustes&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idAjuste: Integer {PK}&lt;br&gt;+ tipoAjuste: TipoAjuste&lt;br&gt;+ motivo: String&lt;br&gt;+ observaciones: String&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="173" x="297" y="2290" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_MovimientoInventario" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFFFFF;strokeColor=#9BAAB5;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.26;&quot;&gt;&lt;span style=&quot;font-size:18px;font-weight:700;color:#264257;&quot;&gt;MovimientoInventario&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» MovimientosInventario · @Immutable&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #9BAAB5;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:14px;color:#273949;&quot;&gt;+ idMovimiento: Integer {PK}&lt;br&gt;+ cantidad: Integer&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="238" x="507" y="2290" as="geometry" />
+        </mxCell>
+        <mxCell id="views_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontColor=#805F22;fontStyle=1;spacing=0;" value="VISTAS SQL · SOLO LECTURA" vertex="1">
+          <mxGeometry height="23" width="340" x="1170" y="2015" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_KardexMovimiento" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF9E9;strokeColor=#D7BE7B;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#805F22;&quot;&gt;KardexMovimiento&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» VW_Kardex · @Immutable&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #D7BE7B;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ idMovimiento: Integer {PK} · cantidadConSigno: Integer&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="66" width="238" x="1170" y="2042" as="geometry" />
+        </mxCell>
+        <mxCell id="entity_StockBajo" parent="1" style="rounded=0;html=1;whiteSpace=wrap;overflow=fill;fillColor=#FFF9E9;strokeColor=#D7BE7B;strokeWidth=1.6;align=left;verticalAlign=top;spacing=12;fontFamily=Arial;" value="&lt;div style=&quot;text-align:left;font-family:Arial;line-height:1.08;&quot;&gt;&lt;span style=&quot;font-size:15px;font-weight:700;color:#805F22;&quot;&gt;StockBajo&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px;color:#66798A;&quot;&gt;«Entity» VW_StockBajo · @Immutable&lt;/span&gt;&lt;hr style=&quot;border:0;border-top:1px solid #D7BE7B;margin:5px 0 6px;&quot;&gt;&lt;span style=&quot;font-size:12px;color:#273949;&quot;&gt;+ idProducto: Integer {PK} · unidadesPorReponer: Integer&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="66" width="238" x="1170" y="2117" as="geometry" />
+        </mxCell>
+        <mxCell id="mysql" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFF4D9;strokeColor=#D4AF5B;strokeWidth=1.2;fontFamily=Arial;fontSize=13;fontColor=#785A22;" value="MySQL 8 / InnoDB · bd_intiwasi" vertex="1">
+          <mxGeometry height="126.5" width="205" x="1153" y="1681.25" as="geometry" />
+        </mxCell>
+        <mxCell id="u_o_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="190" y="1817" as="geometry" />
+        </mxCell>
+        <mxCell id="u_o_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="190" y="1837" as="geometry" />
+        </mxCell>
+        <mxCell id="c_p_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="960" y="1817.5" as="geometry" />
+        </mxCell>
+        <mxCell id="c_p_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="1000" y="1848" as="geometry" />
+        </mxCell>
+        <mxCell id="pr_o_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="480" y="1837" as="geometry" />
+        </mxCell>
+        <mxCell id="pr_o_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="293" y="1837" as="geometry" />
+        </mxCell>
+        <mxCell id="pr_p_01" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..1" vertex="1">
+          <mxGeometry height="22" width="47" x="698" y="1720" as="geometry" />
+        </mxCell>
+        <mxCell id="pr_p_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="821" y="1882" as="geometry" />
+        </mxCell>
+        <mxCell id="o_d_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="297" y="1918" as="geometry" />
+        </mxCell>
+        <mxCell id="o_d_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1..*" vertex="1">
+          <mxGeometry height="22" width="47" x="407" y="1918" as="geometry" />
+        </mxCell>
+        <mxCell id="d_p_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="661" y="1961" as="geometry" />
+        </mxCell>
+        <mxCell id="d_p_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="832" y="1961" as="geometry" />
+        </mxCell>
+        <mxCell id="u_doc_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="38" y="1740" as="geometry" />
+        </mxCell>
+        <mxCell id="u_doc_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="407" y="2198" as="geometry" />
+        </mxCell>
+        <mxCell id="o_e_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="190" y="2015" as="geometry" />
+        </mxCell>
+        <mxCell id="o_e_01" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..1" vertex="1">
+          <mxGeometry height="22" width="47" x="190" y="2044" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_e_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="417" y="2128" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_e_01" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..1" vertex="1">
+          <mxGeometry height="22" width="47" x="293" y="2128" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_s_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="708" y="2120" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_s_01" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..1" vertex="1">
+          <mxGeometry height="22" width="47" x="821" y="2130" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_a_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="470" y="2222" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_a_01" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..1" vertex="1">
+          <mxGeometry height="22" width="47" x="397" y="2264" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_m_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="580" y="2220" as="geometry" />
+        </mxCell>
+        <mxCell id="doc_m_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1..*" vertex="1">
+          <mxGeometry height="22" width="47" x="555.5" y="2264" as="geometry" />
+        </mxCell>
+        <mxCell id="p_m_1" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="1" vertex="1">
+          <mxGeometry height="22" width="27" x="2135" y="1918" as="geometry" />
+        </mxCell>
+        <mxCell id="p_m_n" parent="1" style="rounded=1;arcSize=25;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#263F50;spacing=0;" value="0..*" vertex="1">
+          <mxGeometry height="22" width="47" x="1077" y="2330" as="geometry" />
+        </mxCell>
+        <mxCell id="protects" edge="1" parent="1" source="security_band" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#9CAFC0;strokeWidth=1.6;startArrow=none;startFill=0;endArrow=open;dashed=1;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="controller_band" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="invokes" edge="1" parent="1" source="controller_band" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#9CAFC0;strokeWidth=1.6;startArrow=none;startFill=0;endArrow=open;dashed=1;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="service_band" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="queries" edge="1" parent="1" source="service_band" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#9CAFC0;strokeWidth=1.6;startArrow=none;startFill=0;endArrow=open;dashed=1;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="repository_band" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="maps" edge="1" parent="1" source="repository_band" style="edgeStyle=segmentEdgeStyle;html=1;rounded=0;orthogonalLoop=1;jettySize=0;strokeColor=#9CAFC0;strokeWidth=1.6;startArrow=none;startFill=0;endArrow=open;dashed=1;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="domain_band" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="733.52" y="1640" />
+              <mxPoint x="733.52" y="1640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_security" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=11;fontColor=#688398;fontStyle=0;spacing=0;" value="protege" vertex="1">
+          <mxGeometry height="20" width="205" x="742" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="flow_controller" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=11;fontColor=#688398;fontStyle=0;spacing=0;" value="invoca" vertex="1">
+          <mxGeometry height="20" width="205" x="742" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="flow_service" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=11;fontColor=#688398;fontStyle=0;spacing=0;" value="consulta / persiste" vertex="1">
+          <mxGeometry height="20" width="205" x="742" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="flow_repository" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=11;fontColor=#688398;fontStyle=0;spacing=0;" value="mapea" vertex="1">
+          <mxGeometry height="20" width="205" x="735" y="1613" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="rounded=1;arcSize=3;html=1;fillColor=#FFFFFF;strokeColor=#CFDCE5;strokeWidth=1.2;" value="" vertex="1">
+          <mxGeometry height="207" width="1377" x="45" y="2473" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#224257;fontStyle=1;spacing=0;" value="LEYENDA · CÓMO LEER EL DIAGRAMA" vertex="1">
+          <mxGeometry height="28" width="870" x="72" y="2484" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_a" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=14;fontColor=#29445A;fontStyle=0;spacing=0;" value="Azul: seguridad   Lila: Controller   Coral: Service   Verde: Repository   Blanco: entidad   Ámbar: vista SQL" vertex="1">
+          <mxGeometry height="25" width="900.5" x="73" y="2515" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_b" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=14;fontColor=#29445A;fontStyle=0;spacing=0;" value="Flecha discontinua = flujo entre capas. Línea continua = asociación JPA; 1 / 0..1 / 0..* indican cardinalidad junto a cada clase." vertex="1">
+          <mxGeometry height="25" width="887" x="73" y="2544" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_c" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=14;fontColor=#29445A;fontStyle=0;spacing=0;" value="OrdenCompra–DetalleOrdenCompra: composición.&amp;nbsp;" vertex="1">
+          <mxGeometry height="25" width="817" x="73" y="2571" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_d" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=14;fontColor=#29445A;fontStyle=0;spacing=0;" value="Tarjetas: métodos principales verificados; se omiten DTO, accesores Lombok, métodos heredados y sobrecargas para mantener la lectura clara.&lt;div&gt;&lt;br&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(41, 68, 90), rgb(163, 186, 205));&quot;&gt;Las cardinalidades 1, 0..1, 0..*&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(41, 68, 90), rgb(163, 186, 205));&quot;&gt; y 1..&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(41, 68, 90), rgb(163, 186, 205));&quot;&gt;*&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(41, 68, 90), rgb(163, 186, 205));&quot;&gt; representan las reglas de negocio aplicadas por el backend.&lt;/span&gt;&lt;div&gt;&lt;p&gt;&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="950.5" x="73" y="2604" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
