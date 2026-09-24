@@ -1,15 +1,6 @@
--- =========================================================================
--- Script  : 04_Vistas_bd_intiwasi.sql   (NUEVO en la version 2)
--- Proyecto: Distribuidora Inti Wasi S.A.C.
--- =========================================================================
 
 USE bd_intiwasi;
 
--- =========================================================================
--- VW_Kardex - Historial completo de movimientos
--- Entrega la cantidad CON SIGNO y el motivo ya resuelto, sin importar si
--- el documento es una entrada, una salida o un ajuste.
--- =========================================================================
 CREATE OR REPLACE VIEW VW_Kardex AS
 SELECT
     m.IdMovimiento,
@@ -43,9 +34,6 @@ LEFT  JOIN Entradas   e ON e.IdDocumento = d.IdDocumento
 LEFT  JOIN Salidas    s ON s.IdDocumento = d.IdDocumento
 LEFT  JOIN Ajustes    a ON a.IdDocumento = d.IdDocumento;
 
--- =========================================================================
--- VW_StockBajo - Productos por reponer para el Dashboard
--- =========================================================================
 CREATE OR REPLACE VIEW VW_StockBajo AS
 SELECT
     p.IdProducto,
@@ -62,10 +50,6 @@ LEFT  JOIN Proveedores pr ON pr.IdProveedor = p.IdProveedor
 WHERE p.Estado = 1
   AND p.StockActual <= p.StockMinimo;
 
--- =========================================================================
--- VW_OrdenesResumen - Cabecera de la orden con su total calculado
--- Es el respaldo real del metodo calcularTotal() del diagrama de clases.
--- =========================================================================
 CREATE OR REPLACE VIEW VW_OrdenesResumen AS
 SELECT
     o.IdOrden,
