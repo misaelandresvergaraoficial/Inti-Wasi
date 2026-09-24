@@ -1,16 +1,3 @@
--- =========================================================================
--- Script  : 02_Triggers_bd_intiwasi.sql   (VERSIoN 2 - CORREGIDA)
--- Proyecto: Distribuidora Inti Wasi S.A.C.
--- Motor   : MySQL 8.0+
--- ---------------------------------------------------------------------
--- REGLA DE ORO DEL BACKEND:
--- toda operacion de almacen debe ejecutarse dentro de UNA transaccion
--- (@Transactional en el Service) y en este orden:
---      1) INSERT Documentos
---      2) INSERT Entradas / Salidas / Ajustes   (cabecera hija)
---      3) INSERT MovimientosInventario          (una fila por producto)
--- Los triggers de validacion asumen y refuerzan ese orden.
--- =========================================================================
 
 USE bd_intiwasi;
 
@@ -31,14 +18,7 @@ DROP TRIGGER IF EXISTS TRG_Detalle_BeforeDelete;
 
 DELIMITER //
 
--- =========================================================================
--- BLOQUE A - COHERENCIA ENTRE EL DOCUMENTO PADRE Y SU TABLA HIJA
--- Impide que un documento de tipo 'Salida' termine registrado como Entrada,
--- lo que corromperia el calculo del stock.
--- =========================================================================
 
--- Una entrada solo puede colgar de un documento 'Entrada'
--- y solo puede recibir una orden en estado 'Pendiente'.
 CREATE TRIGGER TRG_Entradas_BeforeInsert
 BEFORE INSERT ON Entradas
 FOR EACH ROW
@@ -63,7 +43,6 @@ BEGIN
     END IF;
 END //
 
--- Una salida solo puede colgar de un documento 'Salida'
 CREATE TRIGGER TRG_Salidas_BeforeInsert
 BEFORE INSERT ON Salidas
 FOR EACH ROW
@@ -79,8 +58,6 @@ BEGIN
     END IF;
 END //
 
--- Un ajuste solo puede colgar de un documento 'Ajuste'
--- y solo lo puede registrar un Administrador.
 CREATE TRIGGER TRG_Ajustes_BeforeInsert
 BEFORE INSERT ON Ajustes
 FOR EACH ROW
@@ -104,11 +81,6 @@ BEGIN
     END IF;
 END //
 
--- =========================================================================
--- BLOQUE B - VALIDACION DEL MOVIMIENTO ANTES DE TOCAR EL STOCK
--- Se valida ANTES de insertar para que la operacion falle limpia y no
--- queden documentos huerfanos ni stock negativo.
--- =========================================================================
 CREATE TRIGGER TRG_Movimientos_BeforeInsert
 BEFORE INSERT ON MovimientosInventario
 FOR EACH ROW
@@ -188,7 +160,7 @@ BEGIN
             SET MESSAGE_TEXT = 'La cantidad solicitada supera el stock disponible';
         END IF;
 
-    ELSE  -- Ajuste
+    ELSE
 
         SELECT TipoAjuste INTO v_TipoAjuste
           FROM Ajustes WHERE IdDocumento = NEW.IdDocumento;
@@ -206,10 +178,6 @@ BEGIN
     END IF;
 END //
 
--- =========================================================================
--- BLOQUE C - ACTUALIZACION ATOMICA DEL STOCK
--- Llega aqui solo si el BLOQUE B valido todo.
--- =========================================================================
 CREATE TRIGGER TRG_Movimientos_AfterInsert
 AFTER INSERT ON MovimientosInventario
 FOR EACH ROW
@@ -250,9 +218,6 @@ BEGIN
     END IF;
 END //
 
--- =========================================================================
--- BLOQUE D - CIERRE AUTOMATICO DE LA ORDEN DE COMPRA
--- =========================================================================
 CREATE TRIGGER TRG_Entradas_AfterInsert
 AFTER INSERT ON Entradas
 FOR EACH ROW
@@ -262,9 +227,6 @@ BEGIN
      WHERE IdOrden = NEW.IdOrden AND Estado = 'Pendiente';
 END //
 
--- =========================================================================
--- BLOQUE E - CONGELADO DE LA ORDEN YA RECIBIDA
--- =========================================================================
 CREATE TRIGGER TRG_Detalle_BeforeInsert
 BEFORE INSERT ON DetalleOrdenCompra
 FOR EACH ROW
@@ -307,9 +269,6 @@ BEGIN
     END IF;
 END //
 
--- =========================================================================
--- BLOQUE F - INMUTABILIDAD DEL KARDEX Y DE LOS DOCUMENTOS
--- =========================================================================
 CREATE TRIGGER TRG_Movimientos_BeforeUpdate
 BEFORE UPDATE ON MovimientosInventario
 FOR EACH ROW
@@ -346,9 +305,6 @@ BEGIN
     SET MESSAGE_TEXT = 'Un documento emitido no puede ser eliminado: use un documento de ajuste para corregir.';
 END //
 
--- =========================================================================
--- COHERENCIA DE LA ANULACION LOGICA
--- =========================================================================
 CREATE TRIGGER TRG_Documentos_BloquearAnulacion
 BEFORE UPDATE ON Documentos
 FOR EACH ROW

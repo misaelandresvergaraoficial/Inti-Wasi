@@ -1,7 +1,3 @@
--- Script  : 01_DDL_bd_intiwasi.sql 
--- Proyecto: Aplicacion Web de Gestion de Inventario y Almacen
---           Distribuidora Inti Wasi S.A.C.
--- Motor   : MySQL 8.0+ / InnoDB
 
 DROP DATABASE IF EXISTS bd_intiwasi;
 CREATE DATABASE bd_intiwasi
@@ -9,9 +5,6 @@ CREATE DATABASE bd_intiwasi
   COLLATE utf8mb4_spanish_ci;
 USE bd_intiwasi;
 
--- =========================================================================
--- 1. Tabla: Usuarios             
--- =========================================================================
 CREATE TABLE Usuarios (
     IdUsuario       INT AUTO_INCREMENT PRIMARY KEY,
     NomUsuario      VARCHAR(100) NOT NULL,
@@ -27,9 +20,6 @@ CREATE TABLE Usuarios (
 
 CREATE INDEX IDX_Usuarios_Estado ON Usuarios(Estado);
 
--- =========================================================================
--- 2. Tabla: Categorias            (SIN CAMBIOS)
--- =========================================================================
 CREATE TABLE Categorias (
     IdCategoria     INT AUTO_INCREMENT PRIMARY KEY,
     NomCategoria    VARCHAR(100) NOT NULL,
@@ -37,9 +27,6 @@ CREATE TABLE Categorias (
     CONSTRAINT UQ_Categorias_Nombre UNIQUE (NomCategoria)
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 3. Tabla: Proveedores
--- =========================================================================
 CREATE TABLE Proveedores (
     IdProveedor     INT AUTO_INCREMENT PRIMARY KEY,
     NomProveedor    VARCHAR(100) NOT NULL,
@@ -52,9 +39,6 @@ CREATE TABLE Proveedores (
     CONSTRAINT CK_Proveedores_RUC CHECK (LENGTH(RUC) = 11 AND RUC REGEXP '^[0-9]+$')
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 4. Tabla: Productos
--- =========================================================================
 CREATE TABLE Productos (
     IdProducto      INT AUTO_INCREMENT PRIMARY KEY,
     SKU             VARCHAR(30) NOT NULL,
@@ -78,9 +62,6 @@ CREATE TABLE Productos (
 CREATE INDEX IDX_Productos_Stock  ON Productos(StockActual, StockMinimo);
 CREATE INDEX IDX_Productos_Estado ON Productos(Estado);
 
--- =========================================================================
--- 5. Tabla: OrdenesCompra
--- =========================================================================
 CREATE TABLE OrdenesCompra (
     IdOrden              INT AUTO_INCREMENT PRIMARY KEY,
     IdProveedor          INT NOT NULL,
@@ -98,9 +79,6 @@ CREATE TABLE OrdenesCompra (
 
 CREATE INDEX IDX_Orden_Estado ON OrdenesCompra(Estado);
 
--- =========================================================================
--- 6. Tabla: DetalleOrdenCompra
--- =========================================================================
 CREATE TABLE DetalleOrdenCompra (
     IdDetalle       INT AUTO_INCREMENT PRIMARY KEY,
     IdOrden         INT NOT NULL,
@@ -116,9 +94,6 @@ CREATE TABLE DetalleOrdenCompra (
     CONSTRAINT CK_Detalle_Precio   CHECK (PrecioUnitario >= 0)
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 7. Tabla: Documentos  (clase padre)
--- =========================================================================
 CREATE TABLE Documentos (
     IdDocumento     INT AUTO_INCREMENT PRIMARY KEY,
     TipoDocumento   ENUM('Entrada', 'Salida', 'Ajuste') NOT NULL,
@@ -132,9 +107,6 @@ CREATE TABLE Documentos (
 CREATE INDEX IDX_Documentos_Fecha ON Documentos(FechaEmision);
 CREATE INDEX IDX_Documentos_Tipo  ON Documentos(TipoDocumento, FechaEmision);
 
--- =========================================================================
--- 8. Tabla: Entradas  (hija de Documentos)
--- =========================================================================
 CREATE TABLE Entradas (
     IdEntrada       INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
@@ -149,9 +121,6 @@ CREATE TABLE Entradas (
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 9. Tabla: Salidas  (hija de Documentos)
--- =========================================================================
 CREATE TABLE Salidas (
     IdSalida        INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
@@ -162,9 +131,6 @@ CREATE TABLE Salidas (
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 10. Tabla: Ajustes  (hija de Documentos)
--- =========================================================================
 CREATE TABLE Ajustes (
     IdAjuste        INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
@@ -176,9 +142,6 @@ CREATE TABLE Ajustes (
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- =========================================================================
--- 11. Tabla: MovimientosInventario
--- =========================================================================
 CREATE TABLE MovimientosInventario (
     IdMovimiento    INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,

@@ -22,7 +22,7 @@ public class ProductoRequest {
     @NotNull(message = "La categoría es obligatoria")
     private Integer idCategoria;
 
-    private Integer idProveedor; // Opcional (permite null en BD)
+    private Integer idProveedor;
 
     @NotNull(message = "El precio es obligatorio")
     @DecimalMin(value = "0.00", message = "El precio debe ser mayor o igual a cero")
