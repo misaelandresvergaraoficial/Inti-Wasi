@@ -8,7 +8,8 @@ import java.util.Arrays;
 public enum TipoDocumento {
     ENTRADA("Entrada"),
     SALIDA("Salida"),
-    AJUSTE("Ajuste");
+    AJUSTE("Ajuste"),
+    CORRECCION("Correccion");
 
     private final String valor;
 

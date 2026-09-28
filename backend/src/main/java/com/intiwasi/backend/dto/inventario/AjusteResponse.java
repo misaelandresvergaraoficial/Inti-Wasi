@@ -16,6 +16,8 @@ import java.util.List;
 public class AjusteResponse {
     private Integer idAjuste;
     private Integer idDocumento;
+    private Byte estadoDocumento;
+    private Integer idDocumentoOrigen;
     private TipoAjuste tipoAjuste;
     private String motivo;
     private String observaciones;

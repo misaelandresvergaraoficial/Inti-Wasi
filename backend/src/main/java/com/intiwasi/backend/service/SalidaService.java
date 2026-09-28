@@ -41,6 +41,7 @@ public class SalidaService {
     private final MovimientoInventarioRepository movimientoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CorreccionInventarioService correccionService;
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
@@ -55,6 +56,27 @@ public class SalidaService {
 
     @Transactional
     public SalidaResponse registrar(SalidaRequest request) {
+        return registrarInterno(request, null);
+    }
+
+    @Transactional
+    public SalidaResponse actualizar(Integer id, SalidaRequest request) {
+        validarRequest(request);
+        validarMotivoCorreccion(request.getMotivoCorreccion());
+        Salida original = buscar(id);
+        Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.SALIDA, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
+        return registrarInterno(request, origen);
+    }
+
+    @Transactional
+    public void anular(Integer id, String motivo) {
+        Salida original = buscar(id);
+        correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.SALIDA, usuarioActual(), motivo, (byte) 0);
+    }
+
+    private SalidaResponse registrarInterno(SalidaRequest request, Documento origen) {
         validarRequest(request);
         List<Integer> ids = request.getMovimientos().stream()
                 .map(movimiento -> movimiento.getIdProducto())
@@ -79,6 +101,7 @@ public class SalidaService {
         documento.setTipoDocumento(TipoDocumento.SALIDA);
         documento.setUsuario(usuarioActual());
         documento.setEstado((byte) 1);
+        documento.setDocumentoOrigen(origen);
         documento = documentoRepository.saveAndFlush(documento);
 
         Salida salida = new Salida();
@@ -112,6 +135,9 @@ public class SalidaService {
                 .stream().map(this::convertirMovimiento).toList();
         return SalidaResponse.builder().idSalida(salida.getIdSalida())
                 .idDocumento(salida.getDocumento().getIdDocumento()).motivo(salida.getMotivo())
+                .estadoDocumento(salida.getDocumento().getEstado())
+                .idDocumentoOrigen(salida.getDocumento().getDocumentoOrigen() == null ? null
+                        : salida.getDocumento().getDocumentoOrigen().getIdDocumento())
                 .observaciones(salida.getObservaciones()).fechaEmision(salida.getDocumento().getFechaEmision())
                 .idUsuario(salida.getDocumento().getUsuario().getIdUsuario())
                 .usuarioResponsable(salida.getDocumento().getUsuario().getNomUsuario())
@@ -150,5 +176,11 @@ public class SalidaService {
 
     private String normalizar(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private void validarMotivoCorreccion(String motivo) {
+        if (motivo == null || motivo.isBlank() || motivo.length() > 255) {
+            throw new IllegalArgumentException("El motivo de corrección es obligatorio y no debe exceder 255 caracteres");
+        }
     }
 }

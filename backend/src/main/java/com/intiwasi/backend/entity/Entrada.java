@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -28,12 +29,12 @@ public class Entrada {
     @JoinColumn(name = "IdDocumento", nullable = false, unique = true)
     private Documento documento;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "IdOrden", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "IdOrden", nullable = false)
     private OrdenCompra ordenCompra;
 
-    @Column(name = "DocumentoRef", nullable = false, length = 50)
-    private String documentoRef;
+    @Column(name = "NumeroGuiaRemision", nullable = false, length = 50)
+    private String numeroGuiaRemision;
 
     @Column(name = "Observaciones", length = 255)
     private String observaciones;

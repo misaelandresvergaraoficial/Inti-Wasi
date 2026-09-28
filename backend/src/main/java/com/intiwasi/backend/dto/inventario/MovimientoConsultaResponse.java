@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class MovimientoConsultaResponse {
     private Integer idMovimiento;
     private Integer idDocumento;
+    private Integer idDocumentoOrigen;
+    private Byte estadoDocumento;
     private TipoDocumento tipoDocumento;
     private LocalDateTime fechaEmision;
     private Integer idUsuario;
@@ -23,5 +25,5 @@ public class MovimientoConsultaResponse {
     private Integer cantidadConSigno;
     private String motivo;
     private Integer idOrden;
-    private String documentoRef;
+    private String numeroGuiaRemision;
 }

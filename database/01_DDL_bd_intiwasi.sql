@@ -1,4 +1,6 @@
 
+-- Reconstruccion completa para desarrollo: elimina los datos existentes de bd_intiwasi.
+-- No ejecutar sobre una base con informacion que se necesite conservar.
 DROP DATABASE IF EXISTS bd_intiwasi;
 CREATE DATABASE bd_intiwasi
   CHARACTER SET utf8mb4
@@ -68,7 +70,7 @@ CREATE TABLE OrdenesCompra (
     IdUsuario            INT NOT NULL,
     FechaEmision         DATE NOT NULL,
     FechaEstimadaEntrega DATE,
-    Estado               ENUM('Pendiente', 'Recibida') NOT NULL DEFAULT 'Pendiente',
+    Estado               ENUM('Pendiente', 'Parcial', 'Recibida', 'Cancelada') NOT NULL DEFAULT 'Pendiente',
     CONSTRAINT FK_Orden_Proveedor FOREIGN KEY (IdProveedor) REFERENCES Proveedores(IdProveedor)
         ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT FK_Orden_Usuario   FOREIGN KEY (IdUsuario)   REFERENCES Usuarios(IdUsuario)
@@ -96,12 +98,25 @@ CREATE TABLE DetalleOrdenCompra (
 
 CREATE TABLE Documentos (
     IdDocumento     INT AUTO_INCREMENT PRIMARY KEY,
-    TipoDocumento   ENUM('Entrada', 'Salida', 'Ajuste') NOT NULL,
+    TipoDocumento   ENUM('Entrada', 'Salida', 'Ajuste', 'Correccion') NOT NULL,
     IdUsuario       INT NOT NULL,
     FechaEmision    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- 1 = vigente, 2 = rectificado, 0 = anulado. No se borra el documento original.
     Estado          TINYINT NOT NULL DEFAULT 1,
+    -- Correccion: documento que revierte el original. Otro tipo: reemplazo del original.
+    IdDocumentoOrigen INT NULL,
+    MotivoCorreccion VARCHAR(255) NULL,
     CONSTRAINT FK_Doc_Usuario FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario)
-        ON UPDATE RESTRICT ON DELETE RESTRICT
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT FK_Doc_Origen FOREIGN KEY (IdDocumentoOrigen) REFERENCES Documentos(IdDocumento)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT UQ_Doc_OrigenTipo UNIQUE (IdDocumentoOrigen, TipoDocumento),
+    CONSTRAINT CK_Doc_Estado CHECK (Estado IN (0, 1, 2)),
+    CONSTRAINT CK_Doc_Correccion CHECK (
+        (TipoDocumento = 'Correccion' AND IdDocumentoOrigen IS NOT NULL
+         AND MotivoCorreccion IS NOT NULL AND CHAR_LENGTH(TRIM(MotivoCorreccion)) > 0)
+        OR (TipoDocumento <> 'Correccion' AND MotivoCorreccion IS NULL)
+    )
 ) ENGINE=InnoDB;
 
 CREATE INDEX IDX_Documentos_Fecha ON Documentos(FechaEmision);
@@ -111,15 +126,18 @@ CREATE TABLE Entradas (
     IdEntrada       INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
     IdOrden         INT NOT NULL,
-    DocumentoRef    VARCHAR(50) NOT NULL,       
+    -- Numero de la guia entregada por el proveedor; se transcribe del documento fisico.
+    NumeroGuiaRemision VARCHAR(50) NOT NULL,
     Observaciones   VARCHAR(255),
     CONSTRAINT UQ_Entradas_Documento UNIQUE (IdDocumento),
-    CONSTRAINT UQ_Entradas_Orden     UNIQUE (IdOrden),
     CONSTRAINT FK_Entrada_Documento FOREIGN KEY (IdDocumento) REFERENCES Documentos(IdDocumento)
         ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT FK_Entrada_Orden     FOREIGN KEY (IdOrden)     REFERENCES OrdenesCompra(IdOrden)
-        ON UPDATE RESTRICT ON DELETE RESTRICT
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT CK_Entrada_Guia CHECK (CHAR_LENGTH(TRIM(NumeroGuiaRemision)) > 0)
 ) ENGINE=InnoDB;
+
+CREATE INDEX IDX_Entradas_Orden ON Entradas(IdOrden);
 
 CREATE TABLE Salidas (
     IdSalida        INT AUTO_INCREMENT PRIMARY KEY,
@@ -147,6 +165,7 @@ CREATE TABLE MovimientosInventario (
     IdDocumento     INT NOT NULL,
     IdProducto      INT NOT NULL,
     Cantidad        INT NOT NULL,
+    CONSTRAINT UQ_Mov_DocumentoProducto UNIQUE (IdDocumento, IdProducto),
     CONSTRAINT FK_Mov_Documento FOREIGN KEY (IdDocumento) REFERENCES Documentos(IdDocumento)
         ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT FK_Mov_Producto  FOREIGN KEY (IdProducto)  REFERENCES Productos(IdProducto)

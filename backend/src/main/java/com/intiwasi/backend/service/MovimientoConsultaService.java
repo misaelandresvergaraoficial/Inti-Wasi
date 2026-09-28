@@ -49,11 +49,12 @@ public class MovimientoConsultaService {
     private MovimientoConsultaResponse convertir(KardexMovimiento k) {
         return MovimientoConsultaResponse.builder()
                 .idMovimiento(k.getIdMovimiento()).idDocumento(k.getIdDocumento())
+                .idDocumentoOrigen(k.getIdDocumentoOrigen()).estadoDocumento(k.getEstadoDocumento())
                 .tipoDocumento(k.getTipoDocumento()).fechaEmision(k.getFechaEmision())
                 .idUsuario(k.getIdUsuario()).usuarioResponsable(k.getUsuarioResponsable())
                 .idProducto(k.getIdProducto()).sku(k.getSku()).nomProducto(k.getNomProducto())
                 .nomCategoria(k.getNomCategoria()).cantidad(k.getCantidad())
                 .cantidadConSigno(k.getCantidadConSigno()).motivo(k.getMotivo())
-                .idOrden(k.getIdOrden()).documentoRef(k.getDocumentoRef()).build();
+                .idOrden(k.getIdOrden()).numeroGuiaRemision(k.getNumeroGuiaRemision()).build();
     }
 }

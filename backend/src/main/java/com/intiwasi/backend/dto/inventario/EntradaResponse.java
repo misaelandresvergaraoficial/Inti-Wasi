@@ -16,7 +16,9 @@ public class EntradaResponse {
     private Integer idEntrada;
     private Integer idDocumento;
     private Integer idOrden;
-    private String documentoRef;
+    private String numeroGuiaRemision;
+    private Byte estadoDocumento;
+    private Integer idDocumentoOrigen;
     private String observaciones;
     private LocalDateTime fechaEmision;
     private Integer idUsuario;

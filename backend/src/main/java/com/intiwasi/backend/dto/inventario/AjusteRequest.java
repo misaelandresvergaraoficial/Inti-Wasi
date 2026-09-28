@@ -22,6 +22,9 @@ public class AjusteRequest {
     @Size(max = 255, message = "Las observaciones no deben exceder 255 caracteres")
     private String observaciones;
 
+    @Size(max = 255, message = "El motivo de corrección no debe exceder 255 caracteres")
+    private String motivoCorreccion;
+
     @Valid
     @NotEmpty(message = "El ajuste debe contener al menos un movimiento")
     private List<MovimientoRequest> movimientos;

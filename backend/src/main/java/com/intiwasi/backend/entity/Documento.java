@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Immutable;
 
 import java.time.LocalDateTime;
 
@@ -25,7 +24,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@Immutable
 public class Documento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +31,7 @@ public class Documento {
     private Integer idDocumento;
 
     @Convert(converter = TipoDocumentoConverter.class)
-    @Column(name = "TipoDocumento", nullable = false, length = 7)
+    @Column(name = "TipoDocumento", nullable = false, length = 10)
     private TipoDocumento tipoDocumento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -46,4 +44,11 @@ public class Documento {
 
     @Column(name = "Estado", nullable = false)
     private Byte estado = (byte) 1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdDocumentoOrigen")
+    private Documento documentoOrigen;
+
+    @Column(name = "MotivoCorreccion", length = 255)
+    private String motivoCorreccion;
 }

@@ -16,6 +16,8 @@ import java.util.List;
 public class SalidaResponse {
     private Integer idSalida;
     private Integer idDocumento;
+    private Byte estadoDocumento;
+    private Integer idDocumentoOrigen;
     private MotivoSalida motivo;
     private String observaciones;
     private LocalDateTime fechaEmision;

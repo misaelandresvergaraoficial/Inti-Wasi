@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class KardexMovimiento {
     @Id @Column(name = "IdMovimiento") private Integer idMovimiento;
     @Column(name = "IdDocumento") private Integer idDocumento;
+    @Column(name = "IdDocumentoOrigen") private Integer idDocumentoOrigen;
     @Convert(converter = TipoDocumentoConverter.class)
     @Column(name = "TipoDocumento") private TipoDocumento tipoDocumento;
     @Column(name = "FechaEmision") private LocalDateTime fechaEmision;
@@ -32,6 +33,6 @@ public class KardexMovimiento {
     @Column(name = "CantidadConSigno") private Integer cantidadConSigno;
     @Column(name = "Motivo") private String motivo;
     @Column(name = "IdOrden") private Integer idOrden;
-    @Column(name = "DocumentoRef") private String documentoRef;
+    @Column(name = "DocumentoRef") private String numeroGuiaRemision;
     @Column(name = "EstadoDocumento") private Byte estadoDocumento;
 }

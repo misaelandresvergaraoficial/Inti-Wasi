@@ -12,7 +12,6 @@ import com.intiwasi.backend.entity.OrdenCompra;
 import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
-import com.intiwasi.backend.exception.ConflictoException;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
@@ -45,6 +44,7 @@ public class EntradaService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CorreccionInventarioService correccionService;
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
@@ -59,25 +59,61 @@ public class EntradaService {
 
     @Transactional
     public EntradaResponse registrar(EntradaRequest request) {
+        return registrarInterno(request, null);
+    }
+
+    @Transactional
+    public EntradaResponse actualizar(Integer id, EntradaRequest request) {
+        validarRequest(request);
+        validarMotivoCorreccion(request.getMotivoCorreccion());
+        Entrada original = buscarEntrada(id);
+        if (!original.getOrdenCompra().getIdOrden().equals(request.getIdOrden())) {
+            throw new ReglaNegocioException("La entrada corregida debe pertenecer a la misma orden");
+        }
+        OrdenCompra ordenActual = ordenCompraRepository.findByIdConDetallesForUpdate(request.getIdOrden())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada"));
+        if ("Cancelada".equals(ordenActual.getEstado())) {
+            Map<Integer, Integer> cantidadesOriginales = movimientoRepository
+                    .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(original.getDocumento().getIdDocumento())
+                    .stream().collect(Collectors.toMap(m -> m.getProducto().getIdProducto(), m -> m.getCantidad()));
+            for (MovimientoRequest item : request.getMovimientos()) {
+                if (item.getCantidad() > cantidadesOriginales.getOrDefault(item.getIdProducto(), 0)) {
+                    throw new ReglaNegocioException("Una orden cancelada no admite aumentar la cantidad recibida");
+                }
+            }
+        }
+        Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.ENTRADA, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
+        return registrarInterno(request, origen);
+    }
+
+    @Transactional
+    public void anular(Integer id, String motivo) {
+        Entrada original = buscarEntrada(id);
+        ordenCompraRepository.findByIdConDetallesForUpdate(original.getOrdenCompra().getIdOrden())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada"));
+        correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.ENTRADA, usuarioActual(), motivo, (byte) 0);
+    }
+
+    private EntradaResponse registrarInterno(EntradaRequest request, Documento origen) {
         validarRequest(request);
         OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(request.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Orden de compra no encontrada con ID: " + request.getIdOrden()));
 
-        if (!"Pendiente".equals(orden.getEstado())) {
-            throw new ReglaNegocioException("La orden de compra ya fue recibida");
-        }
-        if (entradaRepository.existsByOrdenCompra_IdOrden(orden.getIdOrden())) {
-            throw new ConflictoException("La orden de compra ya tiene una entrada registrada");
+        if (origen == null && !Set.of("Pendiente", "Parcial").contains(orden.getEstado())) {
+            throw new ReglaNegocioException("La orden de compra no admite nuevas recepciones");
         }
 
         Map<Integer, DetalleOrdenCompra> detallePorProducto = orden.getDetalles().stream()
                 .collect(Collectors.toMap(d -> d.getProducto().getIdProducto(), Function.identity()));
-        Map<Integer, Producto> productos = request.getMovimientos().stream()
-                .map(movimiento -> movimiento.getIdProducto())
-                .distinct()
-                .map(id -> productoRepository.findById(id)
-                        .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + id)))
+        List<Integer> ids = request.getMovimientos().stream().map(movimiento -> movimiento.getIdProducto()).sorted().toList();
+        List<Producto> bloqueados = productoRepository.findAllByIdForUpdate(ids);
+        if (bloqueados.size() != ids.size()) {
+            throw new RecursoNoEncontradoException("Uno o más productos no existen");
+        }
+        Map<Integer, Producto> productos = bloqueados.stream()
                 .collect(Collectors.toMap(producto -> producto.getIdProducto(), Function.identity()));
 
         for (MovimientoRequest movimiento : request.getMovimientos()) {
@@ -89,18 +125,20 @@ public class EntradaService {
             if (detalle == null) {
                 throw new ReglaNegocioException("El producto no pertenece a la orden de compra: " + producto.getIdProducto());
             }
-            if (movimiento.getCantidad() > detalle.getCantidad()) {
-                throw new ReglaNegocioException("La cantidad recibida supera la solicitada para el producto: " + producto.getIdProducto());
+            int recibida = entradaRepository.cantidadRecibida(orden.getIdOrden(), producto.getIdProducto());
+            if (recibida + movimiento.getCantidad() > detalle.getCantidad()) {
+                throw new ReglaNegocioException("La cantidad recibida supera el saldo de la orden para el producto: " + producto.getIdProducto());
             }
         }
 
         Documento documento = nuevoDocumento(TipoDocumento.ENTRADA, usuarioActual());
+        documento.setDocumentoOrigen(origen);
         documento = documentoRepository.saveAndFlush(documento);
 
         Entrada entrada = new Entrada();
         entrada.setDocumento(documento);
         entrada.setOrdenCompra(orden);
-        entrada.setDocumentoRef(request.getDocumentoRef().trim());
+        entrada.setNumeroGuiaRemision(request.getNumeroGuiaRemision().trim());
         entrada.setObservaciones(normalizar(request.getObservaciones()));
         entrada = entradaRepository.saveAndFlush(entrada);
 
@@ -131,7 +169,10 @@ public class EntradaService {
                 .idEntrada(entrada.getIdEntrada())
                 .idDocumento(entrada.getDocumento().getIdDocumento())
                 .idOrden(entrada.getOrdenCompra().getIdOrden())
-                .documentoRef(entrada.getDocumentoRef())
+                .numeroGuiaRemision(entrada.getNumeroGuiaRemision())
+                .estadoDocumento(entrada.getDocumento().getEstado())
+                .idDocumentoOrigen(entrada.getDocumento().getDocumentoOrigen() == null ? null
+                        : entrada.getDocumento().getDocumentoOrigen().getIdDocumento())
                 .observaciones(entrada.getObservaciones())
                 .fechaEmision(entrada.getDocumento().getFechaEmision())
                 .idUsuario(entrada.getDocumento().getUsuario().getIdUsuario())
@@ -152,9 +193,9 @@ public class EntradaService {
         if (request == null || request.getIdOrden() == null) {
             throw new IllegalArgumentException("La orden de compra es obligatoria");
         }
-        if (request.getDocumentoRef() == null || request.getDocumentoRef().isBlank()
-                || request.getDocumentoRef().length() > 50) {
-            throw new IllegalArgumentException("El documento de referencia es obligatorio y no debe exceder 50 caracteres");
+        if (request.getNumeroGuiaRemision() == null || request.getNumeroGuiaRemision().isBlank()
+                || request.getNumeroGuiaRemision().length() > 50) {
+            throw new IllegalArgumentException("El número de guía de remisión es obligatorio y no debe exceder 50 caracteres");
         }
         validarMovimientos(request.getMovimientos());
     }
@@ -190,5 +231,11 @@ public class EntradaService {
 
     private String normalizar(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private void validarMotivoCorreccion(String motivo) {
+        if (motivo == null || motivo.isBlank() || motivo.length() > 255) {
+            throw new IllegalArgumentException("El motivo de corrección es obligatorio y no debe exceder 255 caracteres");
+        }
     }
 }
