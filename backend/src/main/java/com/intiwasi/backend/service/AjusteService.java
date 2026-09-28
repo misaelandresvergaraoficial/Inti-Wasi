@@ -42,6 +42,7 @@ public class AjusteService {
     private final MovimientoInventarioRepository movimientoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CorreccionInventarioService correccionService;
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
@@ -56,6 +57,27 @@ public class AjusteService {
 
     @Transactional
     public AjusteResponse registrar(AjusteRequest request) {
+        return registrarInterno(request, null);
+    }
+
+    @Transactional
+    public AjusteResponse actualizar(Integer id, AjusteRequest request) {
+        validarRequest(request);
+        validarMotivoCorreccion(request.getMotivoCorreccion());
+        Ajuste original = buscar(id);
+        Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.AJUSTE, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
+        return registrarInterno(request, origen);
+    }
+
+    @Transactional
+    public void anular(Integer id, String motivo) {
+        Ajuste original = buscar(id);
+        correccionService.revertir(original.getDocumento().getIdDocumento(),
+                TipoDocumento.AJUSTE, usuarioActual(), motivo, (byte) 0);
+    }
+
+    private AjusteResponse registrarInterno(AjusteRequest request, Documento origen) {
         validarRequest(request);
         List<Integer> ids = request.getMovimientos().stream()
                 .map(movimiento -> movimiento.getIdProducto())
@@ -77,6 +99,7 @@ public class AjusteService {
         documento.setTipoDocumento(TipoDocumento.AJUSTE);
         documento.setUsuario(usuarioActual());
         documento.setEstado((byte) 1);
+        documento.setDocumentoOrigen(origen);
         documento = documentoRepository.saveAndFlush(documento);
 
         Ajuste ajuste = new Ajuste();
@@ -112,6 +135,9 @@ public class AjusteService {
                 .stream().map(this::convertirMovimiento).toList();
         return AjusteResponse.builder().idAjuste(ajuste.getIdAjuste())
                 .idDocumento(ajuste.getDocumento().getIdDocumento()).tipoAjuste(ajuste.getTipoAjuste())
+                .estadoDocumento(ajuste.getDocumento().getEstado())
+                .idDocumentoOrigen(ajuste.getDocumento().getDocumentoOrigen() == null ? null
+                        : ajuste.getDocumento().getDocumentoOrigen().getIdDocumento())
                 .motivo(ajuste.getMotivo()).observaciones(ajuste.getObservaciones())
                 .fechaEmision(ajuste.getDocumento().getFechaEmision())
                 .idUsuario(ajuste.getDocumento().getUsuario().getIdUsuario())
@@ -151,4 +177,10 @@ public class AjusteService {
     }
 
     private String normalizar(String valor) { return valor == null || valor.isBlank() ? null : valor.trim(); }
+
+    private void validarMotivoCorreccion(String motivo) {
+        if (motivo == null || motivo.isBlank() || motivo.length() > 255) {
+            throw new IllegalArgumentException("El motivo de corrección es obligatorio y no debe exceder 255 caracteres");
+        }
+    }
 }

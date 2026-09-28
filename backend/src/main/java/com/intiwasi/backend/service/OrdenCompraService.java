@@ -12,6 +12,7 @@ import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.OrdenCompraRepository;
+import com.intiwasi.backend.repository.EntradaRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.ProveedorRepository;
 import com.intiwasi.backend.repository.UsuarioRepository;
@@ -38,11 +39,13 @@ public class OrdenCompraService {
 
     private static final String ESTADO_PENDIENTE = "Pendiente";
     private static final String ESTADO_RECIBIDA = "Recibida";
+    private static final String ESTADO_CANCELADA = "Cancelada";
 
     private final OrdenCompraRepository ordenCompraRepository;
     private final ProveedorRepository proveedorRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final EntradaRepository entradaRepository;
 
     @Transactional(readOnly = true)
     public List<OrdenCompraResponse> listarTodas() {
@@ -79,9 +82,10 @@ public class OrdenCompraService {
 
     @Transactional
     public OrdenCompraResponse actualizar(Integer id, OrdenCompraRequest request) {
-        OrdenCompra orden = buscarOrden(id);
-        if (ESTADO_RECIBIDA.equals(orden.getEstado())) {
-            throw new ReglaNegocioException("No es posible editar una orden que ya ha sido recibida");
+        OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada con ID: " + id));
+        if (!ESTADO_PENDIENTE.equals(orden.getEstado()) || entradaRepository.existsByOrdenCompra_IdOrden(id)) {
+            throw new ReglaNegocioException("Solo se puede editar una orden pendiente sin entradas registradas");
         }
 
         validarFechaEstimada(request.getFechaEstimadaEntrega(), orden.getFechaEmision());
@@ -94,6 +98,17 @@ public class OrdenCompraService {
         reemplazarDetalles(orden, detallesNuevos);
 
         return convertirAResponse(ordenCompraRepository.save(orden));
+    }
+
+    @Transactional
+    public void cancelar(Integer id) {
+        OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada con ID: " + id));
+        if (ESTADO_RECIBIDA.equals(orden.getEstado()) || ESTADO_CANCELADA.equals(orden.getEstado())) {
+            throw new ReglaNegocioException("Solo se puede cancelar una orden pendiente o parcial");
+        }
+        orden.setEstado(ESTADO_CANCELADA);
+        ordenCompraRepository.saveAndFlush(orden);
     }
 
     private OrdenCompra buscarOrden(Integer id) {
@@ -215,7 +230,7 @@ public class OrdenCompraService {
 
     private OrdenCompraResponse convertirAResponse(OrdenCompra orden) {
         List<DetalleOrdenCompraResponse> detalles = orden.getDetalles().stream()
-                .map(this::convertirDetalleAResponse)
+                .map(detalle -> convertirDetalleAResponse(orden, detalle))
                 .toList();
 
         BigDecimal total = BigDecimal.ZERO;
@@ -237,9 +252,11 @@ public class OrdenCompraService {
                 .build();
     }
 
-    private DetalleOrdenCompraResponse convertirDetalleAResponse(DetalleOrdenCompra detalle) {
+    private DetalleOrdenCompraResponse convertirDetalleAResponse(OrdenCompra orden, DetalleOrdenCompra detalle) {
         BigDecimal subtotal = detalle.getPrecioUnitario()
                 .multiply(BigDecimal.valueOf(detalle.getCantidad()));
+        Integer recibida = entradaRepository.cantidadRecibida(orden.getIdOrden(), detalle.getProducto().getIdProducto());
+        if (recibida == null) recibida = 0;
 
         return DetalleOrdenCompraResponse.builder()
                 .idDetalle(detalle.getIdDetalle())
@@ -247,6 +264,8 @@ public class OrdenCompraService {
                 .sku(detalle.getProducto().getSku())
                 .nomProducto(detalle.getProducto().getNomProducto())
                 .cantidad(detalle.getCantidad())
+                .cantidadRecibida(recibida)
+                .cantidadPorRecibir(ESTADO_CANCELADA.equals(orden.getEstado()) ? 0 : detalle.getCantidad() - recibida)
                 .precioUnitario(detalle.getPrecioUnitario())
                 .subtotal(subtotal)
                 .build();

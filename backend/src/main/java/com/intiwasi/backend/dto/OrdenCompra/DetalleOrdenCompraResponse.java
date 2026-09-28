@@ -17,6 +17,8 @@ public class DetalleOrdenCompraResponse {
     private String sku;
     private String nomProducto;
     private Integer cantidad;
+    private Integer cantidadRecibida;
+    private Integer cantidadPorRecibir;
     private BigDecimal precioUnitario;
     private BigDecimal subtotal;
 }

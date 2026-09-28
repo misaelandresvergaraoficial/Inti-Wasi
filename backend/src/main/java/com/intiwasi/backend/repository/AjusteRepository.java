@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AjusteRepository extends JpaRepository<Ajuste, Integer> {
+    Optional<Ajuste> findByDocumento_IdDocumento(Integer idDocumento);
+
     @EntityGraph(attributePaths = {"documento", "documento.usuario"})
     @Query("select a from Ajuste a order by a.idAjuste desc")
     List<Ajuste> findAllConRelaciones();

@@ -28,8 +28,8 @@ public class DashboardService {
         return DashboardResponse.builder()
                 .totalProductosActivos(productoRepository.countByEstado((byte) 1))
                 .productosConStockBajo(productoRepository.countConStockBajo((byte) 1))
-                .entradasDelDia(documentoRepository.countByTipoDocumentoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.ENTRADA, inicio, fin))
-                .salidasDelDia(documentoRepository.countByTipoDocumentoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.SALIDA, inicio, fin))
+                .entradasDelDia(documentoRepository.countByTipoDocumentoAndEstadoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.ENTRADA, (byte) 1, inicio, fin))
+                .salidasDelDia(documentoRepository.countByTipoDocumentoAndEstadoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.SALIDA, (byte) 1, inicio, fin))
                 .productosPorReponer(stockBajoRepository.findTop20ByOrderByUnidadesPorReponerDesc().stream().map(this::convertir).toList())
                 .build();
     }
