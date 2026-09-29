@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Optional<Usuario> findByCorreoAndEstado(String correo, Integer estado);
+    Optional<Usuario> findByCorreo(String correo);
 
     boolean existsByCorreo(String correo);
 
@@ -17,4 +18,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     boolean existsByTelefono(String telefono);
 
     List<Usuario> findByEstado(Integer estado);
+    List<Usuario> findAllByOrderByIdUsuarioAsc();
 }

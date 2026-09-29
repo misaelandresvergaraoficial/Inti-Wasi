@@ -25,6 +25,18 @@ public class UsuarioService {
                 .toList();
     }
 
+    public List<UsuarioResponse> listarTodos() {
+        return usuarioRepository.findAllByOrderByIdUsuarioAsc().stream()
+                .map(this::mapearAResponse)
+                .toList();
+    }
+
+    public UsuarioResponse obtenerActual(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreoAndEstado(correo, 1)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario activo no encontrado"));
+        return mapearAResponse(usuario);
+    }
+
     public UsuarioResponse obtenerPorId(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -105,6 +117,15 @@ public class UsuarioService {
                 ));
         usuario.setEstado(0);
         usuarioRepository.save(usuario);
+    }
+
+    public UsuarioResponse cambiarEstado(Integer id, Integer estado) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con ID: " + id
+                ));
+        usuario.setEstado(estado);
+        return mapearAResponse(usuarioRepository.save(usuario));
     }
 
     private UsuarioResponse mapearAResponse(Usuario usuario) {

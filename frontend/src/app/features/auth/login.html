@@ -1,0 +1,128 @@
+<a class="skip-link" href="#login-title">Saltar al formulario</a>
+<div class="login-page">
+  <header class="login-header">
+    <a href="/" class="brand"
+      ><img src="marca.svg" width="40" height="40" alt="" /><span
+        >Inti Wasi<small>DISTRIBUIDORA</small></span
+      ></a
+    ><span class="login-header-label">Sistema de inventario y almacén</span>
+  </header>
+  <main id="login-content" class="login-main">
+    <section class="login-intro" aria-labelledby="intro-title">
+      <span class="eyebrow">DISTRIBUIDORA INTI WASI S.A.C.</span>
+      <p id="intro-title" class="intro-title">Un lugar para<br />organizar tu trabajo.</p>
+      <p class="intro-description">
+        Gestiona el inventario y las operaciones de almacén con información clara, en un solo
+        espacio.
+      </p>
+      <div class="intro-separator"></div>
+      <div class="intro-detail">
+        <span class="intro-icon"><iw-icon name="shield" /></span>
+        <div>
+          <strong>Cada persona, el acceso que necesita</strong>
+          <p>Trabaja con las herramientas asignadas a tu rol.</p>
+        </div>
+      </div>
+      <div class="intro-detail">
+        <span class="intro-icon"><iw-icon name="check" /></span>
+        <div>
+          <strong>Operaciones con trazabilidad</strong>
+          <p>Conserva el registro de cada movimiento.</p>
+        </div>
+      </div>
+      <div class="intro-caption">TECNOLOGÍA · INVENTARIO · CONTROL</div>
+    </section>
+    <section class="login-card" aria-labelledby="login-title">
+      <div class="login-card-heading">
+        <span class="section-icon"><iw-icon name="lock" /></span>
+        <h1 id="login-title" tabindex="-1">Iniciar sesión</h1>
+        <p>Ingresa con tu cuenta de trabajo.</p>
+      </div>
+      @if (expired) {
+        <div class="notice warning" role="status">
+          <iw-icon name="info" />
+          <div>
+            <strong>Tu sesión ha caducado</strong>
+            <p>Inicia sesión nuevamente para continuar.</p>
+          </div>
+        </div>
+      }
+      @if (accountChanged) {
+        <div class="notice info" role="status">
+          <iw-icon name="info" />
+          <div>
+            <strong>Datos de acceso actualizados</strong>
+            <p>Inicia sesión nuevamente con tus credenciales actuales.</p>
+          </div>
+        </div>
+      }
+      <form
+        #loginForm
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+        novalidate
+        [attr.aria-busy]="busy()"
+      >
+        <div class="field">
+          <label for="login-email">Correo electrónico</label
+          ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+            ><input
+              matInput
+              id="login-email"
+              type="email"
+              autocomplete="username"
+              formControlName="correo"
+              placeholder="nombre@empresa.com"
+            />
+            @if (form.controls.correo.invalid) {
+              <mat-error>{{ errorText(form.controls.correo, 'tu correo electrónico') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="field">
+          <label for="login-password">Contraseña</label
+          ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+            ><input
+              matInput
+              id="login-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="current-password"
+              formControlName="contrasena"
+            /><button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <iw-icon [name]="showPassword() ? 'eyeOff' : 'eye'" />
+            </button>
+            @if (form.controls.contrasena.invalid) {
+              <mat-error>{{ errorText(form.controls.contrasena, 'tu contraseña') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        @if (error()) {
+          <div class="notice error" role="alert">
+            <iw-icon name="info" />
+            <p>{{ error() }}</p>
+          </div>
+        }
+        <button mat-flat-button type="submit" class="login-submit" [disabled]="busy()">
+          {{ busy() ? 'Iniciando sesión…' : 'Iniciar sesión' }}<iw-icon name="next" />
+        </button>
+        <span class="sr-only" role="status">{{
+          busy() ? 'Validando tus datos de acceso.' : ''
+        }}</span>
+      </form>
+      <div class="login-help">
+        <strong>¿Necesitas acceso?</strong>
+        <p>Comunícate con el administrador de tu empresa.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="login-footer">
+    <span>© 2026 Distribuidora Inti Wasi S.A.C.</span><span>Acceso al sistema de inventario</span>
+  </footer>
+</div>
