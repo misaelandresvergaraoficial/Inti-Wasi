@@ -71,3 +71,14 @@ Proyecto para la gestión y trazabilidad de inventario, compras y almacén para 
    ```text
    http://localhost:8080
    ```
+
+### 4. Frontend Angular
+
+En otra terminal, ejecutar desde `frontend/`:
+
+```powershell
+npm ci
+npm start
+```
+
+Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos y gestión de usuarios; el resto de módulos continúa a cargo del equipo. Consultar [la guía del frontend](frontend/README.md).
