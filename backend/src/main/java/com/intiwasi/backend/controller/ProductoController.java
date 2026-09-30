@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -19,10 +20,27 @@ import java.util.List;
 public class ProductoController {
 
     private final ProductoService productoService;
-
-    @GetMapping
+    
+    // Endpoint para listar todos (activos e inactivos)
+    @GetMapping("/todos")
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
     public ResponseEntity<List<ProductoResponse>> listarTodos() {
+        return ResponseEntity.ok(productoService.listarTodos());
+    }
+
+    // Endpoint para actualizar el estado a través de un JSON body
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<ProductoResponse> cambiarEstado(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Integer> body) {
+        Integer estado = body.get("estado");
+        return ResponseEntity.ok(productoService.cambiarEstado(id, estado));
+    }
+    
+    @GetMapping
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
+    public ResponseEntity<List<ProductoResponse>> listarTodosActivos() {
         return ResponseEntity.ok(productoService.listarTodosActivos());
     }
 
@@ -59,4 +77,6 @@ public class ProductoController {
         productoService.desactivarProducto(id);
         return ResponseEntity.noContent().build();
     }
+
+    
 }
