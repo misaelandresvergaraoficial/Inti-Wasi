@@ -12,46 +12,25 @@ export class UsersService {
   private readonly base = '/api/usuarios';
 
   list(): Promise<UsuarioResponse[]> {
-    return this.request(
-      this.http.get<UsuarioResponse[]>(`${this.base}/todos`, {
-        headers: this.auth.authorization(),
-      }),
-    );
+    return this.request(this.http.get<UsuarioResponse[]>(`${this.base}/todos`));
   }
 
   get(id: number): Promise<UsuarioResponse> {
-    return this.request(
-      this.http.get<UsuarioResponse>(`${this.base}/${id}`, {
-        headers: this.auth.authorization(),
-      }),
-    );
+    return this.request(this.http.get<UsuarioResponse>(`${this.base}/${id}`));
   }
 
   save(request: UsuarioRequest, id?: number): Promise<UsuarioResponse> {
-    const options = { headers: this.auth.authorization() };
     return id
-      ? this.request(this.http.put<UsuarioResponse>(`${this.base}/${id}`, request, options))
-      : this.request(this.http.post<UsuarioResponse>(this.base, request, options));
+      ? this.request(this.http.put<UsuarioResponse>(`${this.base}/${id}`, request))
+      : this.request(this.http.post<UsuarioResponse>(this.base, request));
   }
 
   deactivate(id: number): Promise<void> {
-    return this.request(
-      this.http.delete<void>(`${this.base}/${id}`, {
-        headers: this.auth.authorization(),
-      }),
-    );
+    return this.request(this.http.delete<void>(`${this.base}/${id}`));
   }
 
   async activate(id: number): Promise<void> {
-    await this.request(
-      this.http.put<UsuarioResponse>(
-        `${this.base}/${id}/estado`,
-        { estado: 1 },
-        {
-          headers: this.auth.authorization(),
-        },
-      ),
-    );
+    await this.request(this.http.put<UsuarioResponse>(`${this.base}/${id}/estado`, { estado: 1 }));
   }
 
   private async request<T>(operation: Observable<T>): Promise<T> {

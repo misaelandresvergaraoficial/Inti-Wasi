@@ -1,9 +1,11 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { provideRouter, Router } from '@angular/router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { UsersService } from './users.service';
+import { authInterceptor } from './auth.interceptor';
+import { AuthService } from './auth.service';
 import { UsuarioRequest, UsuarioResponse } from './models';
 
 const token = 'jwt-de-prueba';
@@ -41,7 +43,11 @@ describe('Usuarios conectados al backend', () => {
       }),
     );
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     });
     users = TestBed.inject(UsersService);
     http = TestBed.inject(HttpTestingController);
@@ -59,6 +65,19 @@ describe('Usuarios conectados al backend', () => {
     expect(request.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
     request.flush([user, { ...user, idUsuario: 7, estado: 0 }]);
     expect((await result).map((record) => record.estado)).toEqual([1, 0]);
+  });
+
+  it('no envía el JWT al login ni a servicios ajenos a la API', () => {
+    const client = TestBed.inject(HttpClient);
+    client.post('/api/auth/login', {}).subscribe();
+    const login = http.expectOne('/api/auth/login');
+    expect(login.request.headers.has('Authorization')).toBe(false);
+    login.flush({});
+
+    client.get('https://example.com/api/datos').subscribe();
+    const external = http.expectOne('https://example.com/api/datos');
+    expect(external.request.headers.has('Authorization')).toBe(false);
+    external.flush({});
   });
 
   it('desactiva con DELETE y reactiva la misma cuenta con PUT de estado', async () => {
@@ -93,5 +112,19 @@ describe('Usuarios conectados al backend', () => {
       { status: 409, statusText: 'Conflict' },
     );
     await expect(result).rejects.toMatchObject({ status: 409, field: 'correo' });
+  });
+
+  it('cierra una sesión rechazada por el backend', async () => {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const result = users.list();
+    const request = http.expectOne('/api/usuarios/todos');
+    request.flush(
+      { message: 'Se requiere un token JWT válido' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
+
+    await expect(result).rejects.toMatchObject({ status: 401 });
+    expect(TestBed.inject(AuthService).session()).toBeNull();
+    expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
   });
 });
