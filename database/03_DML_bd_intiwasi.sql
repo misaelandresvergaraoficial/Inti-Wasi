@@ -196,8 +196,6 @@ INSERT INTO Ajustes (IdAjuste, IdDocumento, TipoAjuste, Motivo, Observaciones) V
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (27, 15, 7, 1);
 
--- Ejemplo de recepcion parcial: la orden 7 pide 8 del producto 2 y 6 del 9.
--- Se reciben 4 y 3; la orden queda Parcial y el resto sigue pendiente.
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (16, 'Entrada', 2, '2026-03-03 10:00:00', 1);
 INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
