@@ -21,6 +21,8 @@ Proyecto para la gestión y trazabilidad de inventario, compras y almacén para 
 
 ### 1. Base de Datos (MySQL)
 
+**Aviso:** `01_DDL_bd_intiwasi.sql` elimina y reconstruye `bd_intiwasi`. Haz un respaldo antes de ejecutarlo si necesitas conservar los datos.
+
 1. Abrir MySQL Workbench.
 2. Ejecutar los scripts ubicados en la carpeta `database/` en este orden estricto:
    - `01_DDL_bd_intiwasi.sql`
@@ -81,4 +83,4 @@ npm ci
 npm start
 ```
 
-Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos y gestión de usuarios; el resto de módulos continúa a cargo del equipo. Consultar [la guía del frontend](frontend/README.md).
+Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos, gestión de usuarios y órdenes de compra; los demás módulos continúan a cargo del equipo. Consultar [la guía del frontend](frontend/README.md).

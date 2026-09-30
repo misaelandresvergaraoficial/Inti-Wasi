@@ -39,6 +39,30 @@ export const routes: Routes = [
         loadComponent: () => import('./features/users/user-form').then((m) => m.UserForm),
       },
       {
+        path: 'ordenes-compra',
+        title: 'Órdenes de compra · Inti Wasi',
+        loadComponent: () => import('./features/orders/orders-list').then((m) => m.OrdersList),
+      },
+      {
+        path: 'ordenes-compra/nueva',
+        title: 'Crear orden de compra · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/orders/order-form').then((m) => m.OrderForm),
+      },
+      {
+        path: 'ordenes-compra/:id/editar',
+        title: 'Editar orden de compra · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/orders/order-form').then((m) => m.OrderForm),
+      },
+      {
+        path: 'ordenes-compra/:id',
+        title: 'Detalle de orden de compra · Inti Wasi',
+        loadComponent: () => import('./features/orders/order-detail').then((m) => m.OrderDetail),
+      },
+      {
         path: 'acceso-denegado',
         title: 'Acceso restringido · Inti Wasi',
         loadComponent: () => import('./features/auth/access-denied').then((m) => m.AccessDenied),
