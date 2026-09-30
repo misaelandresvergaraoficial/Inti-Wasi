@@ -2,6 +2,7 @@ package com.intiwasi.backend.controller;
 
 import com.intiwasi.backend.dto.UsuarioRequest;
 import com.intiwasi.backend.dto.UsuarioResponse;
+import com.intiwasi.backend.dto.EstadoUsuarioRequest;
 import com.intiwasi.backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.listarActivos());
     }
 
+    @GetMapping("/todos")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<List<UsuarioResponse>> listarTodos() {
+        return ResponseEntity.ok(usuarioService.listarTodos());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<UsuarioResponse> obtenerPorId(@PathVariable Integer id) {
@@ -51,6 +58,14 @@ public class UsuarioController {
             @PathVariable Integer id,
             @Valid @RequestBody UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.actualizar(id, request));
+    }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<UsuarioResponse> cambiarEstado(
+            @PathVariable Integer id,
+            @Valid @RequestBody EstadoUsuarioRequest request) {
+        return ResponseEntity.ok(usuarioService.cambiarEstado(id, request.getEstado()));
     }
 
     @DeleteMapping("/{id}")
