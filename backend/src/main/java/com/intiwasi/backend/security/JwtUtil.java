@@ -12,7 +12,6 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // La clave secreta y el tiempo de expiración se leen desde application.properties
     @Value("${jwt.secreto}")
     private String secreto;
 
