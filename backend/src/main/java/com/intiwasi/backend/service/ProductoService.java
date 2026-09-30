@@ -33,6 +33,15 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
+        // Método para listar absolutamente todos los productos (activos e inactivos)
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarTodos() {
+        return productoRepository.findAll()
+                .stream()
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public List<ProductoResponse> listarProductosStockBajo() {
         return productoRepository.obtenerProductosStockBajo()
@@ -133,6 +142,20 @@ public class ProductoService {
         productoRepository.save(producto);
     }
 
+        // Método para cambiar el estado (reactivar o desactivar explícitamente)
+    @Transactional
+    public ProductoResponse cambiarEstado(Integer id, Integer estado) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con el ID: " + id
+                ));
+        
+        producto.setEstado(estado.byteValue());
+        Producto actualizado = productoRepository.save(producto);
+        return convertirAResponse(actualizado);
+    }
+
+
     private ProductoResponse convertirAResponse(Producto producto) {
         ProductoResponse response = new ProductoResponse();
         response.setIdProducto(producto.getIdProducto());
@@ -171,4 +194,10 @@ public class ProductoService {
             );
         }
     }
+
+
+
+
+    
+
 }
