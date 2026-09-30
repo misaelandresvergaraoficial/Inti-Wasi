@@ -32,6 +32,13 @@ import { Icon } from '../shared/icon';
             aria-label="Órdenes de compra"
             ><iw-icon name="orders" />Órdenes de compra</a
           >
+          <a
+            routerLink="/productos"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Productos"
+            ><iw-icon name="menu" />Productos</a
+          >
           @if (auth.isAdmin()) {
             <a
               routerLink="/usuarios"

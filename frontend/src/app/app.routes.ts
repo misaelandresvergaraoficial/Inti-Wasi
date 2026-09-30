@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard, changesGuard, guestGuard } from './core/guards';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -67,6 +68,33 @@ export const routes: Routes = [
         title: 'Acceso restringido · Inti Wasi',
         loadComponent: () => import('./features/auth/access-denied').then((m) => m.AccessDenied),
       },
+      {
+        path: 'productos',
+        title: 'Productos · Inti Wasi',
+        loadComponent: () => import('./features/productos/productos-list').then((m) => m.ProductosList),
+      },
+      {
+        path: 'productos/nuevo',
+        title: 'Crear producto · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/productos/producto-form').then((m) => m.ProductoForm),
+      },
+      {
+        path: 'productos/stock-bajo',
+        title: 'Stock Bajo · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/productos/stock-bajo-list').then((m) => m.StockBajoList),
+      },
+      {
+        path: 'productos/:id/editar',
+        title: 'Editar producto · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/productos/producto-form').then((m) => m.ProductoForm),
+      },
+      
+      // Las rutas de redirección deben ir obligatoriamente al final
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
       { path: '**', redirectTo: 'inicio' },
     ],
