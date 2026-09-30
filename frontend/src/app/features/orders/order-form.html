@@ -1,0 +1,320 @@
+<div class="breadcrumb">
+  <a routerLink="/ordenes-compra">Órdenes de compra</a><iw-icon name="next" /><span>{{
+    id ? 'Editar orden' : 'Crear orden'
+  }}</span>
+</div>
+<div class="page-heading">
+  <div class="eyebrow">ABASTECIMIENTO</div>
+  <h1 tabindex="-1">{{ id ? 'Editar orden de compra' : 'Crear orden de compra' }}</h1>
+  <p>
+    {{
+      id
+        ? 'Actualiza el proveedor, la fecha y los productos antes de la primera recepción.'
+        : 'Registra un pedido para un proveedor activo con sus productos y precios pactados.'
+    }}
+  </p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando datos de la orden…</p>
+  </div>
+} @else if (loadError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ loadError() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+  <a mat-button routerLink="/ordenes-compra">Volver a órdenes</a>
+} @else if (original() && !canEdit(original()!)) {
+  <div class="notice warning" role="alert">
+    <iw-icon name="info" />
+    <p>
+      Esta orden ya tiene recepciones o dejó de estar Pendiente. Su proveedor y detalle no pueden
+      editarse.
+    </p>
+  </div>
+  <a mat-stroked-button [routerLink]="['/ordenes-compra', id]">Ver detalle de la orden</a>
+} @else {
+  <div class="order-form-layout">
+    <form #orderForm [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="busy()">
+      <section class="panel order-form-panel" aria-labelledby="order-header-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="order-header-title">Datos del pedido</h2>
+            <p>El proveedor es obligatorio. La fecha estimada puede dejarse vacía.</p>
+          </div>
+        </div>
+        <div class="order-form-fields">
+          <div class="field">
+            <label for="order-supplier">Proveedor</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <select
+                matNativeControl
+                id="order-supplier"
+                formControlName="idProveedor"
+                [attr.aria-describedby]="
+                  original() && !hasSupplierOption(form.controls.idProveedor.value)
+                    ? 'supplier-inactive'
+                    : form.controls.idProveedor.invalid &&
+                        (form.controls.idProveedor.touched || submitted())
+                      ? 'supplier-error'
+                      : 'supplier-help'
+                "
+              >
+                <option [ngValue]="0">Selecciona un proveedor</option>
+                @if (original(); as order) {
+                  @if (!hasSupplierOption(order.idProveedor)) {
+                    <option [ngValue]="order.idProveedor">
+                      {{ order.nomProveedor }} (inactivo; elige otro)
+                    </option>
+                  }
+                }
+                @for (supplier of suppliers(); track supplier.idProveedor) {
+                  <option [ngValue]="supplier.idProveedor">{{ supplier.nomProveedor }}</option>
+                }
+              </select>
+              @if (
+                form.controls.idProveedor.invalid &&
+                (form.controls.idProveedor.touched || submitted())
+              ) {
+                <mat-error id="supplier-error">Selecciona un proveedor activo.</mat-error>
+              }
+            </mat-form-field>
+            <p id="supplier-help" class="field-description">
+              Se muestran los proveedores activos del catálogo.
+            </p>
+            @if (original() && !hasSupplierOption(form.controls.idProveedor.value)) {
+              <p id="supplier-inactive" class="order-field-error">
+                Este proveedor está inactivo. Elige uno activo para guardar.
+              </p>
+            }
+          </div>
+          <div class="field">
+            <label for="order-date"
+              >Entrega estimada <span class="optional">(opcional)</span></label
+            >
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <input
+                matInput
+                id="order-date"
+                type="date"
+                formControlName="fechaEstimadaEntrega"
+                [min]="minDate()"
+                [attr.aria-describedby]="
+                  form.controls.fechaEstimadaEntrega.invalid &&
+                  (form.controls.fechaEstimadaEntrega.touched || submitted())
+                    ? 'date-error'
+                    : 'date-help'
+                "
+              />
+              @if (
+                form.controls.fechaEstimadaEntrega.invalid &&
+                (form.controls.fechaEstimadaEntrega.touched || submitted())
+              ) {
+                <mat-error id="date-error"
+                  >La entrega estimada no puede ser anterior a la fecha de emisión.</mat-error
+                >
+              }
+            </mat-form-field>
+            <p id="date-help" class="field-description">
+              {{
+                id
+                  ? 'Debe ser igual o posterior a la emisión original.'
+                  : 'Debe ser hoy o una fecha posterior.'
+              }}
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="panel order-form-panel" aria-labelledby="order-products-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="order-products-title">Productos de la orden</h2>
+            <p>Agrega al menos uno. Indica la cantidad y el precio de compra acordado.</p>
+          </div>
+          <span class="badge neutral"
+            >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
+          >
+        </div>
+        <div formArrayName="detalles" class="order-line-list">
+          @for (line of lines.controls; track line; let index = $index) {
+            <fieldset class="order-line" [formGroupName]="index">
+              <legend>Producto {{ index + 1 }}</legend>
+              <div class="order-line-grid">
+                <div class="field order-product-field">
+                  <label [for]="'line-product-' + index">Producto</label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <select
+                      matNativeControl
+                      [id]="'line-product-' + index"
+                      formControlName="idProducto"
+                      [attr.aria-invalid]="
+                        !!missingProduct(line.controls.idProducto.value) ||
+                        duplicate(index) ||
+                        (line.controls.idProducto.invalid &&
+                          (line.controls.idProducto.touched || submitted()))
+                      "
+                      [attr.aria-describedby]="
+                        'line-product-help-' +
+                        index +
+                        (missingProduct(line.controls.idProducto.value)
+                          ? ' line-product-inactive-' + index
+                          : (line.controls.idProducto.invalid || duplicate(index)) &&
+                              (line.controls.idProducto.touched || submitted())
+                            ? ' line-product-error-' + index
+                            : '')
+                      "
+                    >
+                      <option [ngValue]="0">Selecciona un producto</option>
+                      @if (missingProduct(line.controls.idProducto.value); as previous) {
+                        <option [ngValue]="previous.idProducto">
+                          {{ previous.sku }} · {{ previous.nomProducto }} (inactivo; elige otro)
+                        </option>
+                      }
+                      @for (product of products(); track product.idProducto) {
+                        <option [ngValue]="product.idProducto">
+                          {{ product.sku }} · {{ product.nomProducto }}
+                        </option>
+                      }
+                    </select>
+                    @if (
+                      line.controls.idProducto.invalid &&
+                      (line.controls.idProducto.touched || submitted())
+                    ) {
+                      <mat-error [id]="'line-product-error-' + index"
+                        >Selecciona un producto activo.</mat-error
+                      >
+                    }
+                  </mat-form-field>
+                  <p [id]="'line-product-help-' + index" class="field-description">
+                    El producto no puede repetirse en esta orden.
+                  </p>
+                  @if (missingProduct(line.controls.idProducto.value)) {
+                    <p class="order-field-error" [id]="'line-product-inactive-' + index">
+                      Este producto está inactivo. Elige otro para guardar.
+                    </p>
+                  }
+                  @if (duplicate(index) && (line.controls.idProducto.touched || submitted())) {
+                    <p class="order-field-error" [id]="'line-product-error-' + index">
+                      Este producto ya está incluido. Elige otro.
+                    </p>
+                  }
+                </div>
+                <div class="field">
+                  <label [for]="'line-quantity-' + index">Cantidad</label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                      matInput
+                      [id]="'line-quantity-' + index"
+                      type="number"
+                      min="1"
+                      step="1"
+                      formControlName="cantidad"
+                      [attr.aria-describedby]="
+                        line.controls.cantidad.invalid &&
+                        (line.controls.cantidad.touched || submitted())
+                          ? 'line-quantity-error-' + index
+                          : null
+                      "
+                    />
+                    @if (
+                      line.controls.cantidad.invalid &&
+                      (line.controls.cantidad.touched || submitted())
+                    ) {
+                      <mat-error [id]="'line-quantity-error-' + index"
+                        >Ingresa un número entero entre 1 y 2 147 483 647.</mat-error
+                      >
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="field">
+                  <label [for]="'line-price-' + index">Precio unitario</label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                      matInput
+                      [id]="'line-price-' + index"
+                      type="text"
+                      inputmode="decimal"
+                      formControlName="precioUnitario"
+                      placeholder="0,00"
+                      [attr.aria-describedby]="
+                        'line-price-help-' +
+                        index +
+                        (line.controls.precioUnitario.invalid &&
+                        (line.controls.precioUnitario.touched || submitted())
+                          ? ' line-price-error-' + index
+                          : '')
+                      "
+                    />
+                    @if (
+                      line.controls.precioUnitario.invalid &&
+                      (line.controls.precioUnitario.touched || submitted())
+                    ) {
+                      <mat-error [id]="'line-price-error-' + index"
+                        >Ingresa un precio desde 0 con hasta dos decimales.</mat-error
+                      >
+                    }
+                  </mat-form-field>
+                  <p [id]="'line-price-help-' + index" class="field-description">
+                    Acepta coma o punto decimal.
+                  </p>
+                </div>
+              </div>
+              <div class="order-line-footer">
+                <span
+                  >Subtotal: <strong>{{ importe(lineSubtotal(index)) }}</strong></span
+                >
+                <button
+                  mat-button
+                  type="button"
+                  class="subtle-danger"
+                  [disabled]="lines.length === 1 || busy()"
+                  (click)="removeLine(index)"
+                  [attr.aria-label]="'Quitar producto ' + (index + 1)"
+                >
+                  Quitar producto
+                </button>
+              </div>
+            </fieldset>
+          }
+        </div>
+        <div class="order-add-line">
+          <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
+            <iw-icon name="plus" />Agregar producto
+          </button>
+        </div>
+      </section>
+      @if (error()) {
+        <div class="notice error" role="alert">
+          <iw-icon name="info" />
+          <p>{{ error() }}</p>
+        </div>
+      }
+      <div class="panel order-save-bar">
+        <div>
+          <span>Total estimado</span><strong>{{ importe(previewTotal()) }}</strong>
+        </div>
+        <div class="order-save-actions">
+          <a mat-stroked-button routerLink="/ordenes-compra">Volver</a
+          ><button mat-flat-button type="submit" [disabled]="busy()">
+            {{ busy() ? 'Guardando…' : id ? 'Guardar cambios' : 'Crear orden' }}
+          </button>
+        </div>
+      </div>
+      <span class="sr-only" role="status">{{ busy() ? 'Guardando la orden de compra.' : '' }}</span>
+    </form>
+    <aside class="order-aside" aria-labelledby="order-help-title">
+      <span class="section-icon"><iw-icon name="info" /></span>
+      <h2 id="order-help-title">Antes de guardar</h2>
+      <p>
+        Comprueba el proveedor, los productos y los precios pactados. La fecha de emisión y el
+        usuario responsable los registra el servidor.
+      </p>
+      <p>
+        Podrás editar la orden mientras siga Pendiente y no tenga entradas. Una orden Parcial puede
+        cancelarse sin perder lo recibido.
+      </p>
+    </aside>
+  </div>
+}

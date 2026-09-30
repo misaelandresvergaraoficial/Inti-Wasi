@@ -1,6 +1,6 @@
-# Frontend de acceso y usuarios · Inti Wasi
+# Frontend de Inti Wasi
 
-Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa exclusivamente login, sesión, acceso por rol y gestión de usuarios. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
+Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, gestión de usuarios y órdenes de compra. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
 
 ## Ejecutar
 
@@ -25,6 +25,10 @@ Las cuentas ficticias del prototipo **no existen** aquí. Se ingresa con las cre
 | Consultar, crear y editar                  | `GET /api/usuarios/{id}`, `POST /api/usuarios`, `PUT /api/usuarios/{id}` |
 | Desactivar lógicamente                     | `DELETE /api/usuarios/{id}` (Estado = 0)                                 |
 | Reactivar                                  | `PUT /api/usuarios/{id}/estado` con `{ "estado": 1 }`                    |
+
+Órdenes de compra usa `GET /api/ordenes-compra` y `GET /api/ordenes-compra/{id}` para consultar; `POST /api/ordenes-compra` para crear; `PUT /api/ordenes-compra/{id}` para editar; y `DELETE /api/ordenes-compra/{id}` para **cancelar sin borrar**. El formulario consulta los proveedores y productos activos mediante `GET /api/proveedores` y `GET /api/productos`; no administra esos catálogos. El Operador de Almacén solo consulta órdenes. El Administrador puede crearlas y cancelar las Pendientes o Parciales. Solo se edita una Pendiente sin entradas registradas.
+
+El cuerpo de creación y edición lleva `idProveedor`, `fechaEstimadaEntrega` (fecha ISO o `null`) y `detalles` con `idProducto`, `cantidad` entera positiva y `precioUnitario` con hasta dos decimales. El precio se introduce para cada orden: no se copia automáticamente del catálogo. El backend establece la fecha de emisión, el usuario responsable, el estado inicial `Pendiente`, los importes y las cantidades recibidas. Las órdenes pueden pasar a `Parcial`, `Recibida` o `Cancelada` sin perder su historial. La respuesta actual no indica si una orden Pendiente tuvo entradas posteriormente anuladas; en ese caso la API puede rechazar una edición que parecía disponible en pantalla, y el formulario muestra la razón sin descartar los datos ingresados.
 
 El listado anterior `GET /api/usuarios` sigue devolviendo únicamente activos. Editar datos personales conserva el estado existente. El acceso a usuarios y los cambios de estado están restringidos al Administrador en el servidor.
 
@@ -57,5 +61,7 @@ Para comprobar el flujo completo, iniciar backend y frontend con una base de dat
 2. Entrar como Operador; comprobar que no ve Usuarios y que tampoco puede acceder escribiendo `/usuarios` en la barra de direcciones. Verificar que el servidor rechaza una petición directa no autorizada con `403`.
 3. Probar credenciales erróneas, campos inválidos y duplicados; comprobar mensajes claros y foco en el primer campo erróneo. Cerrar sesión, recargar y comprobar que las rutas protegidas requieren volver a entrar.
 4. Recorrer login, tabla, formularios y diálogos con teclado; comprobar foco visible, nombres de controles y anuncios de errores y resultados. Conservar capturas y resultados de estas pruebas como evidencia de integración.
+
+Para órdenes de compra, consultar listado y detalle con ambos roles y comprobar que el Operador no dispone de crear, editar ni cancelar. Como Administrador, crear una orden con varios productos, probar proveedor ausente, producto duplicado, cantidad no entera, precio negativo y fecha anterior a la emisión; editar una Pendiente sin entradas; intentar editar una con recepción; cancelar una Pendiente y una Parcial; y comprobar que las órdenes Canceladas siguen en el listado con las cantidades recibidas intactas. Verificar navegación por teclado y presentación a 1024 × 768 y con zoom en Chrome, Firefox y Edge.
 
 La interfaz se revisó con teclado y axe durante el prototipo. Antes de usarla en producción falta una comprobación humana con lector de pantalla, zoom nativo y cuentas reales de prueba. La aplicación no crea usuarios ficticios ni cambia datos existentes al iniciarse.

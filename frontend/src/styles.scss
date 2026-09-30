@@ -2,6 +2,7 @@
 @use './styles/layout';
 @use './styles/login';
 @use './styles/users';
+@use './styles/orders';
 
 html {
   color-scheme: light;
@@ -93,6 +94,9 @@ select {
 h1:focus,
 main:focus {
   outline: none;
+}
+h1[tabindex='-1']:focus-visible {
+  outline: none !important;
 }
 h1,
 h2,

@@ -1,0 +1,157 @@
+<div class="breadcrumb">
+  <a routerLink="/ordenes-compra">Órdenes de compra</a><iw-icon name="next" /><span
+    >Orden N.° {{ id }}</span
+  >
+</div>
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">ABASTECIMIENTO</div>
+    <h1 tabindex="-1">Orden de compra N.° {{ id }}</h1>
+    <p>Detalle del pedido y seguimiento de las cantidades recibidas.</p>
+  </div>
+  @if (record(); as order) {
+    <div class="order-heading-actions">
+      @if (auth.isAdmin() && canEdit(order)) {
+        <a mat-stroked-button [routerLink]="['/ordenes-compra', order.idOrden, 'editar']"
+          >Editar orden</a
+        >
+      }
+      @if (auth.isAdmin() && canCancel(order)) {
+        <button mat-button class="subtle-danger" [disabled]="busy()" (click)="cancel(order)">
+          {{ busy() ? 'Cancelando…' : 'Cancelar orden' }}
+        </button>
+      }
+    </div>
+  }
+</div>
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (actionError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ actionError() }}</p>
+  </div>
+}
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando orden…</p>
+  </div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+  <a mat-button routerLink="/ordenes-compra">Volver a órdenes</a>
+} @else if (record(); as order) {
+  <section class="panel order-summary" aria-labelledby="order-summary-title">
+    <div class="panel-heading">
+      <div>
+        <h2 id="order-summary-title">Información de la orden</h2>
+        <p>Registrada por {{ order.nomUsuario }}</p>
+      </div>
+      <span
+        class="order-status"
+        [class.pending]="order.estado === 'Pendiente'"
+        [class.partial]="order.estado === 'Parcial'"
+        [class.received]="order.estado === 'Recibida'"
+        [class.cancelled]="order.estado === 'Cancelada'"
+        >{{ order.estado }}</span
+      >
+    </div>
+    <dl class="order-facts">
+      <div>
+        <dt>Proveedor</dt>
+        <dd>{{ order.nomProveedor }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de emisión</dt>
+        <dd>{{ fecha(order.fechaEmision) }}</dd>
+      </div>
+      <div>
+        <dt>Entrega estimada</dt>
+        <dd>{{ fecha(order.fechaEstimadaEntrega) }}</dd>
+      </div>
+      <div>
+        <dt>Registrada por</dt>
+        <dd>{{ order.nomUsuario }}</dd>
+      </div>
+    </dl>
+  </section>
+  @if (order.estado === 'Cancelada') {
+    <div class="notice info order-context" role="status">
+      <iw-icon name="info" />
+      <p>
+        Esta orden está cancelada. Las recepciones anteriores permanecen registradas y no se
+        admitirán nuevas entregas.
+      </p>
+    </div>
+  }
+  <section class="panel orders-panel" aria-labelledby="order-lines-title">
+    <div class="panel-heading">
+      <div>
+        <h2 id="order-lines-title">Productos solicitados</h2>
+        <p>Cantidades pactadas y avance de recepción.</p>
+      </div>
+      <span class="badge neutral"
+        >{{ order.detalles.length }}
+        {{ order.detalles.length === 1 ? 'producto' : 'productos' }}</span
+      >
+    </div>
+    <div
+      class="table-scroll"
+      role="region"
+      aria-label="Detalle de productos de la orden"
+      tabindex="0"
+    >
+      <table>
+        <caption class="sr-only">
+          Productos, cantidades, recepción e importes de la orden N.°
+          {{
+            order.idOrden
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Producto</th>
+            <th scope="col">Solicitada</th>
+            <th scope="col">Recibida</th>
+            <th scope="col">Por recibir</th>
+            <th scope="col">Precio unitario</th>
+            <th scope="col">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of order.detalles; track item.idDetalle) {
+            <tr>
+              <th scope="row">
+                <strong class="order-product-name">{{ item.nomProducto }}</strong
+                ><span class="order-sku">{{ item.sku }}</span>
+              </th>
+              <td class="order-amount">{{ item.cantidad }}</td>
+              <td class="order-amount">{{ item.cantidadRecibida }}</td>
+              <td class="order-amount">{{ item.cantidadPorRecibir }}</td>
+              <td class="order-amount">{{ importe(item.precioUnitario) }}</td>
+              <td class="order-amount">{{ importe(item.subtotal) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="order-total">
+      <span>Total de la orden</span><strong>{{ importe(order.totalOrden) }}</strong>
+    </div>
+  </section>
+  <p class="footnote">
+    <iw-icon name="info" />Los importes corresponden al precio unitario pactado en cada línea. La
+    recepción de productos se registra en Entradas.
+  </p>
+}
