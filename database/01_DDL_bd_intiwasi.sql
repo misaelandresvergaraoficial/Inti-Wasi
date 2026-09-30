@@ -1,6 +1,4 @@
 
--- Reconstruccion completa para desarrollo: elimina los datos existentes de bd_intiwasi.
--- No ejecutar sobre una base con informacion que se necesite conservar.
 DROP DATABASE IF EXISTS bd_intiwasi;
 CREATE DATABASE bd_intiwasi
   CHARACTER SET utf8mb4
@@ -101,9 +99,7 @@ CREATE TABLE Documentos (
     TipoDocumento   ENUM('Entrada', 'Salida', 'Ajuste', 'Correccion') NOT NULL,
     IdUsuario       INT NOT NULL,
     FechaEmision    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- 1 = vigente, 2 = rectificado, 0 = anulado. No se borra el documento original.
     Estado          TINYINT NOT NULL DEFAULT 1,
-    -- Correccion: documento que revierte el original. Otro tipo: reemplazo del original.
     IdDocumentoOrigen INT NULL,
     MotivoCorreccion VARCHAR(255) NULL,
     CONSTRAINT FK_Doc_Usuario FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario)
@@ -126,7 +122,6 @@ CREATE TABLE Entradas (
     IdEntrada       INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
     IdOrden         INT NOT NULL,
-    -- Numero de la guia entregada por el proveedor; se transcribe del documento fisico.
     NumeroGuiaRemision VARCHAR(50) NOT NULL,
     Observaciones   VARCHAR(255),
     CONSTRAINT UQ_Entradas_Documento UNIQUE (IdDocumento),

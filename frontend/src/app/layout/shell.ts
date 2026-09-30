@@ -18,11 +18,26 @@ import { Icon } from '../shared/icon';
         >
         <div class="nav-section">ESPACIO DE TRABAJO</div>
         <nav aria-label="Navegación principal">
-          <a routerLink="/inicio" routerLinkActive="active" ariaCurrentWhenActive="page"
+          <a
+            routerLink="/inicio"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Inicio"
             ><iw-icon name="home" />Inicio</a
           >
+          <a
+            routerLink="/ordenes-compra"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Órdenes de compra"
+            ><iw-icon name="orders" />Órdenes de compra</a
+          >
           @if (auth.isAdmin()) {
-            <a routerLink="/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"
+            <a
+              routerLink="/usuarios"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Usuarios"
               ><iw-icon name="users" />Usuarios</a
             >
           }

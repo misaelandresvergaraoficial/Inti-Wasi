@@ -1,9 +1,5 @@
 USE bd_intiwasi;
 
--- PUT/DELETE de Entrada, Salida y Ajuste son operaciones de negocio:
--- se crea una Correccion que compensa todos los movimientos originales;
--- PUT crea despues un documento nuevo con los datos corregidos.
--- El backend debe ejecutar todos esos pasos dentro de una sola transaccion.
 
 DROP TRIGGER IF EXISTS TRG_Documentos_BeforeInsert;
 DROP TRIGGER IF EXISTS TRG_Documentos_BeforeUpdate;
@@ -375,7 +371,6 @@ BEGIN
             ELSE -NEW.Cantidad END;
     END IF;
 
-    -- La condicion en el UPDATE protege el stock ante operaciones concurrentes.
     UPDATE Productos
        SET StockActual = StockActual + v_Delta
      WHERE IdProducto = NEW.IdProducto AND StockActual + v_Delta >= 0;

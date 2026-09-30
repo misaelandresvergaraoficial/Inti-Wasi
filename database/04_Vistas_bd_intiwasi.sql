@@ -1,7 +1,5 @@
 USE bd_intiwasi;
 
--- El historial conserva originales y correcciones. CantidadConSigno expresa
--- el efecto real sobre el stock; el movimiento original nunca se borra.
 CREATE OR REPLACE VIEW VW_Kardex AS
 SELECT
     m.IdMovimiento,
@@ -32,7 +30,6 @@ SELECT
              CONCAT('Recepcion de orden de compra Nro ', e.IdOrden))
     END AS Motivo,
     COALESCE(e.IdOrden, entradaOrigen.IdOrden) AS IdOrden,
-    -- Alias de lectura para el DTO actual; la columna fisica es NumeroGuiaRemision.
     COALESCE(e.NumeroGuiaRemision, entradaOrigen.NumeroGuiaRemision) AS DocumentoRef,
     d.Estado AS EstadoDocumento
 FROM MovimientosInventario m
