@@ -1,9 +1,10 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AuthService } from './auth.service';
+import { authInterceptor } from './auth.interceptor';
 import { UsuarioResponse } from './models';
 
 const user: UsuarioResponse = {
@@ -25,7 +26,11 @@ describe('Sesión conectada al backend', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     });
     auth = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
@@ -40,6 +45,7 @@ describe('Sesión conectada al backend', () => {
     const login = auth.login(user.correo, 'correcta');
     const request = http.expectOne('/api/auth/login');
     expect(request.request.method).toBe('POST');
+    expect(request.request.headers.has('Authorization')).toBe(false);
     expect(request.request.body).toEqual({ correo: user.correo, contrasena: 'correcta' });
     request.flush({ token, correo: user.correo, rol: 'ROLE_Operador de Almacén' });
     await Promise.resolve();
@@ -68,7 +74,11 @@ describe('Sesión conectada al backend', () => {
     );
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     });
     auth = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
@@ -81,6 +91,33 @@ describe('Sesión conectada al backend', () => {
       { status: 401, statusText: 'Unauthorized' },
     );
     expect(await validation).toBe(false);
+    expect(auth.session()).toBeNull();
+    expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
+  });
+
+  it('descarta una sesión que ya había vencido al restaurarla', () => {
+    sessionStorage.setItem(
+      'intiwasi.session',
+      JSON.stringify({
+        token,
+        idUsuario: user.idUsuario,
+        correo: user.correo,
+        nombre: user.nomUsuario,
+        rol: user.rol,
+        expiresAt: Date.now() - 1000,
+      }),
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+    auth = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+
     expect(auth.session()).toBeNull();
     expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
   });

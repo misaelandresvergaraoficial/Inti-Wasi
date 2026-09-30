@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -32,7 +32,7 @@ export class AuthService {
       const expiresAt = tokenExpiration(response.token);
       const user = await firstValueFrom(
         this.http.get<UsuarioResponse>('/api/auth/me', {
-          headers: new HttpHeaders({ Authorization: `Bearer ${response.token}` }),
+          headers: { Authorization: `Bearer ${response.token}` },
         }),
       );
       this.setUser(user, response.token, expiresAt);
@@ -63,8 +63,8 @@ export class AuthService {
     return true;
   }
 
-  authorization(): HttpHeaders {
-    return new HttpHeaders({ Authorization: `Bearer ${this.session()?.token ?? ''}` });
+  token(): string | null {
+    return this.valid() ? this.session()!.token : null;
   }
 
   refreshUser(user: UsuarioResponse): void {
@@ -86,9 +86,7 @@ export class AuthService {
   private async checkCurrent(): Promise<boolean> {
     try {
       const current = this.session()!;
-      const user = await firstValueFrom(
-        this.http.get<UsuarioResponse>('/api/auth/me', { headers: this.authorization() }),
-      );
+      const user = await firstValueFrom(this.http.get<UsuarioResponse>('/api/auth/me'));
       this.setUser(user, current.token, current.expiresAt);
       this.verified = true;
       return true;
