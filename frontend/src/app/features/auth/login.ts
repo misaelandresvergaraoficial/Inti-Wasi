@@ -7,12 +7,14 @@ import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../core/auth.service';
 import { Icon } from '../../shared/icon';
 import { fieldError, focusFirstInvalid } from '../../shared/form-errors';
+import { ThemeService } from '../../core/theme.service';
 @Component({
   selector: 'iw-login',
   imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, Icon],
   templateUrl: './login.html',
 })
 export class Login {
+  readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
