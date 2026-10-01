@@ -32,20 +32,20 @@
   white-space: nowrap;
 }
 .order-status.pending {
-  background: #eaf3f2;
-  color: #285e61;
+  background: var(--tag-primary-bg);
+  color: var(--tag-primary-fg);
 }
 .order-status.partial {
-  background: #fff2d9;
-  color: #765211;
+  background: var(--order-partial-bg);
+  color: var(--order-partial-fg);
 }
 .order-status.received {
-  background: #edf7f2;
-  color: #216345;
+  background: var(--notice-success-bg);
+  color: var(--notice-success-fg);
 }
 .order-status.cancelled {
-  background: #e9edef;
-  color: #495963;
+  background: var(--tag-neutral-bg);
+  color: var(--tag-neutral-fg);
 }
 .order-heading-actions,
 .order-save-actions {
@@ -83,7 +83,7 @@
   gap: 22px;
   padding: 18px 24px;
   border-top: 1px solid var(--line);
-  background: #fafcfc;
+  background: var(--surface-alt);
   font-size: 14px;
 }
 .order-total strong {
@@ -171,7 +171,7 @@
   font-variant-numeric: tabular-nums;
 }
 .order-field-error {
-  color: #a92c34;
+  color: var(--danger);
   font-size: 14px;
   margin-top: 5px;
 }

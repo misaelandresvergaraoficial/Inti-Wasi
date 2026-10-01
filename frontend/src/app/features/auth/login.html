@@ -5,7 +5,20 @@
       ><img src="marca.svg" width="40" height="40" alt="" /><span
         >Inti Wasi<small>DISTRIBUIDORA</small></span
       ></a
-    ><span class="login-header-label">Sistema de inventario y almacén</span>
+    ><div class="login-header-actions">
+      <span class="login-header-label">Sistema de inventario y almacén</span>
+      <button
+        mat-button
+        type="button"
+        class="theme-toggle"
+        (click)="theme.toggle()"
+        [attr.aria-pressed]="theme.isDark()"
+        [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+      >
+        <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+        <span>{{ theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro' }}</span>
+      </button>
+    </div>
   </header>
   <main id="login-content" class="login-main">
     <section class="login-intro" aria-labelledby="intro-title">

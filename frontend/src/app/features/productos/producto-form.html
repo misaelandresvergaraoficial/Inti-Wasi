@@ -125,7 +125,7 @@
       }
     </div>
 
-    <div class="p-6 bg-gray-50 border-t flex justify-end gap-3 rounded-b-lg">
+    <div class="product-form-actions p-6 flex justify-end gap-3 rounded-b-lg">
       <a mat-button routerLink="/productos">Cancelar</a>
       <button mat-flat-button type="submit" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear producto' }}
