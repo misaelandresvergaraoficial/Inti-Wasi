@@ -41,6 +41,8 @@ export interface ProductoOpcion {
   idProducto: number;
   sku: string;
   nomProducto: string;
+  idProveedor: number | null;
+  precio: number;
   estado: number;
 }
 

@@ -67,7 +67,7 @@ public class OrdenCompraService {
 
         Proveedor proveedor = buscarProveedorActivo(request.getIdProveedor());
         Usuario usuario = buscarUsuarioAutenticado();
-        List<DetalleOrdenCompra> detalles = construirDetalles(request.getDetalles());
+        List<DetalleOrdenCompra> detalles = construirDetalles(request.getDetalles(), proveedor);
 
         OrdenCompra orden = new OrdenCompra();
         orden.setProveedor(proveedor);
@@ -91,7 +91,7 @@ public class OrdenCompraService {
         validarFechaEstimada(request.getFechaEstimadaEntrega(), orden.getFechaEmision());
         validarDetalles(request.getDetalles());
         Proveedor proveedor = buscarProveedorActivo(request.getIdProveedor());
-        List<DetalleOrdenCompra> detallesNuevos = construirDetalles(request.getDetalles());
+        List<DetalleOrdenCompra> detallesNuevos = construirDetalles(request.getDetalles(), proveedor);
 
         orden.setProveedor(proveedor);
         orden.setFechaEstimadaEntrega(request.getFechaEstimadaEntrega());
@@ -146,7 +146,7 @@ public class OrdenCompraService {
                 ));
     }
 
-    private List<DetalleOrdenCompra> construirDetalles(List<DetalleOrdenCompraRequest> requests) {
+    private List<DetalleOrdenCompra> construirDetalles(List<DetalleOrdenCompraRequest> requests, Proveedor proveedor) {
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
 
         for (DetalleOrdenCompraRequest request : requests) {
@@ -156,6 +156,12 @@ public class OrdenCompraService {
                     ));
             if (!Byte.valueOf((byte) 1).equals(producto.getEstado())) {
                 throw new ReglaNegocioException("El producto no existe o está inactivo");
+            }
+            if (producto.getProveedor() == null
+                    || !proveedor.getIdProveedor().equals(producto.getProveedor().getIdProveedor())) {
+                throw new ReglaNegocioException(
+                        "El producto " + producto.getSku() + " no está asignado al proveedor de la orden"
+                );
             }
 
             DetalleOrdenCompra detalle = new DetalleOrdenCompra();
