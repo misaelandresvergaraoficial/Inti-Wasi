@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,16 +29,15 @@ public class ProductoService {
         return productoRepository.findByEstado((byte) 1)
                 .stream()
                 .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-        // Método para listar absolutamente todos los productos (activos e inactivos)
     @Transactional(readOnly = true)
     public List<ProductoResponse> listarTodos() {
         return productoRepository.findAll()
                 .stream()
                 .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -47,12 +45,13 @@ public class ProductoService {
         return productoRepository.obtenerProductosStockBajo()
                 .stream()
                 .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public ProductoResponse obtenerPorId(Integer id) {
+    public ProductoResponse obtenerPorId(Integer id, boolean incluirInactivos) {
         Producto producto = productoRepository.findById(id)
+                .filter(p -> incluirInactivos || Byte.valueOf((byte) 1).equals(p.getEstado()))
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con el ID: " + id
                 ));
@@ -142,14 +141,22 @@ public class ProductoService {
         productoRepository.save(producto);
     }
 
-        // Método para cambiar el estado (reactivar o desactivar explícitamente)
     @Transactional
     public ProductoResponse cambiarEstado(Integer id, Integer estado) {
+        if (estado == null || (estado != 0 && estado != 1)) {
+            throw new IllegalArgumentException("El estado del producto debe ser 0 o 1");
+        }
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con el ID: " + id
                 ));
-        
+
+        if (estado == 1) {
+            validarCategoriaActiva(producto.getCategoria());
+            if (producto.getProveedor() != null) {
+                validarProveedorActivo(producto.getProveedor());
+            }
+        }
         producto.setEstado(estado.byteValue());
         Producto actualizado = productoRepository.save(producto);
         return convertirAResponse(actualizado);
