@@ -1,0 +1,168 @@
+<div class="breadcrumb">
+  <a routerLink="/usuarios">Usuarios</a><iw-icon name="next" /><span>{{
+    id ? 'Editar usuario' : 'Crear usuario'
+  }}</span>
+</div>
+<div class="page-heading">
+  <div class="eyebrow">PERSONAS Y ACCESOS</div>
+  <h1 tabindex="-1">{{ id ? 'Editar usuario' : 'Crear usuario' }}</h1>
+  <p>
+    {{
+      id
+        ? 'Actualiza la información y los permisos de esta cuenta.'
+        : 'Agrega una persona al equipo y define su acceso al sistema.'
+    }}
+  </p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">Cargando información del usuario…</div>
+} @else if (loadError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ loadError() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button
+  ><a mat-button routerLink="/usuarios">Volver a usuarios</a>
+} @else {
+  <div class="form-layout">
+    <section class="panel form-panel" aria-labelledby="form-title">
+      <div class="panel-heading">
+        <div>
+          <h2 id="form-title">Datos de la cuenta</h2>
+          <p>Todos los campos son obligatorios, salvo los indicados como opcionales.</p>
+        </div>
+      </div>
+      <form #userForm [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="busy()">
+        <div class="form-fields">
+          <div class="field">
+            <label for="user-name">Nombre de usuario</label
+            ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><input matInput id="user-name" formControlName="nomUsuario" autocomplete="name" />
+              @if (form.controls.nomUsuario.invalid) {
+                <mat-error>{{
+                  errorText(form.controls.nomUsuario, 'el nombre de usuario')
+                }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="field">
+            <label for="user-email">Correo electrónico</label
+            ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><input
+                matInput
+                id="user-email"
+                type="email"
+                formControlName="correo"
+                autocomplete="email"
+                placeholder="nombre@empresa.com"
+              /><mat-hint>Se utilizará para iniciar sesión.</mat-hint>
+              @if (form.controls.correo.invalid) {
+                <mat-error>{{
+                  errorText(form.controls.correo, 'el correo electrónico')
+                }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="field">
+            <label for="user-password"
+              >{{ id ? 'Nueva contraseña' : 'Contraseña' }}
+              @if (id) {
+                <span class="optional">(opcional)</span>
+              }</label
+            ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><input
+                matInput
+                id="user-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="contrasena"
+                autocomplete="new-password"
+              /><button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                [attr.aria-pressed]="showPassword()"
+              >
+                <iw-icon [name]="showPassword() ? 'eyeOff' : 'eye'" /></button
+              ><mat-hint>{{
+                id
+                  ? 'Déjala vacía para conservar la actual. Si la cambias, usa de 6 a 20 caracteres.'
+                  : 'Usa de 6 a 20 caracteres.'
+              }}</mat-hint>
+              @if (form.controls.contrasena.invalid) {
+                <mat-error>{{ errorText(form.controls.contrasena, 'una contraseña') }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="field">
+            <label for="user-role">Rol</label
+            ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><select
+                matNativeControl
+                id="user-role"
+                formControlName="rol"
+                aria-describedby="role-description"
+              >
+                <option>Operador de Almacén</option>
+                <option>Administrador</option>
+              </select></mat-form-field
+            >
+            <p id="role-description" class="field-description">
+              {{
+                form.controls.rol.value === 'Administrador'
+                  ? 'Puede gestionar usuarios, catálogos, órdenes, ajustes y reportes.'
+                  : 'Puede consultar catálogos y órdenes, y registrar, rectificar o anular entradas y salidas.'
+              }}
+            </p>
+          </div>
+          <div class="field">
+            <label for="user-phone">Teléfono <span class="optional">(opcional)</span></label
+            ><mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><input
+                matInput
+                id="user-phone"
+                type="tel"
+                formControlName="telefono"
+                autocomplete="tel"
+              /><mat-hint>Hasta 15 caracteres, incluidos espacios.</mat-hint>
+              @if (form.controls.telefono.invalid) {
+                <mat-error>{{ errorText(form.controls.telefono, 'el teléfono') }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          @if (error()) {
+            <div class="notice error" role="alert">
+              <iw-icon name="info" />
+              <p>{{ error() }}</p>
+            </div>
+          }
+        </div>
+        <div class="form-actions">
+          <a mat-stroked-button routerLink="/usuarios" [attr.aria-disabled]="busy()">Cancelar</a
+          ><button mat-flat-button type="submit" [disabled]="busy()">
+            {{ busy() ? 'Guardando…' : id ? 'Guardar cambios' : 'Crear usuario' }}
+          </button>
+        </div>
+        <span class="sr-only" role="status">{{
+          busy() ? 'Guardando la información del usuario.' : ''
+        }}</span>
+      </form>
+    </section>
+    <aside class="form-aside" aria-labelledby="access-heading">
+      <span class="section-icon"><iw-icon name="shield" /></span>
+      <h2 id="access-heading">Elige el acceso adecuado</h2>
+      <p>Asigna los permisos según las funciones de cada persona.</p>
+      <dl>
+        <dt>Administrador</dt>
+        <dd>Supervisa el almacén y administra la información y los accesos del equipo.</dd>
+        <dt>Operador de Almacén</dt>
+        <dd>Realiza las operaciones diarias de recepción y salida de mercadería.</dd>
+      </dl>
+      <div class="aside-note">
+        <iw-icon name="info" />
+        <p>Podrás actualizar el rol cuando cambien sus responsabilidades.</p>
+      </div>
+    </aside>
+  </div>
+}

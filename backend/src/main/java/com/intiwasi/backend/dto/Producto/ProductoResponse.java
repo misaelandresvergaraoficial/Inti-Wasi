@@ -11,7 +11,6 @@ public class ProductoResponse {
     private String sku;
     private String nomProducto;
 
-    // Se devuelven los IDs y los nombres para el frontend
     private Integer idCategoria;
     private String nomCategoria;
 

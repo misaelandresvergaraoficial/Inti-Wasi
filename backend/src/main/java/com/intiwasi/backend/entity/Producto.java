@@ -30,17 +30,11 @@ public class Producto {
     @Column(name = "NomProducto", nullable = false, length = 150)
     private String nomProducto;
 
-    // -------------------------------------------------------------
-    // LLAVE FORÁNEA 1: Categoría (NOT NULL)
-    // -------------------------------------------------------------
     @NotNull(message = "La categoría es obligatoria")
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "IdCategoria", nullable = false)
     private Categoria categoria;
 
-    // -------------------------------------------------------------
-    // LLAVE FORÁNEA 2: Proveedor (NULL en el DDL)
-    // -------------------------------------------------------------
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "IdProveedor", nullable = true)
     private Proveedor proveedor;
@@ -61,6 +55,6 @@ public class Producto {
     private Integer stockActual;
 
     @Column(name = "Estado", nullable = false)
-    private Byte estado; // 1: Activo, 0: Inactivo (Borrado lógico)
+    private Byte estado;
 
 }

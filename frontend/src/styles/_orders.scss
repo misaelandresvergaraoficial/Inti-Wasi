@@ -1,0 +1,226 @@
+.orders-panel table {
+  min-width: 910px;
+}
+.orders-panel tbody th,
+.orders-panel tbody td {
+  vertical-align: middle;
+}
+.orders-panel .row-actions {
+  white-space: nowrap;
+}
+.order-number,
+.order-product-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+.order-sku {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
+.order-nowrap,
+.order-amount {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.order-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.order-status.pending {
+  background: #eaf3f2;
+  color: #285e61;
+}
+.order-status.partial {
+  background: #fff2d9;
+  color: #765211;
+}
+.order-status.received {
+  background: #edf7f2;
+  color: #216345;
+}
+.order-status.cancelled {
+  background: #e9edef;
+  color: #495963;
+}
+.order-heading-actions,
+.order-save-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.order-summary {
+  margin-bottom: 22px;
+}
+.order-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 24px;
+}
+.order-facts dt {
+  color: var(--muted);
+  font-size: 14px;
+}
+.order-facts dd {
+  margin: 5px 0 0;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.order-context {
+  margin-top: 22px;
+}
+.order-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--line);
+  background: #fafcfc;
+  font-size: 14px;
+}
+.order-total strong {
+  color: var(--ink);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.order-form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 235px;
+  gap: 32px;
+  align-items: start;
+}
+.order-form-layout form {
+  min-width: 0;
+}
+.order-form-panel {
+  margin-bottom: 20px;
+}
+.order-form-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 24px;
+}
+.order-form-fields .field,
+.order-line-grid .field {
+  min-width: 0;
+  margin-bottom: 0;
+}
+.order-line-list {
+  padding: 0 24px;
+}
+.order-line {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 22px 0;
+  margin: 0;
+  min-width: 0;
+}
+.order-line legend {
+  font-size: 14px;
+  font-weight: 650;
+  padding-top: 18px;
+}
+.order-line-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 2fr) minmax(100px, 1fr) minmax(140px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.order-line-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.order-line-footer strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.order-add-line {
+  padding: 20px 24px;
+}
+.order-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+}
+.order-save-bar > div:first-child span {
+  display: block;
+  color: var(--muted);
+  font-size: 14px;
+}
+.order-save-bar > div:first-child strong {
+  display: block;
+  color: var(--ink);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.order-field-error {
+  color: #a92c34;
+  font-size: 14px;
+  margin-top: 5px;
+}
+.order-aside {
+  padding: 22px 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.order-aside h2 {
+  color: var(--ink);
+}
+.order-aside p {
+  margin-top: 12px;
+}
+@media (max-width: 1200px) {
+  .order-form-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .order-aside {
+    max-width: 700px;
+    padding: 0 0 20px;
+  }
+}
+@media (max-width: 800px) {
+  .order-line-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .order-product-field {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .order-facts,
+  .order-form-fields,
+  .order-line-grid {
+    grid-template-columns: 1fr;
+  }
+  .order-form-fields,
+  .order-line-list,
+  .order-add-line {
+    padding-inline: 16px;
+  }
+  .order-line-footer,
+  .order-save-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .order-save-actions {
+    width: 100%;
+  }
+}

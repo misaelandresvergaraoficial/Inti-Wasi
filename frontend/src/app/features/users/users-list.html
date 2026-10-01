@@ -1,0 +1,220 @@
+<div class="breadcrumb">
+  <span>Administración</span><iw-icon name="next" /><span>Usuarios</span>
+</div>
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">PERSONAS Y ACCESOS</div>
+    <h1 id="users-title" tabindex="-1">Usuarios</h1>
+    <p>Administra las cuentas y los permisos de tu equipo.</p>
+  </div>
+  <a mat-flat-button routerLink="/usuarios/nuevo"><iw-icon name="plus" />Crear usuario</a>
+</div>
+<div class="stats-grid grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="stat">
+    <div>
+      <span>Usuarios activos</span><strong>{{ loading() ? '—' : active() }}</strong>
+    </div>
+    <span class="stat-icon"><iw-icon name="users" /></span>
+  </div>
+  <div class="stat">
+    <div>
+      <span>Administradores</span><strong>{{ loading() ? '—' : admins() }}</strong>
+    </div>
+    <span class="stat-icon"><iw-icon name="shield" /></span>
+  </div>
+  <div class="stat">
+    <div>
+      <span>Operadores de almacén</span><strong>{{ loading() ? '—' : active() - admins() }}</strong>
+    </div>
+    <span class="stat-icon"><iw-icon name="home" /></span>
+  </div>
+</div>
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+}
+<section class="panel users-panel" aria-labelledby="team-heading" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <div>
+      <h2 id="team-heading">Cuentas del equipo</h2>
+      <p>Consulta y actualiza cuentas activas e inactivas de la empresa.</p>
+    </div>
+    <span class="badge neutral">{{ records().length }} usuarios</span>
+  </div>
+  <div class="filter-bar flex flex-wrap items-end gap-4">
+    <div class="search-field">
+      <label for="user-search">Buscar usuario</label>
+      <div class="input-with-icon">
+        <iw-icon name="search" /><input
+          id="user-search"
+          type="search"
+          placeholder="Buscar por nombre o correo"
+          [value]="query()"
+          (input)="search($any($event.target).value)"
+        />
+      </div>
+    </div>
+    <div class="role-filter">
+      <label for="role-filter">Rol</label
+      ><select id="role-filter" [value]="role()" (change)="filterRole($any($event.target).value)">
+        <option value="">Todos los roles</option>
+        <option>Administrador</option>
+        <option>Operador de Almacén</option>
+      </select>
+    </div>
+    <div class="status-filter">
+      <label for="user-status">Estado</label>
+      <select
+        id="user-status"
+        [value]="status()"
+        (change)="filterStatus($any($event.target).value)"
+      >
+        <option value="">Todos los estados</option>
+        <option value="1">Activo</option>
+        <option value="0">Inactivo</option>
+      </select>
+    </div>
+    @if (query() || role() || status()) {
+      <button mat-button (click)="reset()">Limpiar filtros</button>
+    }
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando usuarios…</p>
+    </div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <span class="section-icon"><iw-icon name="search" /></span>
+      <h3>
+        {{ records().length ? 'No encontramos coincidencias' : 'No hay usuarios para mostrar' }}
+      </h3>
+      <p>
+        {{
+          records().length
+            ? 'Prueba con otro nombre, correo o rol.'
+            : 'Los usuarios aparecerán aquí.'
+        }}
+      </p>
+      @if (query() || role() || status()) {
+        <button mat-stroked-button (click)="reset()">Limpiar filtros</button>
+      }
+    </div>
+  } @else {
+    <div class="table-scroll" role="region" aria-label="Listado de usuarios" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Usuarios activos e inactivos de Inti Wasi
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col" class="actions-heading">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of visible(); track user.idUsuario) {
+            <tr [class.inactive-row]="user.estado === 0">
+              <th scope="row">
+                <div class="person-cell">
+                  <span class="avatar" aria-hidden="true">{{ initials(user.nomUsuario) }}</span>
+                  <div>
+                    <span class="person-name"
+                      >{{ user.nomUsuario }}
+                      @if (user.idUsuario === auth.session()?.idUsuario) {
+                        <span class="you-label">Tú</span>
+                      }
+                      @if (!user.estado) {
+                        <span class="status-tag">Inactivo</span>
+                      }</span
+                    ><span class="person-email">{{ user.correo }}</span>
+                  </div>
+                </div>
+              </th>
+              <td>
+                <span class="role-tag" [class.admin]="user.rol === 'Administrador'">{{
+                  user.rol
+                }}</span>
+              </td>
+              <td class="phone-cell">{{ user.telefono || 'Sin teléfono' }}</td>
+              <td>
+                <div class="row-actions">
+                  <a
+                    mat-button
+                    [routerLink]="['/usuarios', user.idUsuario, 'editar']"
+                    [attr.aria-label]="'Editar a ' + user.nomUsuario"
+                    ><iw-icon name="edit" />Editar</a
+                  >
+                  @if (user.estado) {
+                    <button
+                      mat-button
+                      class="subtle-danger"
+                      (click)="deactivate(user)"
+                      [disabled]="busyId() !== null"
+                      [attr.aria-label]="'Desactivar a ' + user.nomUsuario"
+                      [attr.data-state-action]="user.idUsuario"
+                    >
+                      {{ busyId() === user.idUsuario ? 'Desactivando…' : 'Desactivar' }}
+                    </button>
+                  } @else {
+                    <button
+                      mat-button
+                      class="subtle-restore"
+                      (click)="activate(user)"
+                      [disabled]="busyId() !== null"
+                      [attr.aria-label]="'Reactivar a ' + user.nomUsuario"
+                      [attr.data-state-action]="user.idUsuario"
+                    >
+                      {{ busyId() === user.idUsuario ? 'Reactivando…' : 'Reactivar' }}
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <p role="status">
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }} usuarios
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          mat-icon-button
+          aria-label="Página anterior"
+          [disabled]="page() === 0"
+          (click)="page.set(page() - 1)"
+        >
+          <iw-icon name="arrow" /></button
+        ><span>Página {{ page() + 1 }} de {{ pages() }}</span
+        ><button
+          mat-icon-button
+          aria-label="Página siguiente"
+          [disabled]="page() + 1 >= pages()"
+          (click)="page.set(page() + 1)"
+        >
+          <iw-icon name="next" />
+        </button>
+      </div>
+    </div>
+  }
+</section>
+<p class="footnote">
+  <iw-icon name="info" />Las cuentas inactivas conservan su información e historial. Un
+  Administrador puede editarlas o reactivarlas.
+</p>
