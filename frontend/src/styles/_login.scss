@@ -2,13 +2,18 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #f7f9f9;
+  background: var(--canvas);
 }
 .login-header {
   padding: 30px 5.4%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.login-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 .login-header-label {
   font-size: 14px;
@@ -38,7 +43,7 @@
 .intro-separator {
   width: 48px;
   height: 2px;
-  background: #a8bebd;
+  background: var(--intro-separator);
   margin: 32px 0;
 }
 .intro-detail {
@@ -61,17 +66,17 @@
 }
 .intro-caption {
   margin-top: 44px;
-  color: #596871;
+  color: var(--muted);
   letter-spacing: 1px;
   font-size: 14px;
   font-weight: 500;
 }
 .login-card {
-  background: white;
+  background: var(--surface);
   padding: 36px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  box-shadow: 0 6px 28px #20303905;
+  box-shadow: 0 6px 28px var(--card-shadow);
 }
 .login-card-heading h1 {
   font-size: 26px;

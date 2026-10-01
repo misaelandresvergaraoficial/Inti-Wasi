@@ -3,7 +3,7 @@
 }
 .stat {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 8px;
   padding: 19px 22px;
   display: flex;
@@ -28,7 +28,7 @@
 }
 .stat-icon {
   padding: 11px;
-  background: #f3f6f7;
+  background: var(--tag-soft-bg);
   border-radius: 8px;
   display: inline-flex;
   flex-shrink: 0;
@@ -36,7 +36,7 @@
 .stat-icon iw-icon {
   width: 20px;
   height: 20px;
-  color: #648089;
+  color: var(--icon-muted);
 }
 .badge {
   display: inline-block;
@@ -47,8 +47,8 @@
   white-space: nowrap;
 }
 .badge.neutral {
-  background: #f0f3f5;
-  color: #54646e;
+  background: var(--tag-soft-bg);
+  color: var(--muted);
 }
 .filter-bar {
   padding: 22px 24px;
@@ -67,14 +67,14 @@
 .input-with-icon {
   display: flex;
   align-items: center;
-  border: 1px solid #7b8992;
+  border: 1px solid var(--field-border);
   border-radius: 6px;
   padding: 0 12px;
   height: 44px;
   gap: 10px;
 }
 .input-with-icon iw-icon {
-  color: #5c6d77;
+  color: var(--muted);
   width: 18px;
 }
 .input-with-icon input {
@@ -90,18 +90,18 @@
   outline: 0 !important;
 }
 .input-with-icon:focus-within {
-  outline: 3px solid #175b65;
+  outline: 3px solid var(--primary);
   outline-offset: 3px;
 }
 .input-with-icon input::placeholder {
-  color: #667781;
+  color: var(--field-placeholder);
   opacity: 1;
 }
 .role-filter select,
 .status-filter select {
   width: 100%;
-  background: white;
-  border: 1px solid #7b8992;
+  background: var(--surface);
+  border: 1px solid var(--field-border);
   border-radius: 6px;
   height: 44px;
   padding: 0 12px;
@@ -118,9 +118,9 @@ table {
   font-size: 14px;
 }
 thead th {
-  background: #f8fafb;
+  background: var(--table-head);
   border-block: 1px solid var(--line);
-  color: #5a6c77;
+  color: var(--muted);
   font-size: 14px;
   font-weight: 550;
   padding: 13px 24px;
@@ -128,7 +128,7 @@ thead th {
 tbody th,
 tbody td {
   padding: 17px 24px;
-  border-bottom: 1px solid #edf0f2;
+  border-bottom: 1px solid var(--row-border);
   font-weight: 400;
 }
 tbody tr:last-child th,
@@ -136,31 +136,31 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 tbody tr:hover {
-  background: #fafcfc;
+  background: var(--surface-alt);
 }
 tbody tr.inactive-row {
-  background: #f7f9fa;
+  background: var(--surface-soft);
 }
 tbody tr.inactive-row:hover {
-  background: #f0f4f5;
+  background: var(--surface-hover);
 }
 .inactive-row .avatar {
-  background: #e5e9eb;
-  color: #52616b;
+  background: var(--tag-neutral-bg);
+  color: var(--muted);
 }
 .inactive-row .person-name,
 .inactive-row .person-email,
 .inactive-row .phone-cell {
-  color: #52616b;
+  color: var(--muted);
 }
 .status-tag {
   display: inline-block;
   margin-left: 8px;
   padding: 3px 7px;
-  border: 1px solid #cbd3d7;
+  border: 1px solid var(--tag-neutral-border);
   border-radius: 4px;
-  background: #e9edef;
-  color: #495963;
+  background: var(--tag-neutral-bg);
+  color: var(--tag-neutral-fg);
   font-size: 14px;
   font-weight: 500;
 }
@@ -177,32 +177,32 @@ tbody tr.inactive-row:hover {
 }
 .person-email {
   display: block;
-  color: #62717c;
+  color: var(--muted);
   font-size: 14px;
   margin-top: 4px;
   overflow-wrap: anywhere;
 }
 .you-label {
   margin-left: 5px;
-  color: #596871;
+  color: var(--muted);
   font-size: 14px;
   font-weight: 400;
 }
 .role-tag {
   white-space: nowrap;
   font-size: 14px;
-  background: #f0f3f5;
-  color: #50636e;
+  background: var(--tag-soft-bg);
+  color: var(--muted);
   padding: 5px 9px;
   border-radius: 4px;
 }
 .role-tag.admin {
-  background: #eaf3f2;
-  color: #285e61;
+  background: var(--tag-primary-bg);
+  color: var(--tag-primary-fg);
 }
 .phone-cell {
   font-size: 14px;
-  color: #596e7a;
+  color: var(--muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -230,7 +230,7 @@ tbody tr.inactive-row:hover {
   padding: 14px 24px;
   border-top: 1px solid var(--line);
   font-size: 14px;
-  color: #5d6f79;
+  color: var(--muted);
 }
 .pagination iw-icon {
   width: 16px;
@@ -239,7 +239,7 @@ tbody tr.inactive-row:hover {
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  color: #596871;
+  color: var(--muted);
   font-size: 14px;
   margin-top: 20px;
 }
@@ -266,7 +266,7 @@ tbody tr.inactive-row:hover {
   justify-content: flex-end;
   padding: 20px 28px;
   border-top: 1px solid var(--line);
-  background: #fafcfc;
+  background: var(--surface-alt);
   border-radius: 0 0 8px 8px;
 }
 .form-aside {

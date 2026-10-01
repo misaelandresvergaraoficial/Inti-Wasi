@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth.service';
+import { ThemeService } from '../core/theme.service';
 import { Icon } from '../shared/icon';
 @Component({
   selector: 'iw-shell',
@@ -60,6 +61,17 @@ import { Icon } from '../shared/icon';
         <header class="topbar">
           <span class="company-name">Distribuidora Inti Wasi S.A.C.</span>
           <div class="account">
+            <button
+              mat-button
+              type="button"
+              class="theme-toggle"
+              (click)="theme.toggle()"
+              [attr.aria-pressed]="theme.isDark()"
+              [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+            >
+              <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+              <span>{{ theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro' }}</span>
+            </button>
             <span class="avatar small">{{ initials() }}</span>
             <div class="account-text">
               <strong>{{ auth.session()?.nombre }}</strong
@@ -80,6 +92,7 @@ import { Icon } from '../shared/icon';
 })
 export class Shell {
   readonly auth = inject(AuthService);
+  readonly theme = inject(ThemeService);
   constructor() {
     inject(Router)
       .events.pipe(

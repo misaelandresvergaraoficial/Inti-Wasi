@@ -22,6 +22,8 @@ const paths: Record<string, string> = {
   ban: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M5 5l14 14',
   menu: 'M4 6h16 M4 12h16 M4 18h16',
   mail: 'M3 5h18v14H3z m0 0 9 7 9-7',
+  moon: 'M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11',
+  sun: 'M12 2v2 M12 20v2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M2 12h2 M20 12h2 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4 M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
 };
 @Component({
   selector: 'iw-icon',

@@ -2,11 +2,11 @@
   "name": "inti-wasi-frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "ng": "node --env-file=.env.build ./node_modules/@angular/cli/bin/ng.js",
+    "start": "npm run ng -- serve",
+    "build": "npm run ng -- build",
+    "watch": "npm run ng -- build --watch --configuration development",
+    "test": "npm run ng -- test"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
@@ -31,10 +31,14 @@
     "@angular/cli": "^22.1.5",
     "@angular/compiler-cli": "^22.1.0",
     "@axe-core/playwright": "^4.13.0",
+    "@oxc-parser/binding-wasm32-wasi": "0.150.0",
     "@playwright/cli": "^0.1.22",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
+  },
+  "overrides": {
+    "@napi-rs/wasm-runtime": "1.2.1"
   }
 }
