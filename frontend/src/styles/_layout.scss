@@ -1,0 +1,371 @@
+.app-layout {
+  display: grid;
+  grid-template-columns: 228px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.sidebar {
+  background: #fff;
+  border-right: 1px solid var(--line);
+  padding: 32px 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar .brand {
+  margin-left: 10px;
+  font-size: 24px;
+  gap: 9px;
+}
+.sidebar .brand small {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+}
+.nav-section {
+  margin: 56px 13px 14px;
+  font-size: 14px;
+  color: #63737c;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sidebar nav a {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  text-decoration: none;
+  color: #53636b;
+  font-size: 14px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.sidebar nav a:hover {
+  background: #f4f7f7;
+}
+.sidebar nav a.active {
+  color: #175b65;
+  background: #eaf2f2;
+  font-weight: 650;
+}
+.sidebar-bottom {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: auto 9px 0;
+  padding-top: 25px;
+  border-top: 1px solid var(--line);
+  color: #627079;
+  font-size: 14px;
+}
+.sidebar-bottom span {
+  display: block;
+  color: #334a54;
+  margin-top: 4px;
+}
+.workspace {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar {
+  min-height: 89px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 36px;
+  gap: 20px;
+}
+.company-name {
+  font-size: 14px;
+  color: #52626b;
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.account-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: var(--muted);
+}
+.account-text strong {
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--ink);
+}
+.topbar-divider {
+  height: 28px;
+  width: 1px;
+  background: var(--line);
+  margin-left: 12px;
+}
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #edf1f3;
+  color: #4c626f;
+  font-size: 14px;
+  font-weight: 550;
+  flex-shrink: 0;
+}
+.avatar.small {
+  width: 34px;
+  height: 34px;
+  background: #eaf2f2;
+  color: #175b65;
+}
+.main-content {
+  flex: 1;
+  padding: 28px 36px 40px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #61717a;
+  font-size: 14px;
+  margin-bottom: 28px;
+  min-height: 20px;
+}
+.breadcrumb iw-icon {
+  width: 12px;
+  height: 12px;
+}
+.breadcrumb a {
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+.page-heading {
+  margin-bottom: 28px;
+}
+.page-heading .eyebrow {
+  font-size: 14px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.page-heading p {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.page-heading > a {
+  margin-top: 26px;
+}
+.app-footer {
+  padding: 18px 36px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  color: #64747d;
+}
+.panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-heading p {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+.empty-state {
+  padding: 50px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state h3 {
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.empty-state p {
+  margin-bottom: 18px;
+}
+.loading-line {
+  display: block;
+  height: 3px;
+  width: 80px;
+  background: #175b65;
+  border-radius: 3px;
+  margin: 0 auto 20px;
+  animation: loading 1s ease-in-out infinite alternate;
+}
+@keyframes loading {
+  to {
+    opacity: 0.35;
+  }
+}
+.welcome-panel {
+  max-width: 760px;
+  padding: 32px;
+}
+.welcome-panel > p {
+  margin-top: 12px;
+  color: var(--muted);
+}
+.account-details {
+  margin: 28px 0;
+  padding-block: 12px;
+  border-block: 1px solid var(--line);
+}
+.account-details > div {
+  display: flex;
+  gap: 20px;
+  padding: 10px 0;
+  font-size: 14px;
+}
+.account-details dt {
+  min-width: 150px;
+  color: var(--muted);
+}
+.account-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.welcome-panel .notice {
+  margin-bottom: 0;
+}
+.access-state {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 44px;
+}
+.access-state h1 {
+  font-size: 28px;
+}
+.access-state p {
+  color: var(--muted);
+  margin: 20px 0 28px;
+  line-height: 1.8;
+}
+@media (max-width: 1200px) {
+  .app-layout {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding-inline: 12px;
+  }
+  .sidebar .brand {
+    font-size: 22px;
+    margin-left: 6px;
+  }
+  .topbar,
+  .main-content {
+    padding-inline: 24px;
+  }
+  .company-name {
+    max-width: 170px;
+  }
+}
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 172px minmax(0, 1fr);
+  }
+  .sidebar .brand {
+    font-size: 20px;
+  }
+  .sidebar .brand small {
+    letter-spacing: 0;
+  }
+  .sidebar .brand img {
+    width: 32px;
+    height: 32px;
+  }
+  .company-name {
+    display: none;
+  }
+  .topbar {
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 600px) {
+  .app-layout {
+    display: block;
+  }
+  .sidebar {
+    padding: 18px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar .brand {
+    margin: 0;
+  }
+  .nav-section,
+  .sidebar-bottom {
+    display: none;
+  }
+  .sidebar nav {
+    flex-direction: row;
+    margin-top: 16px;
+  }
+  .sidebar nav a {
+    flex: 1;
+  }
+  .topbar {
+    padding: 14px 16px;
+  }
+  .account {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .account-text {
+    flex: 1;
+  }
+  .topbar-divider {
+    display: none;
+  }
+  .main-content {
+    padding: 24px 16px;
+  }
+  .page-heading > a {
+    margin-top: 0;
+  }
+  .page-heading {
+    margin-bottom: 22px;
+  }
+  .panel-heading {
+    padding: 20px 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .app-footer {
+    flex-direction: column;
+    padding: 20px 16px;
+  }
+  .welcome-panel,
+  .access-state {
+    padding: 24px;
+  }
+  .account-details > div {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

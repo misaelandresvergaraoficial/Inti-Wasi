@@ -1,0 +1,66 @@
+<div class="breadcrumb">
+  <a routerLink="/productos">Productos</a><iw-icon name="next" /><span>Stock bajo</span>
+</div>
+
+<div class="page-heading">
+  <h1 tabindex="-1">Productos con stock bajo</h1>
+  <p>Productos cuyo stock actual es igual o menor al mínimo configurado.</p>
+</div>
+
+<section class="panel mt-6" [attr.aria-busy]="loading()">
+  @if (loading()) {
+    <div class="empty-state p-6" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando productos…</p>
+    </div>
+  } @else if (error()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ error() }}</p>
+      <button mat-button (click)="load()">Reintentar</button>
+    </div>
+  } @else if (records().length === 0) {
+    <div class="empty-state p-6">
+      <p>No hay productos activos con stock igual o inferior al mínimo.</p>
+    </div>
+  } @else {
+    <div class="table-scroll" role="region" aria-label="Productos con stock bajo" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Productos activos cuyo stock actual es igual o menor al mínimo
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">SKU</th>
+            <th scope="col">Producto</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Stock actual</th>
+            <th scope="col">Stock mínimo</th>
+            <th scope="col" class="actions-heading">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of records(); track p.idProducto) {
+            <tr>
+              <th scope="row">{{ p.sku }}</th>
+              <td>{{ p.nomProducto }}</td>
+              <td>{{ p.nomCategoria }}</td>
+              <td>{{ p.stockActual }} <span class="status-tag">Stock bajo</span></td>
+              <td>{{ p.stockMinimo }}</td>
+              <td>
+                <div class="row-actions">
+                  <a
+                    mat-button
+                    [routerLink]="['/productos', p.idProducto, 'editar']"
+                    [attr.aria-label]="'Editar ' + p.nomProducto"
+                    ><iw-icon name="edit" />Editar</a
+                  >
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

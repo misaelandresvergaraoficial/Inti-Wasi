@@ -1,0 +1,225 @@
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">INVENTARIO</div>
+    <h1 tabindex="-1">Productos</h1>
+    <p>
+      {{
+        auth.isAdmin()
+          ? 'Consulta y gestión de productos activos e inactivos.'
+          : 'Consulta los productos activos del almacén.'
+      }}
+      El precio de compra es referencial para las órdenes nuevas.
+    </p>
+  </div>
+  @if (auth.isAdmin()) {
+    <div class="flex gap-2">
+      <a mat-stroked-button routerLink="/productos/stock-bajo">Ver stock bajo</a>
+      <a mat-flat-button routerLink="/productos/nuevo"><iw-icon name="plus" />Crear producto</a>
+    </div>
+  }
+</div>
+
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    @if (!records().length) {
+      <button mat-button (click)="load()">Reintentar</button>
+    }
+  </div>
+}
+<section class="panel mt-6" [attr.aria-busy]="loading()">
+  <div class="filter-bar flex flex-wrap items-end gap-4">
+    <div class="search-field">
+      <label for="producto-search">Buscar producto</label>
+      <div class="input-with-icon">
+        <iw-icon name="search" />
+        <input
+          id="producto-search"
+          type="search"
+          placeholder="Buscar por SKU o nombre"
+          [value]="query()"
+          (input)="search($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="role-filter">
+      <label for="categoria-filter">Categoría</label>
+      <select
+        id="categoria-filter"
+        [value]="categoriaFilter()"
+        (change)="filterCategoria($any($event.target).value)"
+      >
+        <option value="">Todas las categorías</option>
+        @for (category of categorias(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
+    @if (auth.isAdmin()) {
+      <div class="status-filter">
+        <label for="producto-status">Estado</label>
+        <select
+          id="producto-status"
+          [value]="statusFilter()"
+          (change)="filterStatus($any($event.target).value)"
+        >
+          <option value="">Todos los estados</option>
+          <option value="1">Activos</option>
+          <option value="0">Inactivos</option>
+        </select>
+      </div>
+    }
+
+    @if (query() || categoriaFilter() || statusFilter()) {
+      <button mat-button (click)="reset()">Limpiar filtros</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando productos...</p>
+    </div>
+  } @else if (error() && !records().length) {
+  } @else if (visible().length === 0) {
+    <div class="empty-state">
+      <span class="section-icon"><iw-icon name="search" /></span>
+      <h3>
+        {{ records().length ? 'No encontramos coincidencias' : 'No hay productos para mostrar' }}
+      </h3>
+      <p>
+        {{
+          records().length
+            ? 'Prueba con otro filtro o término de búsqueda.'
+            : 'Los productos aparecerán aquí.'
+        }}
+      </p>
+      @if (query() || categoriaFilter() || statusFilter()) {
+        <button mat-stroked-button (click)="reset()">Limpiar filtros</button>
+      }
+    </div>
+  } @else {
+    <div class="table-scroll" role="region" aria-label="Listado de productos" tabindex="0">
+      <table class="min-w-[1080px]">
+        <caption class="sr-only">
+          {{
+            auth.isAdmin() ? 'Productos activos e inactivos' : 'Productos activos'
+          }}
+          de Inti Wasi
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">SKU</th>
+            <th scope="col">Producto</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Proveedor</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Precio de compra</th>
+            @if (auth.isAdmin()) {
+              <th scope="col" class="actions-heading">Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of visible(); track p.idProducto) {
+            <tr [class.inactive-row]="p.estado === 0">
+              <th scope="row">
+                <strong class="whitespace-nowrap">{{ p.sku }}</strong>
+              </th>
+              <td>
+                <span class="person-name">
+                  {{ p.nomProducto }}
+                  @if (p.estado === 0) {
+                    <span class="status-tag">Inactivo</span>
+                  }
+                </span>
+              </td>
+              <td>{{ p.nomCategoria }}</td>
+              <td>{{ p.nomProveedor || 'Sin proveedor asignado' }}</td>
+              <td>
+                <span class="font-medium">{{ p.stockActual }}</span>
+                @if (p.estado === 1 && p.stockActual <= p.stockMinimo) {
+                  <span class="status-tag">Stock bajo</span>
+                }
+              </td>
+              <td class="order-amount">{{ price(p.precio) }}</td>
+              @if (auth.isAdmin()) {
+                <td>
+                  <div class="row-actions">
+                    <a
+                      mat-button
+                      [routerLink]="['/productos', p.idProducto, 'editar']"
+                      [attr.aria-label]="'Editar ' + p.nomProducto"
+                    >
+                      <iw-icon name="edit" />Editar
+                    </a>
+                    @if (p.estado !== 0) {
+                      <button
+                        mat-button
+                        class="subtle-danger"
+                        (click)="desactivar(p)"
+                        [disabled]="busyId() !== null"
+                        [attr.data-product-state-action]="p.idProducto"
+                        [attr.aria-label]="'Desactivar ' + p.nomProducto"
+                      >
+                        {{ busyId() === p.idProducto ? 'Desactivando…' : 'Desactivar' }}
+                      </button>
+                    } @else {
+                      <button
+                        mat-button
+                        class="subtle-restore"
+                        (click)="reactivar(p)"
+                        [disabled]="busyId() !== null"
+                        [attr.data-product-state-action]="p.idProducto"
+                        [attr.aria-label]="'Reactivar ' + p.nomProducto"
+                      >
+                        {{ busyId() === p.idProducto ? 'Reactivando…' : 'Reactivar' }}
+                      </button>
+                    }
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <p role="status">
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }} productos
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          mat-icon-button
+          aria-label="Página anterior"
+          [disabled]="page() === 0"
+          (click)="page.set(page() - 1)"
+        >
+          <iw-icon name="arrow" />
+        </button>
+        <span>Página {{ page() + 1 }} de {{ pages() }}</span>
+        <button
+          mat-icon-button
+          aria-label="Página siguiente"
+          [disabled]="page() + 1 >= pages()"
+          (click)="page.set(page() + 1)"
+        >
+          <iw-icon name="next" />
+        </button>
+      </div>
+    </div>
+  }
+</section>
