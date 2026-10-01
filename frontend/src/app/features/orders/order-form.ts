@@ -193,6 +193,28 @@ export class OrderForm implements PendingChanges {
       : this.original()?.detalles.find((item) => item.idProducto === id);
   }
 
+  productsForSupplier(): ProductoOpcion[] {
+    const supplierId = this.form.controls.idProveedor.value;
+    return this.products().filter((product) => product.idProveedor === supplierId);
+  }
+
+  productMismatch(id: number): boolean {
+    const product = this.products().find((item) => item.idProducto === Number(id));
+    return !!product && product.idProveedor !== this.form.controls.idProveedor.value;
+  }
+
+  mismatchedProduct(id: number): ProductoOpcion | undefined {
+    return this.products().find((item) => item.idProducto === Number(id));
+  }
+
+  onProductChange(index: number): void {
+    const line = this.lines.at(index);
+    const product = this.productsForSupplier().find(
+      (item) => item.idProducto === Number(line.controls.idProducto.value),
+    );
+    line.controls.precioUnitario.setValue(product ? product.precio.toFixed(2) : '');
+  }
+
   lineSubtotal(index: number): number {
     const line = this.lines.at(index);
     const quantity = Number(line.controls.cantidad.value);
@@ -224,10 +246,13 @@ export class OrderForm implements PendingChanges {
       (item) => item.idProveedor === value.idProveedor,
     );
     const unavailableProduct = value.detalles.findIndex(
-      (line) => !this.products().some((item) => item.idProducto === line.idProducto),
+      (line) =>
+        !this.products().some(
+          (item) => item.idProducto === line.idProducto && item.idProveedor === value.idProveedor,
+        ),
     );
     if (!supplierAvailable || unavailableProduct >= 0) {
-      this.error.set('Selecciona un proveedor y productos activos antes de guardar.');
+      this.error.set('Selecciona un proveedor activo y productos asignados a ese proveedor.');
       requestAnimationFrame(() =>
         this.element()
           ?.nativeElement.querySelector<HTMLElement>(

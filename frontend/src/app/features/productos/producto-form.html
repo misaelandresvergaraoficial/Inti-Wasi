@@ -1,81 +1,136 @@
 <div class="breadcrumb">
   <a routerLink="/productos">Productos</a><iw-icon name="next" />
-  <span>{{ isEdit() ? 'Editar' : 'Nuevo' }}</span>
+  <span>{{ isEdit() ? 'Editar producto' : 'Crear producto' }}</span>
 </div>
 
 <div class="page-heading">
-  <h1 tabindex="-1">{{ isEdit() ? 'Editar Producto' : 'Crear Producto' }}</h1>
+  <div class="eyebrow">INVENTARIO</div>
+  <h1 tabindex="-1">{{ isEdit() ? 'Editar producto' : 'Crear producto' }}</h1>
+  <p>
+    {{
+      isEdit()
+        ? 'Actualiza los datos del producto.'
+        : 'Agrega un producto al catálogo; el stock actual empezará en cero.'
+    }}
+  </p>
 </div>
 
-@if (errorInit()) {
-  <div class="notice error" role="alert">{{ errorInit() }}</div>
+@if (loading()) {
+  <div class="panel empty-state mt-6" role="status">Cargando información del producto…</div>
+} @else if (errorInit()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ errorInit() }}</p>
+  </div>
+  <button mat-stroked-button (click)="init()">Reintentar</button>
+  <a mat-button routerLink="/productos">Volver a productos</a>
+} @else {
+  <form
+    #productForm
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    class="panel mt-6 max-w-2xl"
+    novalidate
+    [attr.aria-busy]="saving()"
+  >
+    <div class="panel-heading">
+      <h2>Información del producto</h2>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>SKU</mat-label>
+        <input matInput formControlName="sku" autocomplete="off" />
+        @if (form.get('sku')?.hasError('required') || form.get('sku')?.hasError('blank')) {
+          <mat-error>Ingresa un SKU.</mat-error>
+        }
+        @if (form.get('sku')?.hasError('maxlength')) {
+          <mat-error>Máximo 30 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="idCategoria">
+          <mat-option [value]="0">Selecciona una categoría</mat-option>
+          @for (c of categorias(); track c.idCategoria) {
+            <mat-option [value]="c.idCategoria">{{ c.nomCategoria }}</mat-option>
+          }
+        </mat-select>
+        @if (form.get('idCategoria')?.invalid) {
+          <mat-error>Selecciona una categoría activa.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
+        <mat-label>Nombre del producto</mat-label>
+        <input matInput formControlName="nomProducto" />
+        @if (
+          form.get('nomProducto')?.hasError('required') ||
+          form.get('nomProducto')?.hasError('blank')
+        ) {
+          <mat-error>Ingresa el nombre del producto.</mat-error>
+        }
+        @if (form.get('nomProducto')?.hasError('maxlength')) {
+          <mat-error>Máximo 150 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
+        <mat-label>Proveedor (opcional)</mat-label>
+        <mat-select formControlName="idProveedor">
+          <mat-option [value]="null">Sin proveedor</mat-option>
+          @for (p of proveedores(); track p.idProveedor) {
+            <mat-option [value]="p.idProveedor">{{ p.nomProveedor }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Asígnalo para poder incluir este producto en órdenes de compra.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Precio de compra referencial (S/)</mat-label>
+        <input matInput type="number" formControlName="precio" min="0" step="0.01" />
+        <mat-hint>Se sugerirá en órdenes nuevas; hasta dos decimales.</mat-hint>
+        @if (form.get('precio')?.hasError('required')) {
+          <mat-error>El precio es obligatorio.</mat-error>
+        }
+        @if (form.get('precio')?.hasError('min')) {
+          <mat-error>No puede ser negativo.</mat-error>
+        }
+        @if (form.get('precio')?.hasError('pattern')) {
+          <mat-error>Ingresa un precio válido con hasta dos decimales.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Stock mínimo</mat-label>
+        <input matInput type="number" formControlName="stockMinimo" min="0" step="1" />
+        <mat-hint>Unidades enteras desde cero; el stock actual se registra en Entradas.</mat-hint>
+        @if (form.get('stockMinimo')?.hasError('required')) {
+          <mat-error>Ingresa el stock mínimo.</mat-error>
+        }
+        @if (
+          form.get('stockMinimo')?.hasError('min') ||
+          form.get('stockMinimo')?.hasError('pattern') ||
+          form.get('stockMinimo')?.hasError('max')
+        ) {
+          <mat-error>Ingresa un número entero desde cero.</mat-error>
+        }
+      </mat-form-field>
+      @if (error()) {
+        <div class="notice error sm:col-span-2" role="alert">
+          <iw-icon name="info" />
+          <p>{{ error() }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="p-6 bg-gray-50 border-t flex justify-end gap-3 rounded-b-lg">
+      <a mat-button routerLink="/productos">Cancelar</a>
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear producto' }}
+      </button>
+    </div>
+    <span class="sr-only" role="status">{{ saving() ? 'Guardando el producto.' : '' }}</span>
+  </form>
 }
-
-<form [formGroup]="form" (ngSubmit)="save()" class="panel mt-6 max-w-2xl" novalidate>
-  <div class="panel-heading">
-    <h2>Información del Producto</h2>
-  </div>
-  
-  <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- SKU -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>SKU</mat-label>
-      <input matInput formControlName="sku" #firstInput [attr.aria-invalid]="form.get('sku')?.invalid" />
-      @if (form.get('sku')?.hasError('required')) { <mat-error>El SKU es obligatorio.</mat-error> }
-      @if (form.get('sku')?.hasError('maxlength')) { <mat-error>Máximo 30 caracteres.</mat-error> }
-    </mat-form-field>
-
-    <!-- Categoría -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>Categoría</mat-label>
-      <mat-select formControlName="idCategoria">
-        @for (c of categorias(); track c.idCategoria) {
-          <mat-option [value]="c.idCategoria">{{ c.nomCategoria }}</mat-option>
-        }
-      </mat-select>
-      @if (form.get('idCategoria')?.hasError('required')) { <mat-error>Selecciona una categoría.</mat-error> }
-    </mat-form-field>
-
-    <!-- Nombre -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
-      <mat-label>Nombre del Producto</mat-label>
-      <input matInput formControlName="nomProducto" />
-      @if (form.get('nomProducto')?.hasError('required')) { <mat-error>El nombre es obligatorio.</mat-error> }
-      @if (form.get('nomProducto')?.hasError('maxlength')) { <mat-error>Máximo 150 caracteres.</mat-error> }
-    </mat-form-field>
-
-    <!-- Proveedor (Opcional) -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
-      <mat-label>Proveedor (Opcional)</mat-label>
-      <mat-select formControlName="idProveedor">
-        <mat-option [value]="null">-- Ninguno --</mat-option>
-        @for (p of proveedores(); track p.idProveedor) {
-          <mat-option [value]="p.idProveedor">{{ p.nomProveedor }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <!-- Precio -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>Precio</mat-label>
-      <input matInput type="number" formControlName="precio" min="0" step="0.01" />
-      @if (form.get('precio')?.hasError('required')) { <mat-error>El precio es obligatorio.</mat-error> }
-      @if (form.get('precio')?.hasError('min')) { <mat-error>No puede ser negativo.</mat-error> }
-    </mat-form-field>
-
-    <!-- Stock Mínimo -->
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>Stock Mínimo</mat-label>
-      <input matInput type="number" formControlName="stockMinimo" min="0" step="1" />
-      @if (form.get('stockMinimo')?.hasError('required')) { <mat-error>Obligatorio.</mat-error> }
-      @if (form.get('stockMinimo')?.hasError('min')) { <mat-error>Debe ser mayor o igual a 0.</mat-error> }
-    </mat-form-field>
-  </div>
-
-  <div class="p-6 bg-gray-50 border-t flex justify-end gap-3 rounded-b-lg">
-    <a mat-button routerLink="/productos">Cancelar</a>
-    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving()">
-      {{ saving() ? 'Guardando...' : 'Guardar' }}
-    </button>
-  </div>
-</form>

@@ -131,7 +131,9 @@
         <div class="panel-heading">
           <div>
             <h2 id="order-products-title">Productos de la orden</h2>
-            <p>Agrega al menos uno. Indica la cantidad y el precio de compra acordado.</p>
+            <p>
+              Agrega al menos un producto del proveedor elegido. El precio sugerido puede ajustarse.
+            </p>
           </div>
           <span class="badge neutral"
             >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
@@ -149,8 +151,10 @@
                       matNativeControl
                       [id]="'line-product-' + index"
                       formControlName="idProducto"
+                      (change)="onProductChange(index)"
                       [attr.aria-invalid]="
                         !!missingProduct(line.controls.idProducto.value) ||
+                        productMismatch(line.controls.idProducto.value) ||
                         duplicate(index) ||
                         (line.controls.idProducto.invalid &&
                           (line.controls.idProducto.touched || submitted()))
@@ -160,10 +164,12 @@
                         index +
                         (missingProduct(line.controls.idProducto.value)
                           ? ' line-product-inactive-' + index
-                          : (line.controls.idProducto.invalid || duplicate(index)) &&
-                              (line.controls.idProducto.touched || submitted())
-                            ? ' line-product-error-' + index
-                            : '')
+                          : productMismatch(line.controls.idProducto.value)
+                            ? ' line-product-mismatch-' + index
+                            : (line.controls.idProducto.invalid || duplicate(index)) &&
+                                (line.controls.idProducto.touched || submitted())
+                              ? ' line-product-error-' + index
+                              : '')
                       "
                     >
                       <option [ngValue]="0">Selecciona un producto</option>
@@ -172,7 +178,14 @@
                           {{ previous.sku }} · {{ previous.nomProducto }} (inactivo; elige otro)
                         </option>
                       }
-                      @for (product of products(); track product.idProducto) {
+                      @if (productMismatch(line.controls.idProducto.value)) {
+                        <option [ngValue]="line.controls.idProducto.value">
+                          {{ mismatchedProduct(line.controls.idProducto.value)?.sku }} ·
+                          {{ mismatchedProduct(line.controls.idProducto.value)?.nomProducto }}
+                          (no corresponde; elige otro)
+                        </option>
+                      }
+                      @for (product of productsForSupplier(); track product.idProducto) {
                         <option [ngValue]="product.idProducto">
                           {{ product.sku }} · {{ product.nomProducto }}
                         </option>
@@ -188,11 +201,26 @@
                     }
                   </mat-form-field>
                   <p [id]="'line-product-help-' + index" class="field-description">
-                    El producto no puede repetirse en esta orden.
+                    {{
+                      form.controls.idProveedor.value
+                        ? 'Solo aparecen productos activos de este proveedor; no pueden repetirse.'
+                        : 'Elige primero un proveedor para ver sus productos.'
+                    }}
                   </p>
+                  @if (form.controls.idProveedor.value && !productsForSupplier().length) {
+                    <p class="field-description" role="status">
+                      No hay productos asignados a este proveedor. Asígnalos en Productos.
+                    </p>
+                  }
                   @if (missingProduct(line.controls.idProducto.value)) {
                     <p class="order-field-error" [id]="'line-product-inactive-' + index">
                       Este producto está inactivo. Elige otro para guardar.
+                    </p>
+                  }
+                  @if (productMismatch(line.controls.idProducto.value)) {
+                    <p class="order-field-error" [id]="'line-product-mismatch-' + index">
+                      Este producto no está asignado al proveedor elegido. Selecciona otro para
+                      guardar.
                     </p>
                   }
                   @if (duplicate(index) && (line.controls.idProducto.touched || submitted())) {
@@ -257,7 +285,8 @@
                     }
                   </mat-form-field>
                   <p [id]="'line-price-help-' + index" class="field-description">
-                    Acepta coma o punto decimal.
+                    Se propone el precio de compra del catálogo; puedes ajustarlo. Acepta coma o
+                    punto decimal.
                   </p>
                 </div>
               </div>
