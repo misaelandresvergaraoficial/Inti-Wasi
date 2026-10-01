@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,14 +22,12 @@ public class ProductoController {
 
     private final ProductoService productoService;
     
-    // Endpoint para listar todos (activos e inactivos)
     @GetMapping("/todos")
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<List<ProductoResponse>> listarTodos() {
         return ResponseEntity.ok(productoService.listarTodos());
     }
 
-    // Endpoint para actualizar el estado a través de un JSON body
     @PutMapping("/{id}/estado")
     @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<ProductoResponse> cambiarEstado(
@@ -46,8 +45,10 @@ public class ProductoController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
-    public ResponseEntity<ProductoResponse> obtenerPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(productoService.obtenerPorId(id));
+    public ResponseEntity<ProductoResponse> obtenerPorId(@PathVariable Integer id, Authentication authentication) {
+        boolean esAdministrador = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_Administrador".equals(authority.getAuthority()));
+        return ResponseEntity.ok(productoService.obtenerPorId(id, esAdministrador));
     }
 
     @GetMapping("/stock-bajo")

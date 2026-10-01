@@ -4,9 +4,11 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
 import { ApiRequestError } from './models';
-import { 
-  ProductoRequest, ProductoResponse, 
-  CategoriaResponse, ProveedorResponse 
+import {
+  ProductoRequest,
+  ProductoResponse,
+  CategoriaResponse,
+  ProveedorResponse,
 } from './producto-models';
 
 @Injectable({ providedIn: 'root' })
@@ -15,8 +17,10 @@ export class ProductosService {
   private readonly auth = inject(AuthService);
   private readonly base = '/api/productos';
 
-  list(): Promise<ProductoResponse[]> {
-    return this.request(this.http.get<ProductoResponse[]>(`${this.base}/todos`));
+  list(includeInactive = false): Promise<ProductoResponse[]> {
+    return this.request(
+      this.http.get<ProductoResponse[]>(includeInactive ? `${this.base}/todos` : this.base),
+    );
   }
 
   get(id: number): Promise<ProductoResponse> {
@@ -37,7 +41,6 @@ export class ProductosService {
     return this.request(this.http.delete<void>(`${this.base}/${id}`));
   }
 
-  // Método requerido para que funcione el botón de reactivación
   async activate(id: number): Promise<void> {
     await this.request(this.http.put<ProductoResponse>(`${this.base}/${id}/estado`, { estado: 1 }));
   }
