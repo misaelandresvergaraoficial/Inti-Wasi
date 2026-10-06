@@ -6,7 +6,8 @@
     "start": "npm run ng -- serve",
     "build": "npm run ng -- build",
     "watch": "npm run ng -- build --watch --configuration development",
-    "test": "npm run ng -- test"
+    "test": "npm run ng -- test",
+    "test:e2e": "node e2e/login.cjs"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
@@ -35,6 +36,7 @@
     "@playwright/cli": "^0.1.22",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
+    "selenium-webdriver": "^4.50.0",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
   },
