@@ -1,4 +1,4 @@
 spring.datasource.url=jdbc:mysql://localhost:3306/bd_intiwasi?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
 spring.datasource.username=inti
 spring.datasource.password=mysql1234
-jwt.secreto=pIQGmAPnAcbFvAa95X50fJZhuLWFAgwN+Py2FBHbFMcqhsQyc3PJ4JEB/NyegsAvVcNqfQcPQFDSotC/x7rw==
+jwt.secreto=6fcRzf2swa+j+2qkxcL9w6xx7BUBAe55cqr8puH8uOpHvWOJiSzBN6PYkiKfYHDhqtUZ6WcVZ7WWtnSrURGmlQ==
