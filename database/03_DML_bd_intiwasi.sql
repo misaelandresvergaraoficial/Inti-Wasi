@@ -6,7 +6,7 @@ INSERT INTO Usuarios (IdUsuario, NomUsuario, Correo, Contrasena, Rol, Telefono, 
 (1, 'Misael Andrés Vergara Morales', 'admin.misael@intiwasi.pe', '$2b$10$U67Ifp1WzLPUy4wn2SNpWOAiD8XjUEOp7f3xTzVVnE.UPrePMiGrG', 'Administrador', '987654321', 1, '2026-01-10 08:00:00'),
 (2, 'Kevin André de La Cruz Villugas', 'operador.kevin@intiwasi.pe', '$2b$10$/Ur6jAodWgmVOURyDBycXOAwFQekJG8v6bBcWTTl/xRZsKmZp9cYa', 'Operador de Almacén', '976543210', 1, '2026-01-10 08:15:00'),
 (3, 'Alvaro Luis Suica Salcedo', 'admin.alvaro@intiwasi.pe', '$2b$10$iMCUIOpD5pzi6AXOqppIFeg4jIw0fTohM3mfWs.Kdp3fspfOl88he', 'Administrador', '965432109', 1, '2026-01-12 09:00:00'),
-(4, 'Israel Rodrigo Ochoa Mejía', 'admin.israel@intiwasi.pe', '$2b$10$Tw4RpnbVHNees8Ubx2crfOxKwuaXl4VPuB6LN5fHjUOBBhpyO/2UG', 'Operador de Almacén', '954321098', 1, '2026-01-15 08:30:00'),
+(4, 'Israel Rodrigo Ochoa Mejía', 'operador.israel@intiwasi.pe', '$2b$10$Tw4RpnbVHNees8Ubx2crfOxKwuaXl4VPuB6LN5fHjUOBBhpyO/2UG', 'Operador de Almacén', '954321098', 1, '2026-01-15 08:30:00'),
 (5, 'Yul Alexander Retamozo Gutierrez', 'operador.yul@intiwasi.pe', '$2b$10$7boxVKYHY8eo9ghSVrHnCuBtMUtYkENS7ogS3UDREcHIDz5Wx0LNm', 'Operador de Almacén', '943210987', 1, '2026-01-20 09:15:00'),
 (6, 'Carlos Mendoza Rivera (Inactivo)', 'carlos.mendoza@intiwasi.pe', '$2b$10$BI0Acxv8L39GvfNinUo2gOaBfgWJglJ15JtNP2M0g.i/Tkoh3I3ES', 'Operador de Almacén', '932109876', 0, '2026-01-05 10:00:00');
 
