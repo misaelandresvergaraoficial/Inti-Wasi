@@ -6,6 +6,8 @@ const paths: Record<string, string> = {
   home: 'm3 10 9-7 9 7 M5 9v12h14V9 M9 21v-8h6v8',
   orders:
     'M8 4h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1 M9 2h6v4H9z M8 11h8 M8 16h8',
+  truck:
+    'M3 5h11v12H3z M14 9h4l3 3v5h-7z M7.5 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3 M17.5 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3',
   logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
   search: 'M21 21l-4.5-4.5 M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
   plus: 'M12 5v14 M5 12h14',

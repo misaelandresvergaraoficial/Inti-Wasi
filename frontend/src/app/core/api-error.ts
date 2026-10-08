@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ApiErrorResponse, ApiRequestError, UsuarioRequest } from './models';
+import { ApiErrorResponse, ApiRequestError } from './models';
 
 export function toApiError(error: unknown): ApiRequestError {
   if (!(error instanceof HttpErrorResponse)) {
@@ -39,8 +39,14 @@ export function toApiError(error: unknown): ApiRequestError {
   );
 }
 
-function fieldFromMessage(message: string): keyof UsuarioRequest | undefined {
+function fieldFromMessage(message: string): string | undefined {
   const lower = message.toLocaleLowerCase();
+  if (lower.includes('nomproveedor') || lower.includes('nombre del proveedor')) {
+    return 'nomProveedor';
+  }
+  if (lower.includes('ruc')) return 'ruc';
+  if (lower.includes('contacto')) return 'contacto';
+  if (lower.includes('dirección') || lower.includes('direccion')) return 'direccion';
   if (lower.includes('correo')) return 'correo';
   if (lower.includes('nombre')) return 'nomUsuario';
   if (lower.includes('teléfono') || lower.includes('telefono')) return 'telefono';
