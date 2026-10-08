@@ -22,6 +22,7 @@ const paths: Record<string, string> = {
   ban: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M5 5l14 14',
   menu: 'M4 6h16 M4 12h16 M4 18h16',
   mail: 'M3 5h18v14H3z m0 0 9 7 9-7',
+  'appstore-o': 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
 };
 @Component({
   selector: 'iw-icon',
