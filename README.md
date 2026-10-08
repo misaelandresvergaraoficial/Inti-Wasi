@@ -83,4 +83,4 @@ npm ci
 npm start
 ```
 
-Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos, gestión de usuarios y órdenes de compra; los demás módulos continúan a cargo del equipo. Consultar [la guía del frontend](frontend/README.md).
+Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos, gestión de usuarios, órdenes de compra, productos y proveedores. Consultar [la guía del frontend](frontend/README.md).

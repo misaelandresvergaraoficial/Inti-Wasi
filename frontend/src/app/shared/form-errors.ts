@@ -11,6 +11,8 @@ export function fieldError(control: AbstractControl, label: string): string {
 }
 export function focusFirstInvalid(form: HTMLElement): void {
   requestAnimationFrame(() =>
-    form.querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid')?.focus(),
+    form.querySelector<HTMLElement>(
+      'input.ng-invalid, select.ng-invalid, textarea.ng-invalid',
+    )?.focus(),
   );
 }

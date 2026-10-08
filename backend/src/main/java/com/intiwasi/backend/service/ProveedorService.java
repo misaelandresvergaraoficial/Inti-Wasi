@@ -23,6 +23,12 @@ public class ProveedorService {
                 .toList();
     }
 
+    public List<ProveedorResponse> listarTodos() {
+        return proveedorRepository.findAll().stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
     public ProveedorResponse obtenerPorId(Integer id) {
         return convertirAResponse(obtenerEntidadPorId(id));
     }
@@ -74,6 +80,12 @@ public class ProveedorService {
         Proveedor proveedor = obtenerEntidadPorId(id);
         proveedor.setEstado((byte) 0);
         proveedorRepository.save(proveedor);
+    }
+
+    public ProveedorResponse cambiarEstado(Integer id, Integer estado) {
+        Proveedor proveedor = obtenerEntidadPorId(id);
+        proveedor.setEstado(estado.byteValue());
+        return convertirAResponse(proveedorRepository.save(proveedor));
     }
 
     private Proveedor obtenerEntidadPorId(Integer id) {

@@ -69,6 +69,28 @@ export const routes: Routes = [
         loadComponent: () => import('./features/auth/access-denied').then((m) => m.AccessDenied),
       },
       {
+        path: 'proveedores',
+        title: 'Proveedores · Inti Wasi',
+        loadComponent: () =>
+          import('./features/proveedores/proveedores-list').then((m) => m.ProveedoresList),
+      },
+      {
+        path: 'proveedores/nuevo',
+        title: 'Crear proveedor · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () =>
+          import('./features/proveedores/proveedor-form').then((m) => m.ProveedorForm),
+      },
+      {
+        path: 'proveedores/:id/editar',
+        title: 'Editar proveedor · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () =>
+          import('./features/proveedores/proveedor-form').then((m) => m.ProveedorForm),
+      },
+      {
         path: 'productos',
         title: 'Productos · Inti Wasi',
         loadComponent: () => import('./features/productos/productos-list').then((m) => m.ProductosList),

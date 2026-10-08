@@ -39,7 +39,7 @@ export class ApiRequestError extends Error {
   constructor(
     message: string,
     readonly status: number,
-    readonly field?: keyof UsuarioRequest,
+    readonly field?: string,
   ) {
     super(message);
   }

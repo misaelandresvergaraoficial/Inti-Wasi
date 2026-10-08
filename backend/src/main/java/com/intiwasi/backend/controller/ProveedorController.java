@@ -1,5 +1,6 @@
 package com.intiwasi.backend.controller;
 
+import com.intiwasi.backend.dto.Proveedor.EstadoProveedorRequest;
 import com.intiwasi.backend.dto.Proveedor.ProveedorRequest;
 import com.intiwasi.backend.dto.Proveedor.ProveedorResponse;
 import com.intiwasi.backend.service.ProveedorService;
@@ -27,6 +28,12 @@ import java.util.List;
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
+
+    @GetMapping("/todos")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<List<ProveedorResponse>> listarTodos() {
+        return ResponseEntity.ok(proveedorService.listarTodos());
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
@@ -60,5 +67,13 @@ public class ProveedorController {
     public ResponseEntity<Void> desactivar(@PathVariable Integer id) {
         proveedorService.desactivar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<ProveedorResponse> cambiarEstado(
+            @PathVariable Integer id,
+            @Valid @RequestBody EstadoProveedorRequest request) {
+        return ResponseEntity.ok(proveedorService.cambiarEstado(id, request.getEstado()));
     }
 }
