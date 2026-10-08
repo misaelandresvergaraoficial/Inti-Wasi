@@ -96,8 +96,14 @@ export class UserForm implements PendingChanges {
       );
       await this.router.navigate([this.auth.isAdmin() ? '/usuarios' : '/inicio']);
     } catch (error) {
-      if (error instanceof ApiRequestError && error.field) {
-        this.form.controls[error.field].setErrors({ server: error.message });
+      if (
+        error instanceof ApiRequestError &&
+        error.field &&
+        error.field in this.form.controls
+      ) {
+        this.form.controls[error.field as keyof typeof this.form.controls].setErrors({
+          server: error.message,
+        });
         focusFirstInvalid(this.element()!.nativeElement);
       }
       this.error.set(

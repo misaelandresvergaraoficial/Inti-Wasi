@@ -40,6 +40,13 @@ import { Icon } from '../shared/icon';
             aria-label="Productos"
             ><iw-icon name="menu" />Productos</a
           >
+          <a
+            routerLink="/proveedores"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Proveedores"
+            ><iw-icon name="truck" />Proveedores</a
+          >
           @if (auth.isAdmin()) {
             <a
               routerLink="/usuarios"
