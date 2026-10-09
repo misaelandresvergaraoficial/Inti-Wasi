@@ -91,6 +91,28 @@ export const routes: Routes = [
           import('./features/proveedores/proveedor-form').then((m) => m.ProveedorForm),
       },
       {
+        path: 'categorias',
+        title: 'Categorías · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/categorias/categorias').then((m) => m.CategoriasList),
+      },
+      {
+        path: 'categorias/nuevo',
+        title: 'Crear categoría · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () =>
+          import('./features/categorias/categoria-form').then((m) => m.CategoriaForm),
+      },
+      {
+        path: 'categorias/:id/editar',
+        title: 'Editar categoría · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () =>
+          import('./features/categorias/categoria-form').then((m) => m.CategoriaForm),
+      },
+      {
         path: 'productos',
         title: 'Productos · Inti Wasi',
         loadComponent: () => import('./features/productos/productos-list').then((m) => m.ProductosList),

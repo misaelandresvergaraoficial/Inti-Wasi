@@ -1,0 +1,94 @@
+<div class="breadcrumb">
+  <a routerLink="/categorias">Categorías</a><iw-icon name="next" />
+  <span>{{ isEdit() ? 'Editar categoría' : 'Crear categoría' }}</span>
+</div>
+
+<div class="page-heading">
+  <div class="eyebrow">INVENTARIO</div>
+  <h1 tabindex="-1">{{ isEdit() ? 'Editar categoría' : 'Crear categoría' }}</h1>
+  <p>
+    {{
+      isEdit()
+        ? 'Actualiza el nombre o el estado de la categoría.'
+        : 'Agrega una categoría para clasificar los productos del catálogo.'
+    }}
+  </p>
+</div>
+
+@if (loading()) {
+  <div class="panel empty-state mt-6" role="status">Cargando información de la categoría…</div>
+} @else if (errorInit()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ errorInit() }}</p>
+  </div>
+  <button mat-stroked-button (click)="init()">Reintentar</button>
+  <a mat-button routerLink="/categorias">Volver a categorías</a>
+} @else {
+  <form
+    #categoriaForm
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    class="panel mt-6 max-w-2xl"
+    novalidate
+    [attr.aria-busy]="saving()"
+  >
+    <div class="panel-heading">
+      <h2>Información de la categoría</h2>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      @if (isEdit()) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>ID de categoría</mat-label>
+          <input matInput [value]="categoryIdDisplay()" disabled />
+          <mat-hint>Generado automáticamente; no se puede modificar.</mat-hint>
+        </mat-form-field>
+      }
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
+        <mat-label>Nombre de categoría</mat-label>
+        <input matInput formControlName="nomCategoria" autocomplete="off" />
+        @if (
+          form.get('nomCategoria')?.hasError('required') ||
+          form.get('nomCategoria')?.hasError('blank')
+        ) {
+          <mat-error>Ingresa el nombre de la categoría.</mat-error>
+        }
+        @if (form.get('nomCategoria')?.hasError('maxlength')) {
+          <mat-error>Máximo 100 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado">
+          <mat-option [value]="1">Activo</mat-option>
+          <mat-option [value]="0">Inactivo</mat-option>
+        </mat-select>
+        <mat-hint>
+          Al marcar la categoría como Inactivo, los productos activos que la usan también se
+          desactivarán.
+        </mat-hint>
+        @if (form.get('estado')?.invalid) {
+          <mat-error>Selecciona un estado.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (error()) {
+        <div class="notice error sm:col-span-2" role="alert">
+          <iw-icon name="info" />
+          <p>{{ error() }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="p-6 bg-gray-50 border-t flex justify-end gap-3 rounded-b-lg">
+      <a mat-button routerLink="/categorias">Cancelar</a>
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear categoría' }}
+      </button>
+    </div>
+    <span class="sr-only" role="status">{{ saving() ? 'Guardando la categoría.' : '' }}</span>
+  </form>
+}

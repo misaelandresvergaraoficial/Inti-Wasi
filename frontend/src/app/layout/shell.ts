@@ -48,6 +48,15 @@ import { Icon } from '../shared/icon';
             ><iw-icon name="truck" />Proveedores</a
           >
           @if (auth.isAdmin()) {
+          <a
+            routerLink="/categorias"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Categorías"
+            ><iw-icon name="appstore-o" />Categorías</a
+          >
+          }
+          @if (auth.isAdmin()) {
             <a
               routerLink="/usuarios"
               routerLinkActive="active"
