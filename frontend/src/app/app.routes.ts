@@ -26,6 +26,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/users/users-list').then((m) => m.UsersList),
       },
       {
+        path: 'dashboard',
+        title: 'Dashboard · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'reportes',
+        title: 'Reportes · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
+      },
+      {
         path: 'usuarios/nuevo',
         title: 'Crear usuario · Inti Wasi',
         canActivate: [adminGuard],

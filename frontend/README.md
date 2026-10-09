@@ -1,6 +1,6 @@
 # Frontend de Inti Wasi
 
-Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, gestión de usuarios, órdenes de compra y productos. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
+Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
 
 ## Ejecutar
 
@@ -35,6 +35,10 @@ Productos usa `GET /api/productos` para el catálogo activo que consulta el Oper
 El cuerpo de creación y edición lleva `idProveedor`, `fechaEstimadaEntrega` (fecha ISO o `null`) y `detalles` con `idProducto`, `cantidad` entera positiva y `precioUnitario` con hasta dos decimales. Solo se admiten productos activos asignados al proveedor elegido; el backend también comprueba esta coincidencia. Al elegir un producto, su precio de compra referencial se propone como precio unitario editable. Cada orden conserva el precio pactado aunque luego cambie el catálogo. El backend establece la fecha de emisión, el usuario responsable, el estado inicial `Pendiente`, los importes y las cantidades recibidas. Las órdenes pueden pasar a `Parcial`, `Recibida` o `Cancelada` sin perder su historial. La respuesta actual no indica si una orden Pendiente tuvo entradas posteriormente anuladas; en ese caso la API puede rechazar una edición que parecía disponible en pantalla, y el formulario muestra la razón sin descartar los datos ingresados.
 
 El listado anterior `GET /api/usuarios` sigue devolviendo únicamente activos. Editar datos personales conserva el estado existente. El acceso a usuarios y los cambios de estado están restringidos al Administrador en el servidor.
+
+El Dashboard del Administrador consulta `GET /api/dashboard/resumen` al abrir o reintentar. Presenta productos activos, productos con stock bajo, entradas y salidas del día y hasta 20 productos por reponer. Desde allí se abre el reporte de reposición completo. No exporta archivos.
+
+Reportes consulta `GET /api/reportes/inventario`, `/movimientos` y `/reposicion` con páginas de 20 registros. El filtro por producto se aplica a los tres; fechas, tipo de movimiento y usuario se aplican al historial. Cuando hay resultados, `GET /api/reportes/{reporte}/exportar?formato=pdf|excel` descarga la consulta completa en PDF o Excel XML (`.xls`). La API devuelve 204 si no hay datos y rechaza las exportaciones de más de 10 000 registros. Dashboard y reportes están protegidos en Angular y Spring Security para el Administrador.
 
 ### Flujo y contratos de la API
 

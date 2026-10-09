@@ -1,0 +1,31 @@
+<div class="breadcrumb">Gestión <iw-icon name="next" /> Dashboard</div>
+<div class="page-heading">
+  <div class="eyebrow">RESUMEN DEL ALMACÉN</div>
+  <h1 tabindex="-1">Dashboard</h1>
+  <p>Productos y documentos registrados hoy.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status" aria-busy="true">Cargando resumen…</div>
+} @else if (error()) {
+  <div class="notice error" role="alert"><iw-icon name="info" /><p>{{ error() }}</p><button mat-button (click)="load()">Reintentar</button></div>
+} @else if (data(); as resumen) {
+  <div class="dashboard-metrics" aria-label="Indicadores del almacén">
+    <section class="panel metric"><h2>Productos activos</h2><strong>{{ resumen.totalProductosActivos }}</strong></section>
+    <section class="panel metric" [class.metric-warning]="resumen.productosConStockBajo > 0"><h2>Productos con stock bajo</h2><strong>{{ resumen.productosConStockBajo }}</strong>@if (resumen.productosConStockBajo > 0) {<span>Revisar reposición</span>}</section>
+    <section class="panel metric"><h2>Entradas de hoy</h2><strong>{{ resumen.entradasDelDia }}</strong></section>
+    <section class="panel metric"><h2>Salidas de hoy</h2><strong>{{ resumen.salidasDelDia }}</strong></section>
+  </div>
+  <section class="panel mt-6" aria-labelledby="reponer-title">
+    <div class="panel-heading"><div><h2 id="reponer-title">Prioridad de reposición</h2><p>Hasta 20 productos, ordenados por unidades pendientes de reponer.</p></div><a mat-button routerLink="/reportes" [queryParams]="{tipo: 'reposicion'}">Ver reporte completo</a></div>
+    @if (resumen.productosPorReponer.length === 0) {
+      <div class="empty-state">No hay productos que reponer.</div>
+    } @else {
+      <div class="table-scroll" role="region" aria-label="Productos por reponer" tabindex="0">
+        <table><thead><tr><th scope="col">SKU</th><th scope="col">Producto</th><th scope="col">Stock actual</th><th scope="col">Mínimo</th><th scope="col">Reponer</th></tr></thead>
+          <tbody>@for (producto of resumen.productosPorReponer; track producto.idProducto) {
+            <tr><th scope="row">{{ producto.sku }}</th><td>{{ producto.nomProducto }}</td><td>{{ producto.stockActual }}</td><td>{{ producto.stockMinimo }}</td><td>{{ producto.unidadesPorReponer }}</td></tr>
+          }</tbody></table>
+      </div>
+    }
+  </section>
+}
