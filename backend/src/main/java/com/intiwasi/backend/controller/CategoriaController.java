@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -32,6 +33,12 @@ public class CategoriaController {
     @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<List<CategoriaResponse>> listarActivas() {
         return ResponseEntity.ok(categoriaService.listarActivas());
+    }
+
+    @GetMapping("/todos")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<List<CategoriaResponse>> listarTodas() {
+        return ResponseEntity.ok(categoriaService.listarTodas());
     }
 
     @GetMapping("/{id}")
@@ -60,5 +67,14 @@ public class CategoriaController {
     public ResponseEntity<Void> desactivar(@PathVariable Integer id) {
         categoriaService.desactivar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('Administrador')")
+    public ResponseEntity<CategoriaResponse> cambiarEstado(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Integer> body) {
+        Integer estado = body.get("estado");
+        return ResponseEntity.ok(categoriaService.cambiarEstado(id, estado));
     }
 }

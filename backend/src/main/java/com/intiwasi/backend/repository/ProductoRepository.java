@@ -17,6 +17,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>{
 
     List<Producto> findByEstado(Byte estado);
 
+    List<Producto> findByCategoria_IdCategoriaAndEstado(Integer idCategoria, Byte estado);
+
     boolean existsBySku(String sku);
 
     @Query("SELECT p FROM Producto p WHERE p.estado = 1 AND p.stockActual <= p.stockMinimo")
