@@ -1,0 +1,12 @@
+.dashboard-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 24px; }
+.metric { padding: 24px; }
+.metric h2 { font-size: 14px; color: var(--muted); font-weight: 600; }
+.metric strong { display: block; font-size: 32px; margin-top: 12px; color: var(--primary); }
+.metric-warning strong, .metric-warning span { color: var(--danger-text); }
+.metric-warning span { font-size: 13px; }
+.reports-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.reports-filters > div { min-width: 175px; flex: 1 1 175px; }
+.reports-filters select, .reports-filters input { width: 100%; min-height: 40px; border: 1px solid var(--field-border); border-radius: 5px; color: var(--ink); background: var(--surface); padding: 7px 10px; }
+.reports-heading { gap: 16px; flex-wrap: wrap; }
+.report-actions, .report-pagination { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.report-pagination { justify-content: flex-end; padding: 18px; border-top: 1px solid var(--line); }

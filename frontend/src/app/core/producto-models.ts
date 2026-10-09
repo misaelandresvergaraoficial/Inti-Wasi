@@ -21,12 +21,3 @@ export interface ProductoRequest {
   stockMinimo: number;
 }
 
-export interface CategoriaResponse {
-  idCategoria: number;
-  nomCategoria: string;
-}
-
-export interface ProveedorResponse {
-  idProveedor: number;
-  nomProveedor: string;
-}

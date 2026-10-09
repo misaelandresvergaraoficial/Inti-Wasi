@@ -35,7 +35,10 @@ export class UserForm implements PendingChanges {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly element = viewChild<ElementRef<HTMLFormElement>>('userForm');
-  readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id')) || undefined;
+  readonly rawId = inject(ActivatedRoute).snapshot.paramMap.get('id');
+  readonly id = this.rawId === null ? undefined : Number(this.rawId);
+  readonly invalidId =
+    this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
   readonly form = inject(FormBuilder).nonNullable.group({
     nomUsuario: ['', [Validators.required, notBlank, Validators.maxLength(50)]],
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
@@ -44,16 +47,17 @@ export class UserForm implements PendingChanges {
     telefono: ['', Validators.maxLength(15)],
   });
   readonly busy = signal(false);
-  readonly loading = signal(!!this.id);
+  readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal('');
+  readonly loadError = signal(this.invalidId ? 'El identificador del usuario no es válido.' : '');
   readonly showPassword = signal(false);
   readonly errorText = fieldError;
   constructor() {
-    if (!this.id) this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
-    else void this.load();
+    if (this.rawId === null) this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
+    else if (!this.invalidId) void this.load();
   }
   async load(): Promise<void> {
+    if (this.invalidId) return;
     this.loading.set(true);
     this.loadError.set('');
     try {
@@ -67,7 +71,7 @@ export class UserForm implements PendingChanges {
     }
   }
   async submit(): Promise<void> {
-    if (this.busy()) return;
+    if (this.busy() || this.loading() || this.loadError()) return;
     this.error.set('');
     this.form.markAllAsTouched();
     if (this.form.invalid) {

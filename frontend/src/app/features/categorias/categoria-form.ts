@@ -126,6 +126,24 @@ export class CategoriaForm implements PendingChanges {
       const value = this.form.getRawValue();
       const willDeactivateProducts =
         this.isEdit() && this.originalEstado === 1 && value.estado === 0;
+      if (willDeactivateProducts) {
+        const confirmed = await firstValueFrom(
+          this.dialog
+            .open(ConfirmDialog, {
+              width: '480px',
+              maxWidth: 'calc(100vw - 32px)',
+              data: {
+                title: '¿Desactivar la categoría?',
+                message:
+                  'También se desactivarán sus productos activos. Al reactivar la categoría, deberás reactivar cada producto por separado.',
+                action: 'Desactivar categoría y productos',
+                danger: true,
+              },
+            })
+            .afterClosed(),
+        );
+        if (!confirmed) return;
+      }
       const categoria = await this.srv.save(
         {
           ...value,

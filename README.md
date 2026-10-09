@@ -2,6 +2,8 @@
 
 Proyecto para la gestión y trazabilidad de inventario, compras y almacén para la Distribuidora Inti Wasi S.A.C.
 
+El frontend integra acceso por roles, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. Dashboard y reportes solo están disponibles para el Administrador; los reportes admiten filtros, paginación y exportación PDF o Excel con límite de 10 000 registros. Las tres versiones actualizadas de los documentos del proyecto están en `docs/documentos/`.
+
 ---
 
 ## Requisitos Previos
