@@ -7,7 +7,8 @@
     "build": "npm run ng -- build",
     "watch": "npm run ng -- build --watch --configuration development",
     "test": "npm run ng -- test",
-    "test:e2e": "node e2e/login.cjs"
+    "test:e2e": "node e2e/login.cjs",
+    "test:e2e:playwright": "playwright test"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
@@ -34,6 +35,8 @@
     "@axe-core/playwright": "^4.13.0",
     "@oxc-parser/binding-wasm32-wasi": "0.150.0",
     "@playwright/cli": "^0.1.22",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.19.1",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "selenium-webdriver": "^4.50.0",

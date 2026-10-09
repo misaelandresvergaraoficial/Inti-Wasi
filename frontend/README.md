@@ -57,6 +57,19 @@ npm test -- --watch=false
 
 Las pruebas de frontend comprueban las solicitudes HTTP, la inserción restringida del JWT, la restauración de sesión, el rechazo de una sesión caducada y los cambios de estado. Las pruebas unitarias del backend están en `backend/src/test/java/com/intiwasi/backend`; se ejecutan con `./mvnw.cmd test` desde PowerShell.
 
+### Comparar Selenium y Playwright en el inicio de sesión
+
+Con MySQL, backend y frontend en ejecución, usar una cuenta Administrador activa de prueba. En una terminal situada en `frontend/`:
+
+```powershell
+$env:E2E_ADMIN_EMAIL = 'correo-de-prueba'
+$env:E2E_ADMIN_PASSWORD = 'contraseña-de-prueba'
+npm run test:e2e             # Selenium WebDriver
+npm run test:e2e:playwright  # Playwright Test
+```
+
+Ambos casos abren Microsoft Edge, inician sesión y verifican que aparece la página Usuarios. Selenium guarda capturas en `screenshots/semana08/` y Playwright en `screenshots/semana08/playwright/`. Playwright también genera un reporte HTML local que se puede abrir con `npx playwright show-report`. La contraseña se lee de la terminal; no se guarda en los scripts ni en las capturas.
+
 Para comprobar el flujo completo, iniciar backend y frontend con una base de datos de prueba y usar cuentas reales de ambos roles:
 
 1. Entrar como Administrador; listar usuarios, crear uno, editarlo, desactivarlo y reactivarlo. Comprobar que el inactivo sigue visible y que no puede iniciar sesión mientras está desactivado.
