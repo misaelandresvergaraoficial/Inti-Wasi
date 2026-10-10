@@ -2,6 +2,8 @@
 
 Proyecto para la gestión y trazabilidad de inventario, compras y almacén para la Distribuidora Inti Wasi S.A.C.
 
+El frontend integra acceso por roles, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. El Administrador llega al Dashboard y el Operador al listado de órdenes tras iniciar sesión. Dashboard y reportes solo están disponibles para el Administrador; los reportes admiten filtros, paginación y exportación PDF o CSV con límite de 10 000 registros. La documentación actualizada del Grupo 03 está en `docs/documentos/`.
+
 ---
 
 ## Requisitos Previos
@@ -83,4 +85,4 @@ npm ci
 npm start
 ```
 
-Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos, gestión de usuarios, órdenes de compra, productos y proveedores. Consultar [la guía del frontend](frontend/README.md).
+Abrir `http://localhost:4200`. El servidor Angular redirige las solicitudes `/api` al backend local en el puerto 8080. La aplicación incluye login, sesión, permisos, gestión de usuarios, órdenes de compra, productos, proveedores, dashboard y reportes. Consultar [la guía del frontend](frontend/README.md).

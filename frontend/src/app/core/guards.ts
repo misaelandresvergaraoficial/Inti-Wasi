@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, CanDeactivateFn, Router } from '@angular/router';
+import { CanActivateFn, CanDeactivateFn, RedirectFunction, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 export const authGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
@@ -11,8 +11,9 @@ export const adminGuard: CanActivateFn = () =>
 export const guestGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return !(await auth.ensure()) || router.createUrlTree([auth.isAdmin() ? '/usuarios' : '/inicio']);
+  return !(await auth.ensure()) || router.createUrlTree([auth.landingRoute()]);
 };
+export const landingRedirect: RedirectFunction = () => inject(AuthService).landingRoute();
 export interface PendingChanges {
   canLeave(): boolean | Promise<boolean>;
 }

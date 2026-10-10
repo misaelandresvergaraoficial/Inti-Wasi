@@ -6,6 +6,7 @@ import com.intiwasi.backend.dto.reporte.InventarioActualResponse;
 import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.StockBajo;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
+import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.StockBajoRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,21 +16,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 public class ReporteService {
     private static final int MAX_PAGINA = 200;
-    private static final int MAX_EXPORTACION = 1000;
+    private static final int MAX_EXPORTACION = 10_000;
 
     private final ProductoRepository productoRepository;
     private final StockBajoRepository stockBajoRepository;
     private final MovimientoConsultaService movimientoConsultaService;
+    private final ReportePdfWriter pdfWriter;
 
     @Transactional(readOnly = true)
     public Page<InventarioActualResponse> inventario(Integer idProducto, Pageable pageable) {
@@ -47,34 +50,52 @@ public class ReporteService {
         return movimientoConsultaService.consultar(inicio, fin, idProducto, tipo, idUsuario, limitar(pageable));
     }
 
-    public byte[] exportar(String reporte, String formato, LocalDate inicio, LocalDate fin,
-                           Integer idProducto, TipoDocumento tipo, Integer idUsuario) {
+    @Transactional(readOnly = true)
+    public Optional<byte[]> exportar(String reporte, String formato, LocalDate inicio, LocalDate fin,
+                            Integer idProducto, TipoDocumento tipo, Integer idUsuario) {
+        if (!List.of("pdf", "csv").contains(formato.toLowerCase())) {
+            throw new IllegalArgumentException("Formato de exportación inválido; use pdf o csv");
+        }
         Tabla tabla = consultarTabla(reporte, inicio, fin, idProducto, tipo, idUsuario);
-        return switch (formato.toLowerCase()) {
-            case "pdf" -> generarPdf(tabla);
-            case "excel", "xls" -> generarExcelXml(tabla);
-            default -> throw new IllegalArgumentException("Formato de exportación inválido; use pdf o excel");
-        };
+        if (tabla.filas().isEmpty()) return Optional.empty();
+        return Optional.of(switch (formato.toLowerCase()) {
+            case "pdf" -> pdfWriter.escribir(reporte, tabla.encabezados(), tabla.filas());
+            case "csv" -> generarCsv(tabla);
+            default -> throw new IllegalStateException("Formato validado no reconocido");
+        });
     }
 
     private Tabla consultarTabla(String reporte, LocalDate inicio, LocalDate fin, Integer idProducto,
                                  TipoDocumento tipo, Integer idUsuario) {
-        Pageable pagina = PageRequest.of(0, MAX_EXPORTACION);
         return switch (reporte.toLowerCase()) {
-            case "inventario" -> new Tabla(List.of("SKU", "Producto", "Categoría", "Proveedor", "Stock", "Mínimo"),
-                    inventario(idProducto, pagina).getContent().stream()
+            case "inventario" -> new Tabla(List.of("SKU", "Producto", "Categoría", "Proveedor", "Precio referencial", "Stock", "Mínimo", "Estado"),
+                    reunir(pagina -> inventario(idProducto, pagina)).stream()
                             .map(i -> List.of(i.getSku(), i.getNomProducto(), i.getCategoria(), nulo(i.getProveedor()),
-                                    i.getStockActual().toString(), i.getStockMinimo().toString())).toList());
+                                    i.getPrecio().toPlainString(), i.getStockActual().toString(), i.getStockMinimo().toString(),
+                                    i.getStockActual() <= i.getStockMinimo() ? "Stock bajo" : "Normal")).toList());
             case "movimientos" -> new Tabla(List.of("Fecha", "Tipo", "SKU", "Producto", "Cantidad", "Motivo", "Usuario"),
-                    movimientos(inicio, fin, idProducto, tipo, idUsuario, pagina).getContent().stream()
+                    reunir(pagina -> movimientos(inicio, fin, idProducto, tipo, idUsuario, pagina)).stream()
                             .map(m -> List.of(m.getFechaEmision().toString(), m.getTipoDocumento().getValor(), m.getSku(),
-                                    m.getNomProducto(), m.getCantidadConSigno().toString(), m.getMotivo(), m.getUsuarioResponsable())).toList());
+                                    m.getNomProducto(), m.getCantidadConSigno().toString(), nulo(m.getMotivo()), m.getUsuarioResponsable())).toList());
             case "reposicion" -> new Tabla(List.of("SKU", "Producto", "Categoría", "Proveedor", "Stock", "Mínimo", "Reponer"),
-                    reposicion(idProducto, pagina).getContent().stream()
+                    reunir(pagina -> reposicion(idProducto, pagina)).stream()
                             .map(s -> List.of(s.getSku(), s.getNomProducto(), s.getNomCategoria(), nulo(s.getNomProveedor()),
                                     s.getStockActual().toString(), s.getStockMinimo().toString(), s.getUnidadesPorReponer().toString())).toList());
             default -> throw new IllegalArgumentException("Reporte inválido; use inventario, movimientos o reposicion");
         };
+    }
+
+    private <T> List<T> reunir(Function<Pageable, Page<T>> consulta) {
+        Page<T> primera = consulta.apply(PageRequest.of(0, MAX_PAGINA));
+        if (primera.getTotalElements() > MAX_EXPORTACION) {
+            throw new ReglaNegocioException(
+                    "El reporte supera 10 000 registros. Aplica filtros para reducir los resultados");
+        }
+        List<T> filas = new ArrayList<>(primera.getContent());
+        for (int pagina = 1; pagina < primera.getTotalPages(); pagina++) {
+            filas.addAll(consulta.apply(PageRequest.of(pagina, MAX_PAGINA)).getContent());
+        }
+        return filas;
     }
 
     private Pageable limitar(Pageable pageable) {
@@ -97,78 +118,28 @@ public class ReporteService {
                 .unidadesPorReponer(s.getUnidadesPorReponer()).build();
     }
 
-    private byte[] generarExcelXml(Tabla tabla) {
-        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-                .append("<?mso-application progid=\"Excel.Sheet\"?>")
-                .append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" ")
-                .append("xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"><Worksheet ss:Name=\"Reporte\"><Table>");
-        agregarFilaXml(xml, tabla.encabezados());
-        tabla.filas().forEach(fila -> agregarFilaXml(xml, fila));
-        xml.append("</Table></Worksheet></Workbook>");
-        return xml.toString().getBytes(StandardCharsets.UTF_8);
+    private byte[] generarCsv(Tabla tabla) {
+        StringBuilder csv = new StringBuilder("\uFEFF");
+        agregarFilaCsv(csv, tabla.encabezados());
+        tabla.filas().forEach(fila -> agregarFilaCsv(csv, fila));
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private void agregarFilaXml(StringBuilder xml, List<String> fila) {
-        xml.append("<Row>");
-        fila.forEach(valor -> xml.append("<Cell><Data ss:Type=\"String\">")
-                .append(escaparXml(valor)).append("</Data></Cell>"));
-        xml.append("</Row>");
-    }
-
-    private byte[] generarPdf(Tabla tabla) {
-        final int filasPorPagina = 45;
-        int cantidadPaginas = Math.max(1, (tabla.filas().size() + filasPorPagina - 1) / filasPorPagina);
-        int objetoFuente = 3 + cantidadPaginas * 2;
-        StringBuilder hijos = new StringBuilder();
-        for (int pagina = 0; pagina < cantidadPaginas; pagina++) {
-            hijos.append(3 + pagina * 2).append(" 0 R ");
+    private void agregarFilaCsv(StringBuilder csv, List<String> fila) {
+        for (int i = 0; i < fila.size(); i++) {
+            if (i > 0) csv.append(',');
+            String valor = nulo(fila.get(i));
+            String inicio = valor.stripLeading();
+            if (!inicio.isEmpty() && (inicio.charAt(0) == '=' || inicio.charAt(0) == '+'
+                    || inicio.charAt(0) == '@' || inicio.charAt(0) == '-'
+                    && (inicio.length() == 1 || !Character.isDigit(inicio.charAt(1))))) {
+                valor = "'" + valor;
+            }
+            csv.append('"').append(valor.replace("\"", "\"\"")).append('"');
         }
-
-        List<String> objetos = new ArrayList<>();
-        objetos.add("<< /Type /Catalog /Pages 2 0 R >>");
-        objetos.add("<< /Type /Pages /Kids [" + hijos + "] /Count " + cantidadPaginas + " >>");
-        for (int pagina = 0; pagina < cantidadPaginas; pagina++) {
-            int objetoContenido = 4 + pagina * 2;
-            String contenido = contenidoPagina(tabla, pagina * filasPorPagina,
-                    Math.min(tabla.filas().size(), (pagina + 1) * filasPorPagina));
-            objetos.add("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "
-                    + objetoFuente + " 0 R >> >> /Contents " + objetoContenido + " 0 R >>");
-            objetos.add("<< /Length " + contenido.getBytes(StandardCharsets.ISO_8859_1).length
-                    + " >>\nstream\n" + contenido + "\nendstream");
-        }
-        objetos.add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        escribir(out, "%PDF-1.4\n");
-        List<Integer> offsets = new ArrayList<>();
-        for (int i = 0; i < objetos.size(); i++) {
-            offsets.add(out.size());
-            escribir(out, (i + 1) + " 0 obj\n" + objetos.get(i) + "\nendobj\n");
-        }
-        int xref = out.size();
-        escribir(out, "xref\n0 " + (objetos.size() + 1) + "\n0000000000 65535 f \n");
-        offsets.forEach(offset -> escribir(out, String.format("%010d 00000 n \n", offset)));
-        escribir(out, "trailer << /Size " + (objetos.size() + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF");
-        return out.toByteArray();
+        csv.append("\r\n");
     }
 
-    private String contenidoPagina(Tabla tabla, int desde, int hasta) {
-        StringBuilder contenido = new StringBuilder("BT /F1 8 Tf 30 810 Td 11 TL ");
-        List<String> lineas = new ArrayList<>();
-        lineas.add(String.join(" | ", tabla.encabezados()));
-        tabla.filas().subList(desde, hasta).forEach(fila -> lineas.add(String.join(" | ", fila)));
-        for (String linea : lineas) {
-            String corta = linea.length() > 125 ? linea.substring(0, 125) : linea;
-            contenido.append('(').append(escaparPdf(corta)).append(") Tj T* ");
-        }
-        return contenido.append("ET").toString();
-    }
-
-    private void escribir(ByteArrayOutputStream out, String valor) {
-        out.writeBytes(valor.getBytes(StandardCharsets.ISO_8859_1));
-    }
-
-    private String escaparXml(String valor) { return nulo(valor).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"); }
-    private String escaparPdf(String valor) { return nulo(valor).replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)"); }
     private String nulo(String valor) { return valor == null ? "" : valor; }
 
     private record Tabla(List<String> encabezados, List<List<String>> filas) {}

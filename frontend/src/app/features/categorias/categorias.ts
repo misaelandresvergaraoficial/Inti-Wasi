@@ -93,7 +93,7 @@ export class CategoriasList {
           data: {
             title: `¿Desactivar ${c.nomCategoria}?`,
             message:
-              'Todos los productos activos que pertenecen a esta categoría también se desactivarán. La categoría y su historial se conservarán.',
+              'También se desactivarán sus productos activos. La categoría y el historial se conservarán. Al reactivarla, deberás reactivar cada producto por separado.',
             action: 'Desactivar categoría',
             danger: true,
           },

@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const screenshots = path.resolve(__dirname, '../../screenshots/semana08/playwright');
 
-test('administrador inicia sesión y abre Usuarios', async ({ page }) => {
+test('administrador inicia sesión y abre Dashboard', async ({ page }) => {
   const email = process.env['E2E_ADMIN_EMAIL']?.trim();
   const password = process.env['E2E_ADMIN_PASSWORD'];
   if (!email || !password) {
@@ -27,9 +27,9 @@ test('administrador inicia sesión y abre Usuarios', async ({ page }) => {
   await page.locator('#login-password').fill(password);
   await page.locator('.login-submit').click();
 
-  await expect(page).toHaveURL(/\/usuarios$/);
-  await expect(page.locator('#users-title')).toHaveText('Usuarios');
-  const usersImage = path.join(screenshots, '02_pagina_usuarios.png');
-  await page.locator('.page-heading').screenshot({ path: usersImage });
-  await test.info().attach('Página Usuarios', { path: usersImage, contentType: 'image/png' });
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator('#dashboard-title')).toHaveText('Dashboard');
+  const dashboardImage = path.join(screenshots, '02_pagina_dashboard.png');
+  await page.locator('.page-heading').screenshot({ path: dashboardImage });
+  await test.info().attach('Página Dashboard', { path: dashboardImage, contentType: 'image/png' });
 });

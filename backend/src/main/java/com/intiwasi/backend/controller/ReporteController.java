@@ -60,15 +60,18 @@ public class ReporteController {
             @RequestParam(required = false) Integer idProducto,
             @RequestParam(required = false) String tipoMovimiento,
             @RequestParam(required = false) Integer idUsuario) {
-        byte[] contenido = reporteService.exportar(reporte, formato, fechaInicial, fechaFinal, idProducto,
+        var contenido = reporteService.exportar(reporte, formato, fechaInicial, fechaFinal, idProducto,
                 tipo(tipoMovimiento), idUsuario);
+        if (contenido.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         boolean pdf = "pdf".equalsIgnoreCase(formato);
-        String extension = pdf ? "pdf" : "xls";
-        MediaType mediaType = pdf ? MediaType.APPLICATION_PDF : MediaType.parseMediaType("application/vnd.ms-excel");
+        String extension = pdf ? "pdf" : "csv";
+        MediaType mediaType = pdf ? MediaType.APPLICATION_PDF : MediaType.parseMediaType("text/csv;charset=UTF-8");
         ContentDisposition disposition = ContentDisposition.attachment()
                 .filename(reporte + "." + extension, StandardCharsets.UTF_8).build();
         return ResponseEntity.ok().contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString()).body(contenido);
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString()).body(contenido.get());
     }
 
     private TipoDocumento tipo(String valor) {

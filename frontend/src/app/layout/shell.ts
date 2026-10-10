@@ -12,20 +12,13 @@ import { Icon } from '../shared/icon';
   template: ` <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <div class="app-layout">
       <aside class="sidebar">
-        <a routerLink="/inicio" class="brand" aria-label="Inti Wasi, inicio"
+        <a [routerLink]="auth.landingRoute()" class="brand" aria-label="Inti Wasi, espacio principal"
           ><img src="marca.svg" width="38" height="38" alt="" /><span
             >Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span
           ></a
         >
         <div class="nav-section">ESPACIO DE TRABAJO</div>
         <nav aria-label="Navegación principal">
-          <a
-            routerLink="/inicio"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Inicio"
-            ><iw-icon name="home" />Inicio</a
-          >
           <a
             routerLink="/ordenes-compra"
             routerLinkActive="active"
@@ -57,6 +50,8 @@ import { Icon } from '../shared/icon';
           >
           }
           @if (auth.isAdmin()) {
+            <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Dashboard"><iw-icon name="home" />Dashboard</a>
+            <a routerLink="/reportes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Reportes"><iw-icon name="orders" />Reportes</a>
             <a
               routerLink="/usuarios"
               routerLinkActive="active"

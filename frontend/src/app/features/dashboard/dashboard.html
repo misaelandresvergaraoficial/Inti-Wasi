@@ -1,0 +1,174 @@
+<div class="breadcrumb">Gestión <iw-icon name="next" /> Dashboard</div>
+<div class="page-heading dashboard-heading">
+  <div>
+    <div class="eyebrow">RESUMEN DEL ALMACÉN</div>
+    <h1 id="dashboard-title" tabindex="-1">Dashboard</h1>
+    <p>Lo que requiere atención y la actividad reciente.</p>
+  </div>
+  <a mat-stroked-button routerLink="/reportes">Ver reportes</a>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status" aria-busy="true">Cargando resumen…</div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+} @else if (data(); as resumen) {
+  <p class="dashboard-catalog">
+    {{ resumen.totalProductosActivos }} productos activos en el catálogo
+  </p>
+  <div class="dashboard-metrics" role="group" aria-label="Indicadores del almacén">
+    <section class="panel metric" [class.metric-warning]="resumen.productosConStockBajo > 0">
+      <h2>Productos con stock bajo</h2>
+      <strong>{{ resumen.productosConStockBajo }}</strong>
+      <p>
+        <a routerLink="/productos/stock-bajo"
+          >Revisar reposición <span aria-hidden="true">→</span></a
+        >
+      </p>
+    </section>
+    <section class="panel metric">
+      <h2>Órdenes por completar</h2>
+      <strong>{{ resumen.ordenesPorCompletar }}</strong>
+      <p>
+        <a routerLink="/ordenes-compra">Ver órdenes <span aria-hidden="true">→</span></a>
+      </p>
+    </section>
+    <section class="panel metric">
+      <h2>Documentos de entrada hoy</h2>
+      <strong>{{ resumen.entradasDelDia }}</strong>
+      <p>Documentos vigentes registrados hoy</p>
+    </section>
+    <section class="panel metric">
+      <h2>Documentos de salida hoy</h2>
+      <strong>{{ resumen.salidasDelDia }}</strong>
+      <p>Documentos vigentes registrados hoy</p>
+    </section>
+  </div>
+  <div class="dashboard-grid">
+    <section class="panel" aria-labelledby="activity-title">
+      <div class="panel-heading">
+        <div>
+          <h2 id="activity-title">Actividad · últimos 30 días</h2>
+          <p>Documentos vigentes de entrada y salida por día.</p>
+        </div>
+      </div>
+      @if (hayActividad()) {
+        <div class="activity-body">
+          <div class="activity-legend">
+            <span><i class="entradas"></i> Entradas</span
+            ><span><i class="salidas"></i> Salidas</span>
+          </div>
+          <div
+            class="activity-chart"
+            role="img"
+            aria-label="Gráfico de documentos de entrada y salida de los últimos 30 días. Los valores exactos están en la tabla siguiente."
+          >
+            @for (dia of resumen.movimientosUltimos30Dias; track dia.fecha) {
+              <div
+                class="activity-day"
+                [title]="
+                  fechaCorta(dia.fecha) +
+                  ': ' +
+                  dia.entradas +
+                  ' entradas, ' +
+                  dia.salidas +
+                  ' salidas'
+                "
+              >
+                <span
+                  class="activity-bar entradas"
+                  [style.height.%]="(dia.entradas / maxActividad()) * 100"
+                ></span>
+                <span
+                  class="activity-bar salidas"
+                  [style.height.%]="(dia.salidas / maxActividad()) * 100"
+                ></span>
+              </div>
+            }
+          </div>
+          <div class="activity-axis">
+            <span>{{ fechaCorta(resumen.movimientosUltimos30Dias[0].fecha) }}</span
+            ><span>{{ fechaCorta(resumen.movimientosUltimos30Dias.at(-1)!.fecha) }}</span>
+          </div>
+          <details class="activity-details">
+            <summary>Ver valores por día</summary>
+            <div class="table-scroll" role="region" aria-label="Actividad diaria" tabindex="0">
+              <table>
+                <caption class="sr-only">
+                  Documentos vigentes por día en los últimos 30 días
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Entradas</th>
+                    <th scope="col">Salidas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (dia of resumen.movimientosUltimos30Dias; track dia.fecha) {
+                    <tr>
+                      <th scope="row">{{ dia.fecha }}</th>
+                      <td>{{ dia.entradas }}</td>
+                      <td>{{ dia.salidas }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      } @else {
+        <div class="empty-state">No hay entradas ni salidas vigentes en los últimos 30 días.</div>
+      }
+    </section>
+    <section class="panel" aria-labelledby="reponer-title">
+      <div class="panel-heading">
+        <div>
+          <h2 id="reponer-title">Prioridad de reposición</h2>
+          <p>Productos activos que llegaron a su mínimo.</p>
+        </div>
+      </div>
+      @if (resumen.productosPorReponer.length === 0) {
+        <div class="empty-state">No hay productos que reponer.</div>
+      } @else {
+        <div class="table-scroll" role="region" aria-label="Productos por reponer" tabindex="0">
+          <table>
+            <caption class="sr-only">
+              Productos prioritarios para reposición
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Producto</th>
+                <th scope="col">Stock</th>
+                <th scope="col">Reponer</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (
+                producto of resumen.productosPorReponer.slice(0, 5);
+                track producto.idProducto
+              ) {
+                <tr>
+                  <th scope="row">
+                    <span class="replenish-name">{{ producto.nomProducto }}</span
+                    ><small>{{ producto.sku }}</small>
+                  </th>
+                  <td>{{ producto.stockActual }} / {{ producto.stockMinimo }}</td>
+                  <td class="replenish-quantity">{{ producto.unidadesPorReponer }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="dashboard-panel-action">
+        <a mat-button routerLink="/reportes" [queryParams]="{ tipo: 'reposicion' }"
+          >Ver reporte completo <span aria-hidden="true">→</span></a
+        >
+      </div>
+    </section>
+  </div>
+}
