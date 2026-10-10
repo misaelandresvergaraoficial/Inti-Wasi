@@ -1,6 +1,6 @@
 # Frontend de Inti Wasi
 
-Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, gestión de usuarios, órdenes de compra y productos. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
+Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
 
 ## Ejecutar
 
@@ -36,6 +36,12 @@ El cuerpo de creación y edición lleva `idProveedor`, `fechaEstimadaEntrega` (f
 
 El listado anterior `GET /api/usuarios` sigue devolviendo únicamente activos. Editar datos personales conserva el estado existente. El acceso a usuarios y los cambios de estado están restringidos al Administrador en el servidor.
 
+Después del login, el Administrador entra al Dashboard y el Operador de Almacén al listado de órdenes de compra. El logo, la raíz y la antigua ruta `/inicio` conducen al destino correspondiente al rol.
+
+El Dashboard del Administrador consulta `GET /api/dashboard/resumen` al abrir o reintentar. Presenta productos activos, productos con stock bajo, órdenes Pendientes o Parciales, documentos vigentes de entrada y salida del día, y una tendencia diaria de 30 días. La API entrega hasta 20 productos por reponer; la pantalla destaca los cinco primeros y enlaza al reporte completo. No exporta archivos.
+
+Reportes consulta `GET /api/reportes/inventario`, `/movimientos` y `/reposicion` con páginas de 20 registros. El filtro por producto se aplica a los tres; fechas, tipo de movimiento y usuario se aplican al historial. La pantalla permite elegir el tipo de reporte, limpiar filtros y reconocer productos con stock bajo. Cuando hay resultados, `GET /api/reportes/{reporte}/exportar?formato=pdf|csv` descarga la consulta completa en PDF o CSV UTF-8 (`.csv`) con los mismos filtros; el inventario exportado incluye el precio de compra referencial y el estado de stock mostrados en pantalla. La API devuelve 204 si no hay datos y rechaza las exportaciones de más de 10 000 registros. Dashboard y reportes están protegidos en Angular y Spring Security para el Administrador.
+
 ### Flujo y contratos de la API
 
 Angular envía las credenciales con `POST /api/auth/login` (`{ "correo": "...", "contrasena": "..." }`). La respuesta contiene `token`, `correo` y `rol`. Antes de abrir la sesión, el frontend consulta `GET /api/auth/me` con ese token y recibe la identidad completa. Después, un interceptor añade `Authorization: Bearer <token>` a las solicitudes protegidas de `/api`; no lo añade al login ni a URL externas. Al recargar, `/api/auth/me` vuelve a validar la sesión.
@@ -70,7 +76,7 @@ npm run test:e2e             # Selenium WebDriver
 npm run test:e2e:playwright  # Playwright Test
 ```
 
-Ambos casos abren Microsoft Edge, inician sesión y verifican que aparece la página Usuarios. Selenium guarda capturas en `screenshots/semana08/` y Playwright en `screenshots/semana08/playwright/`. Playwright también genera un reporte HTML local que se puede abrir con `npx playwright show-report`. La contraseña se lee de la terminal; no se guarda en los scripts ni en las capturas.
+Ambos casos abren Microsoft Edge, inician sesión y verifican que aparece el Dashboard. Selenium guarda capturas en `screenshots/semana08/` y Playwright en `screenshots/semana08/playwright/`. Playwright también genera un reporte HTML local que se puede abrir con `npx playwright show-report`. La contraseña se lee de la terminal; no se guarda en los scripts ni en las capturas.
 
 Para comprobar el flujo completo, iniciar backend y frontend con una base de datos de prueba y usar cuentas reales de ambos roles:
 

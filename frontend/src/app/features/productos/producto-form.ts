@@ -11,7 +11,8 @@ import { ProductosService } from '../../core/productos.service';
 import { AuthService } from '../../core/auth.service';
 import { NoticeService } from '../../core/notice.service';
 import { PendingChanges } from '../../core/guards';
-import { CategoriaResponse, ProveedorResponse } from '../../core/producto-models';
+import { CategoriaResponse } from '../../core/categoria-models';
+import { ProveedorResponse } from '../../core/proveedor-models';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Icon } from '../../shared/icon';
 

@@ -10,7 +10,9 @@ import java.util.List;
 public class DashboardResponse {
     private long totalProductosActivos;
     private long productosConStockBajo;
+    private long ordenesPorCompletar;
     private long entradasDelDia;
     private long salidasDelDia;
     private List<StockBajoResponse> productosPorReponer;
+    private List<TendenciaMovimientoResponse> movimientosUltimos30Dias;
 }

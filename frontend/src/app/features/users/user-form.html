@@ -1,14 +1,14 @@
 <div class="breadcrumb">
   <a routerLink="/usuarios">Usuarios</a><iw-icon name="next" /><span>{{
-    id ? 'Editar usuario' : 'Crear usuario'
+    rawId !== null ? 'Editar usuario' : 'Crear usuario'
   }}</span>
 </div>
 <div class="page-heading">
   <div class="eyebrow">PERSONAS Y ACCESOS</div>
-  <h1 tabindex="-1">{{ id ? 'Editar usuario' : 'Crear usuario' }}</h1>
+  <h1 tabindex="-1">{{ rawId !== null ? 'Editar usuario' : 'Crear usuario' }}</h1>
   <p>
     {{
-      id
+      rawId !== null
         ? 'Actualiza la información y los permisos de esta cuenta.'
         : 'Agrega una persona al equipo y define su acceso al sistema.'
     }}
@@ -21,8 +21,10 @@
     <iw-icon name="info" />
     <p>{{ loadError() }}</p>
   </div>
-  <button mat-stroked-button (click)="load()">Reintentar</button
-  ><a mat-button routerLink="/usuarios">Volver a usuarios</a>
+  @if (!invalidId) {
+    <button mat-stroked-button (click)="load()">Reintentar</button>
+  }
+  <a mat-button routerLink="/usuarios">Volver a usuarios</a>
 } @else {
   <div class="form-layout">
     <section class="panel form-panel" aria-labelledby="form-title">
@@ -54,7 +56,7 @@
                 type="email"
                 formControlName="correo"
                 autocomplete="email"
-                placeholder="nombre@empresa.com"
+                placeholder="rol.nombre@intiwasi.pe"
               /><mat-hint>Se utilizará para iniciar sesión.</mat-hint>
               @if (form.controls.correo.invalid) {
                 <mat-error>{{

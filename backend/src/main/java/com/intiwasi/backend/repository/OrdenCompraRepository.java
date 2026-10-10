@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Integer> {
 
+    long countByEstadoIn(List<String> estados);
+
     @EntityGraph(attributePaths = {"proveedor", "usuario", "detalles", "detalles.producto"})
     @Query("SELECT DISTINCT o FROM OrdenCompra o ORDER BY o.idOrden DESC")
     List<OrdenCompra> findAllConDetalles();

@@ -222,36 +222,6 @@
     opacity: 0.35;
   }
 }
-.welcome-panel {
-  max-width: 760px;
-  padding: 32px;
-}
-.welcome-panel > p {
-  margin-top: 12px;
-  color: var(--muted);
-}
-.account-details {
-  margin: 28px 0;
-  padding-block: 12px;
-  border-block: 1px solid var(--line);
-}
-.account-details > div {
-  display: flex;
-  gap: 20px;
-  padding: 10px 0;
-  font-size: 14px;
-}
-.account-details dt {
-  min-width: 150px;
-  color: var(--muted);
-}
-.account-details dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-.welcome-panel .notice {
-  margin-bottom: 0;
-}
 .access-state {
   max-width: 640px;
   margin: 40px auto;
@@ -324,9 +294,12 @@
   .sidebar nav {
     flex-direction: row;
     margin-top: 16px;
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
   .sidebar nav a {
-    flex: 1;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   .topbar {
     padding: 14px 16px;
@@ -360,12 +333,7 @@
     flex-direction: column;
     padding: 20px 16px;
   }
-  .welcome-panel,
   .access-state {
     padding: 24px;
-  }
-  .account-details > div {
-    flex-direction: column;
-    gap: 4px;
   }
 }

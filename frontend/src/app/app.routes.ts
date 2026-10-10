@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, changesGuard, guestGuard } from './core/guards';
+import { adminGuard, authGuard, changesGuard, guestGuard, landingRedirect } from './core/guards';
 
 export const routes: Routes = [
   {
@@ -16,14 +16,25 @@ export const routes: Routes = [
     children: [
       {
         path: 'inicio',
-        title: 'Mi espacio · Inti Wasi',
-        loadComponent: () => import('./features/home/home').then((m) => m.Home),
+        redirectTo: landingRedirect,
       },
       {
         path: 'usuarios',
         title: 'Usuarios · Inti Wasi',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/users/users-list').then((m) => m.UsersList),
+      },
+      {
+        path: 'dashboard',
+        title: 'Dashboard · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'reportes',
+        title: 'Reportes · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
       },
       {
         path: 'usuarios/nuevo',
@@ -138,9 +149,8 @@ export const routes: Routes = [
         loadComponent: () => import('./features/productos/producto-form').then((m) => m.ProductoForm),
       },
       
-      // Las rutas de redirección deben ir obligatoriamente al final
-      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
-      { path: '**', redirectTo: 'inicio' },
+      { path: '', pathMatch: 'full', redirectTo: landingRedirect },
+      { path: '**', redirectTo: landingRedirect },
     ],
   },
 ];

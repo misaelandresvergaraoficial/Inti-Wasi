@@ -14,7 +14,7 @@ import { Icon } from '../../shared/icon';
       Tu rol de {{ auth.session()?.rol }} no tiene acceso a esta página. Si necesitas ingresar,
       comunícate con el administrador.
     </p>
-    <a mat-flat-button [routerLink]="auth.isAdmin() ? '/usuarios' : '/inicio'"
+    <a mat-flat-button [routerLink]="auth.landingRoute()"
       >Volver a mi espacio</a
     >
   </section>`,

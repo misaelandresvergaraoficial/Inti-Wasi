@@ -7,9 +7,9 @@ import { ApiRequestError } from './models';
 import {
   ProductoRequest,
   ProductoResponse,
-  CategoriaResponse,
-  ProveedorResponse,
 } from './producto-models';
+import { CategoriaResponse } from './categoria-models';
+import { ProveedorResponse } from './proveedor-models';
 
 @Injectable({ providedIn: 'root' })
 export class ProductosService {
