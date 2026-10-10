@@ -73,7 +73,11 @@ public class ReportePdfWriter {
         stream.fill();
         float x = MARGEN;
         for (int i = 0; i < encabezados.size(); i++) {
-            texto(stream, fuente, TAMANO_TEXTO, x + 4, y - 16, encabezados.get(i));
+            List<String> lineas = dividir(encabezados.get(i), fuente, anchos[i] - 8);
+            for (int linea = 0; linea < lineas.size(); linea++) {
+                texto(stream, fuente, TAMANO_TEXTO, x + 4,
+                        y - (lineas.size() == 1 ? 16 : 10 + linea * ALTO_LINEA), lineas.get(linea));
+            }
             x += anchos[i];
         }
         return new Pagina(stream, y - ALTO_CABECERA);

@@ -20,7 +20,7 @@ export class ReportsService {
     return this.request(this.http.get<Pagina<FilaReporte>>(`/api/reportes/${tipo}`, { params }));
   }
 
-  exportar(tipo: TipoReporte, formato: 'pdf' | 'excel', filtros: FiltrosReporte): Promise<HttpResponse<Blob>> {
+  exportar(tipo: TipoReporte, formato: 'pdf' | 'csv', filtros: FiltrosReporte): Promise<HttpResponse<Blob>> {
     const params = this.params(filtros).set('formato', formato);
     return this.request(this.http.get(`/api/reportes/${tipo}/exportar`, {
       params, observe: 'response', responseType: 'blob',

@@ -6,7 +6,15 @@ import { UsersService } from '../../core/users.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { UsuarioResponse } from '../../core/models';
 import { ReportsService } from '../../core/reports.service';
-import { FiltrosReporte, FilaReporte, InventarioActual, MovimientoReporte, Pagina, StockBajo, TipoReporte } from '../../core/report-models';
+import {
+  FiltrosReporte,
+  FilaReporte,
+  InventarioActual,
+  MovimientoReporte,
+  Pagina,
+  StockBajo,
+  TipoReporte,
+} from '../../core/report-models';
 import { Icon } from '../../shared/icon';
 
 @Component({
@@ -33,8 +41,17 @@ export class Reports {
   readonly filterError = computed(() => {
     const { fechaInicial, fechaFinal } = this.filtros();
     return fechaInicial && fechaFinal && fechaInicial > fechaFinal
-      ? 'La fecha inicial no puede ser posterior a la fecha final.' : '';
+      ? 'La fecha inicial no puede ser posterior a la fecha final.'
+      : '';
   });
+  readonly descriptions: Record<TipoReporte, string> = {
+    inventario: 'Existencias, proveedor y precio de compra referencial de productos activos.',
+    movimientos: 'Historial de entradas, salidas, ajustes y correcciones registradas.',
+    reposicion: 'Productos que llegaron a su stock mínimo y unidades por reponer.',
+  };
+  readonly hasFilters = computed(() =>
+    Object.values(this.filtros()).some((value) => value !== undefined && value !== ''),
+  );
 
   constructor() {
     void this.loadOptions();
@@ -49,29 +66,50 @@ export class Reports {
   async loadOptions(): Promise<void> {
     this.optionsError.set('');
     try {
-      const [products, users] = await Promise.all([this.productsService.list(), this.usersService.list()]);
+      const [products, users] = await Promise.all([
+        this.productsService.list(),
+        this.usersService.list(),
+      ]);
       this.products.set(products);
       this.users.set(users);
     } catch (error) {
-      this.optionsError.set(error instanceof Error ? error.message : 'No se pudieron cargar los filtros.');
+      this.optionsError.set(
+        error instanceof Error ? error.message : 'No se pudieron cargar los filtros.',
+      );
     }
   }
 
   changeType(value: string): void {
     if (value !== 'inventario' && value !== 'movimientos' && value !== 'reposicion') return;
+    if (value === this.tipo()) return;
     this.tipo.set(value);
-    void this.router.navigate([], { relativeTo: this.route, queryParams: { tipo: value }, replaceUrl: true });
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tipo: value },
+      replaceUrl: true,
+    });
     this.filtros.set({});
     this.page.set(0);
     void this.load();
   }
 
   changeFilter(clave: keyof FiltrosReporte, value: string): void {
-    const valor = clave === 'idProducto' || clave === 'idUsuario' ? (value ? Number(value) : undefined) : value || undefined;
+    const valor =
+      clave === 'idProducto' || clave === 'idUsuario'
+        ? value
+          ? Number(value)
+          : undefined
+        : value || undefined;
     this.filtros.update((prev) => ({ ...prev, [clave]: valor }));
     this.page.set(0);
     this.result.set(null);
     this.error.set('');
+  }
+
+  clearFilters(): void {
+    this.filtros.set({});
+    this.page.set(0);
+    void this.load();
   }
 
   async load(): Promise<void> {
@@ -93,7 +131,7 @@ export class Reports {
     void this.load();
   }
 
-  async export(format: 'pdf' | 'excel'): Promise<void> {
+  async export(format: 'pdf' | 'csv'): Promise<void> {
     if (this.exporting() || !this.result()?.totalElements || this.filterError()) return;
     this.exporting.set(true);
     this.error.set('');
@@ -106,7 +144,7 @@ export class Reports {
       const url = URL.createObjectURL(response.body);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `reporte-${this.tipo()}.${format === 'pdf' ? 'pdf' : 'xls'}`;
+      link.download = `reporte-${this.tipo()}.${format}`;
       document.body.append(link);
       link.click();
       link.remove();
@@ -118,7 +156,13 @@ export class Reports {
     }
   }
 
-  inventario(row: FilaReporte): InventarioActual { return row as InventarioActual; }
-  movimiento(row: FilaReporte): MovimientoReporte { return row as MovimientoReporte; }
-  reposicion(row: FilaReporte): StockBajo { return row as StockBajo; }
+  inventario(row: FilaReporte): InventarioActual {
+    return row as InventarioActual;
+  }
+  movimiento(row: FilaReporte): MovimientoReporte {
+    return row as MovimientoReporte;
+  }
+  reposicion(row: FilaReporte): StockBajo {
+    return row as StockBajo;
+  }
 }

@@ -12,9 +12,11 @@ export interface StockBajo {
 export interface DashboardResumen {
   totalProductosActivos: number;
   productosConStockBajo: number;
+  ordenesPorCompletar: number;
   entradasDelDia: number;
   salidasDelDia: number;
   productosPorReponer: StockBajo[];
+  movimientosUltimos30Dias: { fecha: string; entradas: number; salidas: number }[];
 }
 
 export interface InventarioActual {

@@ -39,17 +39,17 @@ async function run() {
     await driver.findElement(By.css('.login-submit')).click();
 
     await driver.wait(async () => {
-      if (new URL(await driver.getCurrentUrl()).pathname === '/usuarios') return true;
+      if (new URL(await driver.getCurrentUrl()).pathname === '/dashboard') return true;
       const alerts = await driver.findElements(By.css('.login-card [role="alert"]'));
       if (alerts.length) throw new Error('El sistema rechazó el inicio de sesión.');
       return false;
     }, 15000);
-    const usersTitle = await driver.wait(until.elementLocated(By.id('users-title')), 10000);
-    await driver.wait(until.elementIsVisible(usersTitle), 10000);
-    assert.equal(await usersTitle.getText(), 'Usuarios');
-    await saveScreenshot(await driver.findElement(By.css('.page-heading')), '02_pagina_usuarios.png');
+    const dashboardTitle = await driver.wait(until.elementLocated(By.id('dashboard-title')), 10000);
+    await driver.wait(until.elementIsVisible(dashboardTitle), 10000);
+    assert.equal(await dashboardTitle.getText(), 'Dashboard');
+    await saveScreenshot(await driver.findElement(By.css('.page-heading')), '02_pagina_dashboard.png');
 
-    console.log('APROBADA: el administrador inició sesión y abrió la página Usuarios.');
+    console.log('APROBADA: el administrador inició sesión y abrió el Dashboard.');
     console.log(`Capturas: ${screenshots}`);
   } finally {
     await driver.quit();

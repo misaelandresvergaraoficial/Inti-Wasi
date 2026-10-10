@@ -2,51 +2,288 @@
 <div class="page-heading">
   <div class="eyebrow">CONSULTAS DEL ALMACÉN</div>
   <h1 tabindex="-1">Reportes</h1>
-  <p>Consulta inventario, movimientos y necesidades de reposición.</p>
+  <p>Consulta los datos y descarga la selección aplicada.</p>
+</div>
+<div class="report-types" role="group" aria-label="Tipo de reporte">
+  <button
+    mat-stroked-button
+    [attr.aria-pressed]="tipo() === 'inventario'"
+    (click)="changeType('inventario')"
+  >
+    Inventario actual
+  </button>
+  <button
+    mat-stroked-button
+    [attr.aria-pressed]="tipo() === 'movimientos'"
+    (click)="changeType('movimientos')"
+  >
+    Movimientos
+  </button>
+  <button
+    mat-stroked-button
+    [attr.aria-pressed]="tipo() === 'reposicion'"
+    (click)="changeType('reposicion')"
+  >
+    Reposición
+  </button>
 </div>
 <section class="panel mt-6" aria-labelledby="filter-title">
-  <div class="panel-heading"><div><h2 id="filter-title">Filtros</h2><p>Selecciona el reporte y aplica los filtros necesarios.</p></div></div>
-  <div class="filter-bar reports-filters">
-    <div><label for="report-type">Reporte</label><select id="report-type" [value]="tipo()" (change)="changeType($any($event.target).value)"><option value="inventario">Inventario actual</option><option value="movimientos">Movimientos</option><option value="reposicion">Reposición</option></select></div>
-    <div><label for="report-product">Producto</label><select id="report-product" [value]="filtros().idProducto ?? ''" (change)="changeFilter('idProducto', $any($event.target).value)"><option value="">Todos los productos</option>@for (p of products(); track p.idProducto) {<option [value]="p.idProducto">{{ p.sku }} · {{ p.nomProducto }}</option>}</select></div>
-    @if (tipo() === 'movimientos') {
-      <div><label for="report-from">Desde</label><input id="report-from" type="date" [value]="filtros().fechaInicial ?? ''" (change)="changeFilter('fechaInicial', $any($event.target).value)" /></div>
-      <div><label for="report-to">Hasta</label><input id="report-to" type="date" [value]="filtros().fechaFinal ?? ''" (change)="changeFilter('fechaFinal', $any($event.target).value)" /></div>
-      <div><label for="report-movement-type">Tipo</label><select id="report-movement-type" [value]="filtros().tipoMovimiento ?? ''" (change)="changeFilter('tipoMovimiento', $any($event.target).value)"><option value="">Todos los tipos</option><option value="Entrada">Entrada</option><option value="Salida">Salida</option><option value="Ajuste">Ajuste</option><option value="Correccion">Corrección</option></select></div>
-      <div><label for="report-user">Usuario</label><select id="report-user" [value]="filtros().idUsuario ?? ''" (change)="changeFilter('idUsuario', $any($event.target).value)"><option value="">Todos los usuarios</option>@for (u of users(); track u.idUsuario) {<option [value]="u.idUsuario">{{ u.nomUsuario }}</option>}</select></div>
-    }
-    <button mat-flat-button (click)="load()" [disabled]="!!filterError() || loading()">Consultar</button>
+  <div class="panel-heading">
+    <div>
+      <h2 id="filter-title">
+        {{
+          tipo() === 'inventario'
+            ? 'Inventario actual'
+            : tipo() === 'movimientos'
+              ? 'Movimientos'
+              : 'Reposición'
+        }}
+      </h2>
+      <p>{{ descriptions[tipo()] }}</p>
+    </div>
   </div>
-  @if (optionsError()) { <div class="notice error" role="alert"><p>{{ optionsError() }}</p><button mat-button (click)="loadOptions()">Reintentar filtros</button></div> }
-  @if (filterError()) { <div class="notice error" role="alert">{{ filterError() }}</div> }
+  <div class="filter-bar reports-filters">
+    <div>
+      <label for="report-product">Producto</label
+      ><select
+        id="report-product"
+        [value]="filtros().idProducto ?? ''"
+        (change)="changeFilter('idProducto', $any($event.target).value)"
+      >
+        <option value="">Todos los productos</option>
+        @for (p of products(); track p.idProducto) {
+          <option [value]="p.idProducto">{{ p.sku }} · {{ p.nomProducto }}</option>
+        }
+      </select>
+    </div>
+    @if (tipo() === 'movimientos') {
+      <div>
+        <label for="report-from">Desde</label
+        ><input
+          id="report-from"
+          type="date"
+          [value]="filtros().fechaInicial ?? ''"
+          (change)="changeFilter('fechaInicial', $any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label for="report-to">Hasta</label
+        ><input
+          id="report-to"
+          type="date"
+          [value]="filtros().fechaFinal ?? ''"
+          (change)="changeFilter('fechaFinal', $any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label for="report-movement-type">Tipo</label
+        ><select
+          id="report-movement-type"
+          [value]="filtros().tipoMovimiento ?? ''"
+          (change)="changeFilter('tipoMovimiento', $any($event.target).value)"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="Entrada">Entrada</option>
+          <option value="Salida">Salida</option>
+          <option value="Ajuste">Ajuste</option>
+          <option value="Correccion">Corrección</option>
+        </select>
+      </div>
+      <div>
+        <label for="report-user">Usuario</label
+        ><select
+          id="report-user"
+          [value]="filtros().idUsuario ?? ''"
+          (change)="changeFilter('idUsuario', $any($event.target).value)"
+        >
+          <option value="">Todos los usuarios</option>
+          @for (u of users(); track u.idUsuario) {
+            <option [value]="u.idUsuario">{{ u.nomUsuario }}</option>
+          }
+        </select>
+      </div>
+    }
+    <button mat-flat-button (click)="load()" [disabled]="!!filterError() || loading()">
+      Consultar
+    </button>
+    @if (hasFilters()) {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
+    }
+  </div>
+  @if (optionsError()) {
+    <div class="notice error" role="alert">
+      <p>{{ optionsError() }}</p>
+      <button mat-button (click)="loadOptions()">Reintentar filtros</button>
+    </div>
+  }
+  @if (filterError()) {
+    <div class="notice error" role="alert">{{ filterError() }}</div>
+  }
 </section>
-@if (error()) { <div class="notice error mt-6" role="alert"><iw-icon name="info" /><p>{{ error() }}</p><button mat-button (click)="load()">Reintentar</button></div> }
+@if (error()) {
+  <div class="notice error mt-6" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+}
 <section class="panel mt-6" aria-labelledby="results-title" [attr.aria-busy]="loading()">
-  <div class="panel-heading reports-heading"><div><h2 id="results-title">Resultados</h2><p>@if (result(); as page) { {{ page.totalElements }} {{ page.totalElements === 1 ? 'registro' : 'registros' }} } @else { Consulta pendiente }</p></div>
-    <div class="report-actions"><button mat-stroked-button (click)="export('pdf')" [disabled]="!result()?.totalElements || exporting() || !!filterError()">Descargar PDF</button><button mat-stroked-button (click)="export('excel')" [disabled]="!result()?.totalElements || exporting() || !!filterError()">Descargar Excel</button></div>
+  <div class="panel-heading reports-heading">
+    <div>
+      <h2 id="results-title">Resultados</h2>
+      <p>
+        @if (result(); as page) {
+          {{ page.totalElements }} {{ page.totalElements === 1 ? 'registro' : 'registros' }} con los
+          filtros consultados
+        } @else {
+          Consulta pendiente
+        }
+      </p>
+    </div>
+    <div class="report-actions">
+      <button
+        mat-stroked-button
+        (click)="export('pdf')"
+        [disabled]="!result()?.totalElements || exporting() || !!filterError()"
+      >
+        Descargar PDF</button
+      ><button
+        mat-stroked-button
+        (click)="export('csv')"
+        [disabled]="!result()?.totalElements || exporting() || !!filterError()"
+      >
+        Descargar CSV
+      </button>
+    </div>
   </div>
   @if (loading()) {
     <div class="empty-state" role="status">Cargando reporte…</div>
   } @else if (result(); as page) {
-    @if (page.content.length === 0) { <div class="empty-state">No hay registros con estos filtros.</div> }
-    @else {
-      <div class="table-scroll" role="region" aria-label="Resultados del reporte" tabindex="0"><table>
-        @switch (tipo()) {
-          @case ('inventario') {
-            <thead><tr><th scope="col">SKU</th><th scope="col">Producto</th><th scope="col">Categoría</th><th scope="col">Proveedor</th><th scope="col">Precio referencial</th><th scope="col">Stock</th><th scope="col">Mínimo</th></tr></thead>
-            <tbody>@for (row of page.content; track inventario(row).idProducto) {<tr><th scope="row">{{ inventario(row).sku }}</th><td>{{ inventario(row).nomProducto }}</td><td>{{ inventario(row).categoria }}</td><td>{{ inventario(row).proveedor || 'Sin proveedor' }}</td><td>{{ inventario(row).precio.toFixed(2) }}</td><td>{{ inventario(row).stockActual }}</td><td>{{ inventario(row).stockMinimo }}</td></tr>}</tbody>
+    @if (page.content.length === 0) {
+      <div class="empty-state">No hay registros con estos filtros.</div>
+    } @else {
+      <div class="table-scroll" role="region" aria-label="Resultados del reporte" tabindex="0">
+        <table>
+          <caption class="sr-only">
+            Resultados del reporte de
+            {{
+              tipo() === 'inventario'
+                ? 'inventario'
+                : tipo() === 'movimientos'
+                  ? 'movimientos'
+                  : 'reposición'
+            }}
+          </caption>
+          @switch (tipo()) {
+            @case ('inventario') {
+              <thead>
+                <tr>
+                  <th scope="col">SKU</th>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col">Proveedor</th>
+                  <th scope="col">Precio referencial</th>
+                  <th scope="col">Stock</th>
+                  <th scope="col">Mínimo</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of page.content; track inventario(row).idProducto) {
+                  <tr>
+                    <th scope="row">{{ inventario(row).sku }}</th>
+                    <td>{{ inventario(row).nomProducto }}</td>
+                    <td>{{ inventario(row).categoria }}</td>
+                    <td>{{ inventario(row).proveedor || 'Sin proveedor' }}</td>
+                    <td>S/ {{ inventario(row).precio.toFixed(2) }}</td>
+                    <td>{{ inventario(row).stockActual }}</td>
+                    <td>{{ inventario(row).stockMinimo }}</td>
+                    <td>
+                      @if (inventario(row).stockActual <= inventario(row).stockMinimo) {
+                        <span class="stock-low">Stock bajo</span>
+                      } @else {
+                        Normal
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            }
+            @case ('movimientos') {
+              <thead>
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">SKU</th>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Cantidad</th>
+                  <th scope="col">Motivo</th>
+                  <th scope="col">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of page.content; track movimiento(row).idMovimiento) {
+                  <tr>
+                    <th scope="row">
+                      {{ movimiento(row).fechaEmision.replace('T', ' ').slice(0, 16) }}
+                    </th>
+                    <td>{{ movimiento(row).tipoDocumento }}</td>
+                    <td>{{ movimiento(row).sku }}</td>
+                    <td>{{ movimiento(row).nomProducto }}</td>
+                    <td>{{ movimiento(row).cantidadConSigno }}</td>
+                    <td>{{ movimiento(row).motivo || '—' }}</td>
+                    <td>{{ movimiento(row).usuarioResponsable }}</td>
+                  </tr>
+                }
+              </tbody>
+            }
+            @case ('reposicion') {
+              <thead>
+                <tr>
+                  <th scope="col">SKU</th>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col">Proveedor</th>
+                  <th scope="col">Stock</th>
+                  <th scope="col">Mínimo</th>
+                  <th scope="col">Reponer</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of page.content; track reposicion(row).idProducto) {
+                  <tr>
+                    <th scope="row">{{ reposicion(row).sku }}</th>
+                    <td>{{ reposicion(row).nomProducto }}</td>
+                    <td>{{ reposicion(row).nomCategoria }}</td>
+                    <td>{{ reposicion(row).nomProveedor || 'Sin proveedor' }}</td>
+                    <td>{{ reposicion(row).stockActual }}</td>
+                    <td>{{ reposicion(row).stockMinimo }}</td>
+                    <td>{{ reposicion(row).unidadesPorReponer }}</td>
+                  </tr>
+                }
+              </tbody>
+            }
           }
-          @case ('movimientos') {
-            <thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">SKU</th><th scope="col">Producto</th><th scope="col">Cantidad</th><th scope="col">Motivo</th><th scope="col">Usuario</th></tr></thead>
-            <tbody>@for (row of page.content; track movimiento(row).idMovimiento) {<tr><th scope="row">{{ movimiento(row).fechaEmision.replace('T', ' ').slice(0, 16) }}</th><td>{{ movimiento(row).tipoDocumento }}</td><td>{{ movimiento(row).sku }}</td><td>{{ movimiento(row).nomProducto }}</td><td>{{ movimiento(row).cantidadConSigno }}</td><td>{{ movimiento(row).motivo || '—' }}</td><td>{{ movimiento(row).usuarioResponsable }}</td></tr>}</tbody>
-          }
-          @case ('reposicion') {
-            <thead><tr><th scope="col">SKU</th><th scope="col">Producto</th><th scope="col">Categoría</th><th scope="col">Proveedor</th><th scope="col">Stock</th><th scope="col">Mínimo</th><th scope="col">Reponer</th></tr></thead>
-            <tbody>@for (row of page.content; track reposicion(row).idProducto) {<tr><th scope="row">{{ reposicion(row).sku }}</th><td>{{ reposicion(row).nomProducto }}</td><td>{{ reposicion(row).nomCategoria }}</td><td>{{ reposicion(row).nomProveedor || 'Sin proveedor' }}</td><td>{{ reposicion(row).stockActual }}</td><td>{{ reposicion(row).stockMinimo }}</td><td>{{ reposicion(row).unidadesPorReponer }}</td></tr>}</tbody>
-          }
-        }
-      </table></div>
-      @if (page.totalPages > 1) { <div class="report-pagination"><button mat-stroked-button (click)="go(page.number - 1)" [disabled]="page.number === 0">Anterior</button><span>Página {{ page.number + 1 }} de {{ page.totalPages }}</span><button mat-stroked-button (click)="go(page.number + 1)" [disabled]="page.number + 1 >= page.totalPages">Siguiente</button></div> }
+        </table>
+      </div>
+      <p class="report-summary">
+        Mostrando {{ page.number * 20 + 1 }}–{{ page.number * 20 + page.content.length }} de
+        {{ page.totalElements }} registros
+      </p>
+      @if (page.totalPages > 1) {
+        <div class="report-pagination">
+          <button mat-stroked-button (click)="go(page.number - 1)" [disabled]="page.number === 0">
+            Anterior</button
+          ><span>Página {{ page.number + 1 }} de {{ page.totalPages }}</span
+          ><button
+            mat-stroked-button
+            (click)="go(page.number + 1)"
+            [disabled]="page.number + 1 >= page.totalPages"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
     }
   } @else {
     <div class="empty-state">Pulsa Consultar para ver los resultados.</div>

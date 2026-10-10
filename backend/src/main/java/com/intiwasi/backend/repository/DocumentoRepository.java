@@ -30,4 +30,11 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             Byte estado,
             java.time.LocalDateTime inicio,
             java.time.LocalDateTime fin);
+
+    @Query(value = "SELECT DATE(FechaEmision), TipoDocumento, COUNT(*) FROM Documentos " +
+            "WHERE Estado = 1 AND TipoDocumento IN ('Entrada', 'Salida') " +
+            "AND FechaEmision >= :inicio AND FechaEmision < :fin " +
+            "GROUP BY DATE(FechaEmision), TipoDocumento", nativeQuery = true)
+    List<Object[]> contarActividad(@Param("inicio") java.time.LocalDateTime inicio,
+                                    @Param("fin") java.time.LocalDateTime fin);
 }

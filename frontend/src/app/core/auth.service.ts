@@ -15,6 +15,10 @@ export class AuthService {
   private readonly notice = inject(NoticeService);
   readonly session = signal<Sesion | null>(this.restore());
   readonly isAdmin = computed(() => this.session()?.rol === 'Administrador');
+
+  landingRoute(): string {
+    return this.isAdmin() ? '/dashboard' : '/ordenes-compra';
+  }
   private verified = false;
   private checking?: Promise<boolean>;
   private timer?: ReturnType<typeof setTimeout>;
