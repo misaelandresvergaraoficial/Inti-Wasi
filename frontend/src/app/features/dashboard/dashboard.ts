@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { ReportsService } from '../../core/reports.service';
@@ -15,8 +15,28 @@ export class Dashboard {
   readonly data = signal<DashboardResumen | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly maxActividad = computed(() =>
+    Math.max(
+      1,
+      ...(this.data()?.movimientosUltimos30Dias ?? []).flatMap((dia) => [
+        dia.entradas,
+        dia.salidas,
+      ]),
+    ),
+  );
+  readonly hayActividad = computed(() =>
+    (this.data()?.movimientosUltimos30Dias ?? []).some(
+      (dia) => dia.entradas > 0 || dia.salidas > 0,
+    ),
+  );
 
-  constructor() { void this.load(); }
+  fechaCorta(fecha: string): string {
+    return `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}`;
+  }
+
+  constructor() {
+    void this.load();
+  }
 
   async load(): Promise<void> {
     this.loading.set(true);

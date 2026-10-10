@@ -41,7 +41,7 @@ export class Login {
     try {
       const value = this.form.getRawValue();
       await this.auth.login(value.correo, value.contrasena);
-      await this.router.navigate([this.auth.isAdmin() ? '/usuarios' : '/inicio']);
+      await this.router.navigate([this.auth.landingRoute()]);
     } catch (error) {
       this.error.set(
         error instanceof Error ? error.message : 'No se pudo iniciar sesión. Inténtalo de nuevo.',

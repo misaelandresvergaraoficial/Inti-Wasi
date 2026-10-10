@@ -56,6 +56,9 @@ describe('Sesión conectada al backend', () => {
 
     expect(auth.session()?.nombre).toBe('Andrés Vega');
     expect(auth.isAdmin()).toBe(false);
+    expect(auth.landingRoute()).toBe('/ordenes-compra');
+    auth.refreshUser({ ...user, rol: 'Administrador' });
+    expect(auth.landingRoute()).toBe('/dashboard');
     expect(sessionStorage.getItem('intiwasi.session')).toContain(token);
     expect(sessionStorage.getItem('intiwasi.session')).not.toContain('correcta');
   });

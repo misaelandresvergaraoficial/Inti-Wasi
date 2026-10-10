@@ -1,6 +1,8 @@
 package com.intiwasi.backend.service;
 
 import com.intiwasi.backend.entity.StockBajo;
+import com.intiwasi.backend.entity.Producto;
+import com.intiwasi.backend.entity.Categoria;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.StockBajoRepository;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class ReporteServiceTest {
@@ -36,7 +40,7 @@ class ReporteServiceTest {
     void noGeneraArchivoCuandoNoHayResultados() {
         when(stockBajo.buscar(isNull(), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
 
-        assertTrue(service.exportar("reposicion", "excel", null, null, null, null, null).isEmpty());
+        assertTrue(service.exportar("reposicion", "csv", null, null, null, null, null).isEmpty());
     }
 
     @Test
@@ -48,7 +52,7 @@ class ReporteServiceTest {
         });
 
         ReglaNegocioException error = assertThrows(ReglaNegocioException.class,
-                () -> service.exportar("reposicion", "excel", null, null, null, null, null));
+                () -> service.exportar("reposicion", "csv", null, null, null, null, null));
         assertTrue(error.getMessage().contains("10 000"));
     }
 
@@ -73,11 +77,38 @@ class ReporteServiceTest {
             return new PageImpl<>(filas.subList(inicio, fin), page, filas.size());
         });
 
-        String xml = new String(service.exportar("reposicion", "excel", null, null, null, null, null)
+        String csv = new String(service.exportar("reposicion", "csv", null, null, null, null, null)
                 .orElseThrow(), StandardCharsets.UTF_8);
 
-        assertTrue(xml.contains("SKU-0"));
-        assertTrue(xml.contains("SKU-200"));
-        assertEquals(202, xml.split("<Row>", -1).length - 1);
+        assertTrue(csv.startsWith("\uFEFF\"SKU\""));
+        assertTrue(csv.contains("\"SKU-0\""));
+        assertTrue(csv.contains("\"SKU-200\""));
+        assertEquals(202, csv.split("\r\n", -1).length - 1);
+    }
+
+    @Test
+    void exportacionDeInventarioIncluyePrecioReferencial() {
+        Producto producto = mock(Producto.class);
+        Categoria categoria = mock(Categoria.class);
+        when(producto.getSku()).thenReturn("PRO-1");
+        when(producto.getNomProducto()).thenReturn("Producto, 27\" de prueba");
+        when(producto.getCategoria()).thenReturn(categoria);
+        when(categoria.getNomCategoria()).thenReturn("Categoría");
+        when(producto.getPrecio()).thenReturn(new BigDecimal("680.00"));
+        when(producto.getStockActual()).thenReturn(5);
+        when(producto.getStockMinimo()).thenReturn(2);
+        when(productos.buscarInventario(isNull(), any(Pageable.class)))
+                .thenAnswer(call -> new PageImpl<>(List.of(producto), call.getArgument(1), 1));
+
+        String csv = new String(service.exportar("inventario", "csv", null, null, null, null, null)
+                .orElseThrow(), StandardCharsets.UTF_8);
+
+        assertTrue(csv.contains("\"Precio referencial\""));
+        assertTrue(csv.contains("\"Producto, 27\"\" de prueba\""));
+        assertTrue(csv.contains("\"680.00\""));
+        assertTrue(csv.contains("\"Estado\""));
+        assertTrue(csv.contains("\"Normal\""));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.exportar("inventario", "excel", null, null, null, null, null));
     }
 }

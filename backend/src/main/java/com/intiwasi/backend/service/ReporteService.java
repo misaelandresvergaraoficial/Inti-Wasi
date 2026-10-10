@@ -53,14 +53,14 @@ public class ReporteService {
     @Transactional(readOnly = true)
     public Optional<byte[]> exportar(String reporte, String formato, LocalDate inicio, LocalDate fin,
                             Integer idProducto, TipoDocumento tipo, Integer idUsuario) {
-        if (!List.of("pdf", "excel", "xls").contains(formato.toLowerCase())) {
-            throw new IllegalArgumentException("Formato de exportación inválido; use pdf o excel");
+        if (!List.of("pdf", "csv").contains(formato.toLowerCase())) {
+            throw new IllegalArgumentException("Formato de exportación inválido; use pdf o csv");
         }
         Tabla tabla = consultarTabla(reporte, inicio, fin, idProducto, tipo, idUsuario);
         if (tabla.filas().isEmpty()) return Optional.empty();
         return Optional.of(switch (formato.toLowerCase()) {
             case "pdf" -> pdfWriter.escribir(reporte, tabla.encabezados(), tabla.filas());
-            case "excel", "xls" -> generarExcelXml(tabla);
+            case "csv" -> generarCsv(tabla);
             default -> throw new IllegalStateException("Formato validado no reconocido");
         });
     }
@@ -68,10 +68,11 @@ public class ReporteService {
     private Tabla consultarTabla(String reporte, LocalDate inicio, LocalDate fin, Integer idProducto,
                                  TipoDocumento tipo, Integer idUsuario) {
         return switch (reporte.toLowerCase()) {
-            case "inventario" -> new Tabla(List.of("SKU", "Producto", "Categoría", "Proveedor", "Stock", "Mínimo"),
+            case "inventario" -> new Tabla(List.of("SKU", "Producto", "Categoría", "Proveedor", "Precio referencial", "Stock", "Mínimo", "Estado"),
                     reunir(pagina -> inventario(idProducto, pagina)).stream()
                             .map(i -> List.of(i.getSku(), i.getNomProducto(), i.getCategoria(), nulo(i.getProveedor()),
-                                    i.getStockActual().toString(), i.getStockMinimo().toString())).toList());
+                                    i.getPrecio().toPlainString(), i.getStockActual().toString(), i.getStockMinimo().toString(),
+                                    i.getStockActual() <= i.getStockMinimo() ? "Stock bajo" : "Normal")).toList());
             case "movimientos" -> new Tabla(List.of("Fecha", "Tipo", "SKU", "Producto", "Cantidad", "Motivo", "Usuario"),
                     reunir(pagina -> movimientos(inicio, fin, idProducto, tipo, idUsuario, pagina)).stream()
                             .map(m -> List.of(m.getFechaEmision().toString(), m.getTipoDocumento().getValor(), m.getSku(),
@@ -117,25 +118,28 @@ public class ReporteService {
                 .unidadesPorReponer(s.getUnidadesPorReponer()).build();
     }
 
-    private byte[] generarExcelXml(Tabla tabla) {
-        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-                .append("<?mso-application progid=\"Excel.Sheet\"?>")
-                .append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" ")
-                .append("xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"><Worksheet ss:Name=\"Reporte\"><Table>");
-        agregarFilaXml(xml, tabla.encabezados());
-        tabla.filas().forEach(fila -> agregarFilaXml(xml, fila));
-        xml.append("</Table></Worksheet></Workbook>");
-        return xml.toString().getBytes(StandardCharsets.UTF_8);
+    private byte[] generarCsv(Tabla tabla) {
+        StringBuilder csv = new StringBuilder("\uFEFF");
+        agregarFilaCsv(csv, tabla.encabezados());
+        tabla.filas().forEach(fila -> agregarFilaCsv(csv, fila));
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private void agregarFilaXml(StringBuilder xml, List<String> fila) {
-        xml.append("<Row>");
-        fila.forEach(valor -> xml.append("<Cell><Data ss:Type=\"String\">")
-                .append(escaparXml(valor)).append("</Data></Cell>"));
-        xml.append("</Row>");
+    private void agregarFilaCsv(StringBuilder csv, List<String> fila) {
+        for (int i = 0; i < fila.size(); i++) {
+            if (i > 0) csv.append(',');
+            String valor = nulo(fila.get(i));
+            String inicio = valor.stripLeading();
+            if (!inicio.isEmpty() && (inicio.charAt(0) == '=' || inicio.charAt(0) == '+'
+                    || inicio.charAt(0) == '@' || inicio.charAt(0) == '-'
+                    && (inicio.length() == 1 || !Character.isDigit(inicio.charAt(1))))) {
+                valor = "'" + valor;
+            }
+            csv.append('"').append(valor.replace("\"", "\"\"")).append('"');
+        }
+        csv.append("\r\n");
     }
 
-    private String escaparXml(String valor) { return nulo(valor).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"); }
     private String nulo(String valor) { return valor == null ? "" : valor; }
 
     private record Tabla(List<String> encabezados, List<List<String>> filas) {}

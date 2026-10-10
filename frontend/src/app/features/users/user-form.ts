@@ -98,7 +98,7 @@ export class UserForm implements PendingChanges {
       this.notice.show(
         `${user.nomUsuario}: ${this.id ? 'cambios guardados' : 'usuario creado correctamente'}.`,
       );
-      await this.router.navigate([this.auth.isAdmin() ? '/usuarios' : '/inicio']);
+      await this.router.navigate([this.auth.landingRoute()]);
     } catch (error) {
       if (
         error instanceof ApiRequestError &&

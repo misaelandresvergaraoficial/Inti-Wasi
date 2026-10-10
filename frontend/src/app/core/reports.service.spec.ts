@@ -28,8 +28,9 @@ describe('Reportes y dashboard conectados a la API', () => {
     const result = service.resumen();
     const request = http.expectOne('/api/dashboard/resumen');
     expect(request.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
-    request.flush({ totalProductosActivos: 5, productosConStockBajo: 2, entradasDelDia: 1,
-      salidasDelDia: 0, productosPorReponer: [] });
+    request.flush({ totalProductosActivos: 5, productosConStockBajo: 2, ordenesPorCompletar: 3,
+      entradasDelDia: 1, salidasDelDia: 0, productosPorReponer: [],
+      movimientosUltimos30Dias: [{ fecha: '2026-10-09', entradas: 1, salidas: 0 }] });
     expect((await result).productosConStockBajo).toBe(2);
   });
 
@@ -54,5 +55,15 @@ describe('Reportes y dashboard conectados a la API', () => {
     expect(request.request.responseType).toBe('blob');
     request.flush(null, { status: 204, statusText: 'No Content' });
     expect((await result).status).toBe(204);
+  });
+
+  it('envía el formato CSV con los filtros aplicados', async () => {
+    const result = service.exportar('inventario', 'csv', { idProducto: 3 });
+    const request = http.expectOne((r) => r.url === '/api/reportes/inventario/exportar');
+    expect(request.request.params.get('formato')).toBe('csv');
+    expect(request.request.params.get('idProducto')).toBe('3');
+    expect(request.request.responseType).toBe('blob');
+    request.flush(new Blob(['SKU,Producto\r\n'], { type: 'text/csv' }));
+    expect((await result).body?.size).toBeGreaterThan(0);
   });
 });
