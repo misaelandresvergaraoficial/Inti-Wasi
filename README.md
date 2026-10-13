@@ -21,6 +21,14 @@ El frontend integra acceso por roles, usuarios, categorías, proveedores, produc
 
 ## Guía de Configuración Local
 
+### Nuevas reglas de usuarios
+
+El teléfono es opcional, pero, si se informa, solo admite dígitos, debe ser mayor que cero y no puede repetirse entre usuarios. `01_DDL_bd_intiwasi.sql` incluye `UNIQUE (Telefono)` para las instalaciones nuevas. Los correos creados o editados en la aplicación usan `admin.nombre@intiwasi.pe` u `operador.nombre@intiwasi.pe`, según el rol: una sola palabra con letras minúsculas, sin números ni otros separadores. Si el correo ya está ocupado, se puede añadir la inicial del apellido al nombre, sin separadores. La aplicación también impide dejar el sistema sin un administrador activo.
+
+El JWT dura ocho horas por defecto (`28800000` milisegundos). Si existe una configuración local de `JWT_EXPIRACION_MS` o `jwt.expiracion-ms`, actualízala para usar esa duración. El navegador avisa después de 15 minutos sin actividad y cierra la sesión 30 segundos después si nadie confirma; confirmar no prolonga la vigencia del JWT.
+
+Para reconstruir la base desde cero, ejecuta los cuatro scripts originales en orden. Si necesitas conservar los datos actuales, respáldalos y añade únicamente la restricción de teléfono con `ALTER TABLE Usuarios ADD CONSTRAINT UQ_Usuarios_Telefono UNIQUE (Telefono);` después de revisar que no existan duplicados. No ejecutes `01_DDL_bd_intiwasi.sql` sobre una base con datos que debas conservar.
+
 ### 1. Base de Datos (MySQL)
 
 **Aviso:** `01_DDL_bd_intiwasi.sql` elimina y reconstruye `bd_intiwasi`. Haz un respaldo antes de ejecutarlo si necesitas conservar los datos.

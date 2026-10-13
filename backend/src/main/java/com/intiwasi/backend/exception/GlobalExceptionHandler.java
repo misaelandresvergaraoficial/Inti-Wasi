@@ -91,6 +91,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleIntegridadDatos(DataIntegrityViolationException ex) {
+        if (ex.getMostSpecificCause().getMessage() != null
+                && ex.getMostSpecificCause().getMessage().contains("UQ_Usuarios_Telefono")) {
+            return crearRespuesta(HttpStatus.CONFLICT, "telefono: El teléfono ya se encuentra registrado por otro usuario");
+        }
         return crearRespuesta(
                 HttpStatus.CONFLICT,
                 "La operación entra en conflicto con datos existentes"
