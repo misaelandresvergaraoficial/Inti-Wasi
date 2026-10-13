@@ -7,6 +7,9 @@ import { NoticeService } from './notice.service';
 import { toApiError } from './api-error';
 
 const STORAGE_KEY = 'intiwasi.session';
+const ACTIVITY_KEY = 'intiwasi.lastActivity';
+const IDLE_MS = 15 * 60 * 1000;
+const CONFIRM_MS = 30 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,6 +18,7 @@ export class AuthService {
   private readonly notice = inject(NoticeService);
   readonly session = signal<Sesion | null>(this.restore());
   readonly isAdmin = computed(() => this.session()?.rol === 'Administrador');
+  readonly idleSecondsRemaining = signal<number | null>(null);
 
   landingRoute(): string {
     return this.isAdmin() ? '/dashboard' : '/ordenes-compra';
@@ -24,8 +28,29 @@ export class AuthService {
   private timer?: ReturnType<typeof setTimeout>;
 
   constructor() {
+    if (this.session() && !sessionStorage.getItem(ACTIVITY_KEY)) this.recordActivity();
     this.scheduleExpiration();
-    inject(DestroyRef).onDestroy(() => clearTimeout(this.timer));
+    this.checkInactivity();
+    const idleTimer = setInterval(() => this.checkInactivity(), 1000);
+    const activity = () => {
+      this.checkInactivity();
+      if (this.session() && this.idleSecondsRemaining() === null
+          && Date.now() - this.lastActivity() >= 1000) this.recordActivity();
+    };
+    const resume = () => this.checkInactivity();
+    const events = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
+    for (const event of events) document.addEventListener(event, activity, { passive: true, capture: true });
+    document.addEventListener('visibilitychange', resume);
+    window.addEventListener('pageshow', resume);
+    window.addEventListener('focus', resume);
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.timer);
+      clearInterval(idleTimer);
+      for (const event of events) document.removeEventListener(event, activity, true);
+      document.removeEventListener('visibilitychange', resume);
+      window.removeEventListener('pageshow', resume);
+      window.removeEventListener('focus', resume);
+    });
   }
 
   async login(email: string, password: string): Promise<void> {
@@ -58,6 +83,7 @@ export class AuthService {
   }
 
   valid(): boolean {
+    this.checkInactivity();
     const current = this.session();
     if (!current) return false;
     if (current.expiresAt <= Date.now()) {
@@ -76,10 +102,10 @@ export class AuthService {
     if (current?.idUsuario === user.idUsuario) this.setUser(user, current.token, current.expiresAt);
   }
 
-  logout(expired = false, accountChanged = false): void {
+  logout(expired = false, accountChanged = false, inactive = false): void {
     this.clear();
     void this.router.navigate(['/login'], {
-      queryParams: expired
+      queryParams: inactive ? { sesion: 'inactiva' } : expired
         ? { sesion: 'caducada' }
         : accountChanged
           ? { cuenta: 'actualizada' }
@@ -91,6 +117,7 @@ export class AuthService {
     try {
       const current = this.session()!;
       const user = await firstValueFrom(this.http.get<UsuarioResponse>('/api/auth/me'));
+      if (this.session()?.token !== current.token || !this.valid()) return false;
       this.setUser(user, current.token, current.expiresAt);
       this.verified = true;
       return true;
@@ -101,6 +128,7 @@ export class AuthService {
   }
 
   private setUser(user: UsuarioResponse, token: string, expiresAt: number): void {
+    if (this.session()?.token !== token) this.recordActivity();
     const current: Sesion = {
       token,
       idUsuario: user.idUsuario,
@@ -118,6 +146,8 @@ export class AuthService {
     clearTimeout(this.timer);
     this.notice.clear();
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(ACTIVITY_KEY);
+    this.idleSecondsRemaining.set(null);
     this.session.set(null);
     this.verified = false;
   }
@@ -148,6 +178,37 @@ export class AuthService {
     const current = this.session();
     if (current) {
       this.timer = setTimeout(() => this.logout(true), Math.max(0, current.expiresAt - Date.now()));
+    }
+  }
+
+  continueSession(): void {
+    this.checkInactivity();
+    if (!this.valid()) return;
+    this.recordActivity();
+    this.idleSecondsRemaining.set(null);
+  }
+
+  private lastActivity(): number {
+    const value = Number(sessionStorage.getItem(ACTIVITY_KEY));
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  private recordActivity(): void {
+    sessionStorage.setItem(ACTIVITY_KEY, String(Date.now()));
+  }
+
+  private checkInactivity(): void {
+    const current = this.session();
+    if (!current) return;
+    if (current.expiresAt <= Date.now()) {
+      this.logout(true);
+      return;
+    }
+    const remaining = this.lastActivity() + IDLE_MS + CONFIRM_MS - Date.now();
+    if (remaining <= 0) {
+      this.logout(false, false, true);
+    } else {
+      this.idleSecondsRemaining.set(remaining <= CONFIRM_MS ? Math.ceil(remaining / 1000) : null);
     }
   }
 }
