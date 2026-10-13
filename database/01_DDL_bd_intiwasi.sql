@@ -14,7 +14,8 @@ CREATE TABLE Usuarios (
     Telefono        VARCHAR(20),
     Estado          TINYINT NOT NULL DEFAULT 1,
     FechaRegistro   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT UQ_Usuarios_Correo UNIQUE (Correo)
+    CONSTRAINT UQ_Usuarios_Correo UNIQUE (Correo),
+    CONSTRAINT UQ_Usuarios_Telefono UNIQUE (Telefono)
 ) ENGINE=InnoDB;
 
 

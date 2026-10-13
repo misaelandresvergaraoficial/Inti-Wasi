@@ -1,8 +1,8 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { provideRouter, Router } from '@angular/router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from './auth.service';
 import { authInterceptor } from './auth.interceptor';
 import { UsuarioResponse } from './models';
@@ -24,6 +24,7 @@ describe('Sesión conectada al backend', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [
@@ -38,7 +39,91 @@ describe('Sesión conectada al backend', () => {
 
   afterEach(() => {
     http.verify();
+    TestBed.resetTestingModule();
+    vi.useRealTimers();
     sessionStorage.clear();
+  });
+
+  async function openSession() {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const futureToken = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 28800 }))}.signature`;
+    const login = auth.login(user.correo, 'correcta');
+    http.expectOne('/api/auth/login').flush({ token: futureToken });
+    await Promise.resolve();
+    http.expectOne('/api/auth/me').flush(user);
+    await login;
+    return auth.session()!.expiresAt;
+  }
+
+  it('avisa a los quince minutos y cierra treinta segundos después sin confirmación', async () => {
+    await openSession();
+    vi.advanceTimersByTime(15 * 60_000 - 1);
+    expect(auth.idleSecondsRemaining()).toBeNull();
+    vi.advanceTimersByTime(1);
+    auth.valid();
+    expect(auth.idleSecondsRemaining()).toBe(30);
+    document.dispatchEvent(new Event('pointerdown'));
+    vi.advanceTimersByTime(30_000);
+    auth.valid();
+    expect(auth.session()).toBeNull();
+    expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'inactiva' } });
+  });
+
+  it('confirmar reinicia inactividad sin extender la expiración absoluta', async () => {
+    const expiresAt = await openSession();
+    vi.advanceTimersByTime(15 * 60_000);
+    auth.valid();
+    auth.continueSession();
+    expect(auth.idleSecondsRemaining()).toBeNull();
+    expect(auth.session()!.expiresAt).toBe(expiresAt);
+    vi.advanceTimersByTime(14 * 60_000);
+    expect(auth.valid()).toBe(true);
+    expect(auth.idleSecondsRemaining()).toBeNull();
+  });
+
+  it('actividad humana reinicia el tiempo pero consultar el token no lo hace', async () => {
+    await openSession();
+    vi.advanceTimersByTime(10 * 60_000);
+    document.dispatchEvent(new Event('keydown'));
+    vi.advanceTimersByTime(10 * 60_000);
+    expect(auth.token()).not.toBeNull();
+    expect(auth.idleSecondsRemaining()).toBeNull();
+    vi.advanceTimersByTime(5 * 60_000);
+    auth.token();
+    expect(auth.idleSecondsRemaining()).toBe(30);
+  });
+
+  it('al volver del segundo plano usa el tiempo real y no acepta confirmaciones tardías', async () => {
+    await openSession();
+    vi.setSystemTime(Date.now() + 16 * 60_000);
+    window.dispatchEvent(new Event('pageshow'));
+    auth.continueSession();
+    expect(auth.session()).toBeNull();
+  });
+
+  it('recargar la sesión conserva el plazo del aviso', async () => {
+    await openSession();
+    vi.advanceTimersByTime(15 * 60_000 + 10_000);
+    expect(auth.idleSecondsRemaining()).toBe(20);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    auth = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    expect(auth.idleSecondsRemaining()).toBe(20);
+    vi.advanceTimersByTime(20_000);
+    expect(auth.session()).toBeNull();
+  });
+
+  it('rechaza continuar cuando el token ha vencido aunque no haya inactividad', async () => {
+    const expiresAt = await openSession();
+    vi.setSystemTime(expiresAt);
+    auth.continueSession();
+    expect(auth.session()).toBeNull();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'caducada' } });
   });
 
   it('envía las credenciales y consulta la identidad real antes de abrir la sesión', async () => {

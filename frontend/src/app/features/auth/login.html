@@ -51,6 +51,12 @@
         <h1 id="login-title" tabindex="-1">Iniciar sesión</h1>
         <p>Ingresa con tu cuenta de trabajo.</p>
       </div>
+      @if (inactive) {
+        <div class="notice warning" role="status">
+          <iw-icon name="info" />
+          <p>Tu sesión se cerró por inactividad. Inicia sesión nuevamente para continuar.</p>
+        </div>
+      }
       @if (expired) {
         <div class="notice warning" role="status">
           <iw-icon name="info" />

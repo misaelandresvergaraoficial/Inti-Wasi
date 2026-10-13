@@ -27,6 +27,7 @@ export class Login {
   readonly error = signal('');
   readonly showPassword = signal(false);
   readonly expired = this.route.snapshot.queryParamMap.get('sesion') === 'caducada';
+  readonly inactive = this.route.snapshot.queryParamMap.get('sesion') === 'inactiva';
   readonly accountChanged = this.route.snapshot.queryParamMap.get('cuenta') === 'actualizada';
   readonly errorText = fieldError;
   async submit(): Promise<void> {

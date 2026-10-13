@@ -53,11 +53,13 @@
               ><input
                 matInput
                 id="user-email"
-                type="email"
+                type="text"
                 formControlName="correo"
-                autocomplete="email"
-                placeholder="rol.nombre@intiwasi.pe"
-              /><mat-hint>Se utilizará para iniciar sesión.</mat-hint>
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="rol.nombre"
+              /><span matTextSuffix>@intiwasi.pe</span><mat-hint>Usa rol.nombre. Si ya existe, añade la inicial del apellido al nombre, sin separadores.</mat-hint>
               @if (form.controls.correo.invalid) {
                 <mat-error>{{
                   errorText(form.controls.correo, 'el correo electrónico')
@@ -127,7 +129,10 @@
                 type="tel"
                 formControlName="telefono"
                 autocomplete="tel"
-              /><mat-hint>Hasta 15 caracteres, incluidos espacios.</mat-hint>
+                inputmode="numeric"
+                maxlength="15"
+                (input)="onlyPhoneDigits($event)"
+              /><mat-hint>Solo números, hasta 15 dígitos. No puede pertenecer a otro usuario.</mat-hint>
               @if (form.controls.telefono.invalid) {
                 <mat-error>{{ errorText(form.controls.telefono, 'el teléfono') }}</mat-error>
               }
