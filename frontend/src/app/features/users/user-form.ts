@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +17,15 @@ import { fieldError, focusFirstInvalid } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 const notBlank = (control: AbstractControl) =>
   typeof control.value === 'string' && !control.value.trim() ? { blank: true } : null;
+export function institutionalEmail(control: AbstractControl) {
+  if (!control.value) return null;
+  if (!/^(admin|operador)\.[a-z]+$/.test(control.value)) {
+    return { institutional: true };
+  }
+  const role = control.parent?.get('rol')?.value;
+  const prefix = role === 'Administrador' ? 'admin.' : 'operador.';
+  return role && !control.value.startsWith(prefix) ? { roleEmail: true } : null;
+}
 @Component({
   selector: 'iw-user-form',
   imports: [
@@ -41,18 +51,35 @@ export class UserForm implements PendingChanges {
     this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
   readonly form = inject(FormBuilder).nonNullable.group({
     nomUsuario: ['', [Validators.required, notBlank, Validators.maxLength(50)]],
-    correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+    correo: ['', [Validators.required, institutionalEmail, Validators.maxLength(88)]],
     contrasena: ['', [Validators.minLength(6), Validators.maxLength(20)]],
     rol: ['Operador de Almacén' as Rol, Validators.required],
-    telefono: ['', Validators.maxLength(15)],
+    telefono: ['', [Validators.maxLength(15), Validators.pattern(/^[0-9]*[1-9][0-9]*$/)]],
   });
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
   readonly loadError = signal(this.invalidId ? 'El identificador del usuario no es válido.' : '');
   readonly showPassword = signal(false);
-  readonly errorText = fieldError;
+  readonly errorText = (control: AbstractControl, label: string): string => {
+    if (control.hasError('institutional')) return 'Usa admin.nombre u operador.nombre, solo con letras minúsculas.';
+    if (control.hasError('roleEmail')) return 'El correo no coincide con el rol seleccionado. Revisa el prefijo admin u operador.';
+    if (control === this.form.controls.telefono && control.hasError('pattern')) return 'Ingresa solo números; el teléfono debe ser mayor que cero.';
+    return fieldError(control, label);
+  };
+  onlyPhoneDigits(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/[^0-9]/g, '');
+    if (input.value !== digits) {
+      input.value = digits;
+      this.form.controls.telefono.setValue(digits);
+    }
+  }
   constructor() {
+    this.form.controls.rol.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.form.controls.correo.updateValueAndValidity();
+      this.form.controls.correo.markAsTouched();
+    });
     if (this.rawId === null) this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
     else if (!this.invalidId) void this.load();
   }
@@ -62,7 +89,8 @@ export class UserForm implements PendingChanges {
     this.loadError.set('');
     try {
       const user = await this.users.get(this.id!);
-      this.form.patchValue({ ...user, telefono: user.telefono ?? '', contrasena: '' });
+      this.form.patchValue({ ...user, correo: user.correo.replace(/@intiwasi\.pe$/, ''), telefono: user.telefono ?? '', contrasena: '' });
+      this.form.controls.correo.updateValueAndValidity();
       this.form.markAsPristine();
     } catch (error) {
       this.loadError.set(error instanceof Error ? error.message : 'No se pudo cargar el usuario.');
@@ -82,7 +110,7 @@ export class UserForm implements PendingChanges {
     try {
       const value = this.form.getRawValue();
       const user = await this.users.save(
-        { ...value, telefono: value.telefono || null, contrasena: value.contrasena || undefined },
+        { ...value, correo: `${value.correo}@intiwasi.pe`, telefono: value.telefono.trim() || null, contrasena: value.contrasena || undefined },
         this.id,
       );
       this.form.markAsPristine();
