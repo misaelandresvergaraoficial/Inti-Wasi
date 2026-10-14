@@ -34,6 +34,7 @@ import { Icon } from '../shared/icon';
             ><iw-icon name="menu" />Productos</a
           >
           <a routerLink="/entradas" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Entradas"><iw-icon name="orders" />Entradas</a>
+          <a routerLink="/salidas" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Salidas"><iw-icon name="orders" />Salidas</a>
           <a
             routerLink="/proveedores"
             routerLinkActive="active"
