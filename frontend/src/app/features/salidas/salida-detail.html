@@ -44,7 +44,15 @@
     <div class="panel-heading">
       <div>
         <h2 id="salida-summary">Datos de la salida</h2>
-        <p>Documento N.° {{ item.idDocumento }}</p>
+        <p>
+          @if (auth.isAdmin()) {
+            <a [routerLink]="['/documentos', item.idDocumento]"
+              >Documento N.° {{ item.idDocumento }}</a
+            >
+          } @else {
+            Documento N.° {{ item.idDocumento }}
+          }
+        </p>
       </div>
       <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
     </div>
@@ -64,7 +72,15 @@
       @if (item.idDocumentoOrigen) {
         <div>
           <dt>Documento original</dt>
-          <dd>N.° {{ item.idDocumentoOrigen }}</dd>
+          <dd>
+            @if (auth.isAdmin()) {
+              <a [routerLink]="['/documentos', item.idDocumentoOrigen]"
+                >N.° {{ item.idDocumentoOrigen }}</a
+              >
+            } @else {
+              N.° {{ item.idDocumentoOrigen }}
+            }
+          </dd>
         </div>
       }
       <div>

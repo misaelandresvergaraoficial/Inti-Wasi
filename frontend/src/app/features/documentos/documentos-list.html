@@ -1,0 +1,149 @@
+<div class="breadcrumb"><span>Inventario</span><iw-icon name="next" /><span>Documentos</span></div>
+<div class="page-heading">
+  <div class="eyebrow">HISTORIAL ADMINISTRATIVO</div>
+  <h1 tabindex="-1">Documentos</h1>
+  <p>Consulta las operaciones originales, sus correcciones y reemplazos.</p>
+</div>
+@if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+}
+<section
+  class="panel orders-panel"
+  aria-labelledby="documentos-heading"
+  [attr.aria-busy]="loading()"
+>
+  <div class="panel-heading">
+    <div>
+      <h2 id="documentos-heading">Historial de documentos</h2>
+      <p>Los registros rectificados y anulados permanecen visibles.</p>
+    </div>
+    <span class="badge neutral">{{ records().length }} documentos</span>
+  </div>
+  <div class="filter-bar flex flex-wrap items-end gap-4">
+    <div class="search-field">
+      <label for="documento-search">Buscar documento</label>
+      <div class="input-with-icon">
+        <iw-icon name="search" /><input
+          id="documento-search"
+          type="search"
+          placeholder="Número, origen o responsable"
+          [value]="query()"
+          (input)="changeFilter('query', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <div class="status-filter">
+      <label for="documento-tipo">Tipo</label>
+      <select
+        id="documento-tipo"
+        [value]="tipo()"
+        (change)="changeFilter('tipo', $any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        <option value="Entrada">Entrada</option>
+        <option value="Salida">Salida</option>
+        <option value="Ajuste">Ajuste</option>
+        <option value="Correccion">Corrección</option>
+      </select>
+    </div>
+    <div class="status-filter">
+      <label for="documento-estado">Estado</label>
+      <select
+        id="documento-estado"
+        [value]="estadoFiltro()"
+        (change)="changeFilter('estado', $any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        <option value="1">Vigente</option>
+        <option value="2">Rectificado</option>
+        <option value="0">Anulado</option>
+      </select>
+    </div>
+    @if (query() || tipo() || estadoFiltro()) {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
+    }
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando documentos…</p>
+    </div>
+  } @else if (error()) {
+    <div class="empty-state"><p>No se pudo cargar el historial.</p></div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay documentos' }}</h3>
+      <p>{{ records().length ? 'Prueba otro filtro.' : 'Los documentos aparecerán aquí.' }}</p>
+    </div>
+  } @else {
+    <div class="table-scroll" role="region" aria-label="Listado de documentos" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Documentos del inventario
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Documento</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Emisión</th>
+            <th scope="col">Responsable</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Origen</th>
+            <th scope="col">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of visible(); track item.idDocumento) {
+            <tr [class.inactive-row]="item.estado !== 1">
+              <th scope="row">N.° {{ item.idDocumento }}</th>
+              <td>{{ item.tipoDocumento === 'Correccion' ? 'Corrección' : item.tipoDocumento }}</td>
+              <td>{{ date(item.fechaEmision) }}</td>
+              <td>{{ item.usuarioResponsable }}</td>
+              <td>{{ estado(item.estado) }}</td>
+              <td>
+                @if (item.idDocumentoOrigen) {
+                  <a [routerLink]="['/documentos', item.idDocumentoOrigen]"
+                    >N.° {{ item.idDocumentoOrigen }}</a
+                  >
+                } @else {
+                  —
+                }
+              </td>
+              <td>
+                <a mat-button [routerLink]="['/documentos', item.idDocumento]">Ver detalle</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <p role="status">
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }}
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          mat-icon-button
+          aria-label="Página anterior"
+          [disabled]="page() === 0"
+          (click)="page.set(page() - 1)"
+        >
+          <iw-icon name="arrow" />
+        </button>
+        <span>Página {{ page() + 1 }} de {{ pages() }}</span>
+        <button
+          mat-icon-button
+          aria-label="Página siguiente"
+          [disabled]="page() + 1 >= pages()"
+          (click)="page.set(page() + 1)"
+        >
+          <iw-icon name="next" />
+        </button>
+      </div>
+    </div>
+  }
+</section>

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
 import { EntradaResponse, estadoDocumento } from '../../core/entrada-models';
 import { EntradasService } from '../../core/entradas.service';
 import { NoticeService } from '../../core/notice.service';
@@ -15,6 +16,7 @@ import { Icon } from '../../shared/icon';
   templateUrl: './entrada-detail.html',
 })
 export class EntradaDetail {
+  readonly auth = inject(AuthService);
   private readonly entradas = inject(EntradasService);
   private readonly dialog = inject(MatDialog);
   readonly notice = inject(NoticeService);
