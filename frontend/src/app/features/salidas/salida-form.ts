@@ -6,6 +6,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { PendingChanges } from '../../core/guards';
+import { productoIdDelError } from '../../core/inventory-error';
+import { ApiRequestError } from '../../core/models';
 import { NoticeService } from '../../core/notice.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
@@ -44,6 +46,7 @@ export class SalidaForm implements PendingChanges {
   readonly busy = signal(false);
   readonly loadError = signal('');
   readonly error = signal('');
+  readonly lineErrors = signal<Record<number, string>>({});
   readonly submitted = signal(false);
 
   constructor() {
@@ -101,10 +104,30 @@ export class SalidaForm implements PendingChanges {
   }
 
   availableStock(id: number): number {
-    const current = this.products().find((product) => product.idProducto === id)?.stockActual ?? 0;
+    const current = this.currentStock(id);
     const returned =
       this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
     return current + returned;
+  }
+
+  currentStock(id: number): number {
+    return this.products().find((product) => product.idProducto === id)?.stockActual ?? 0;
+  }
+
+  originalQuantity(id: number): number {
+    return this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
+  }
+
+  resultingStock(id: number, quantity: number): number {
+    return this.availableStock(id) - quantity;
+  }
+
+  clearLineError(id: number): void {
+    this.lineErrors.update((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
   duplicate(index: number): boolean {
@@ -131,6 +154,7 @@ export class SalidaForm implements PendingChanges {
     if (this.busy()) return;
     this.submitted.set(true);
     this.error.set('');
+    this.lineErrors.set({});
     this.form.markAllAsTouched();
     const value = this.form.getRawValue();
     if (
@@ -180,7 +204,38 @@ export class SalidaForm implements PendingChanges {
       );
       await this.router.navigate(['/salidas', saved.idSalida]);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar la salida.');
+      const message = error instanceof Error ? error.message : 'No se pudo guardar la salida.';
+      if (!(error instanceof ApiRequestError) || ![409, 422].includes(error.status)) {
+        this.error.set(message);
+        return;
+      }
+      try {
+        this.products.set(await this.productos.list());
+      } catch {
+        this.error.set(`${message} No se pudo actualizar el stock mostrado.`);
+        return;
+      }
+      const lineErrors: Record<number, string> = {};
+      for (const line of value.movimientos) {
+        if (line.idProducto && line.cantidad > this.availableStock(line.idProducto)) {
+          const stock = this.availableStock(line.idProducto);
+          lineErrors[line.idProducto] =
+            `Solo hay ${stock} ${stock === 1 ? 'unidad disponible' : 'unidades disponibles'} ahora.`;
+        }
+      }
+      const affectedId = productoIdDelError(error);
+      if (
+        affectedId &&
+        value.movimientos.some((line) => line.idProducto === affectedId) &&
+        !lineErrors[affectedId]
+      )
+        lineErrors[affectedId] = message;
+      this.lineErrors.set(lineErrors);
+      this.error.set(
+        Object.keys(lineErrors).length
+          ? 'No se guardó la salida. Revisa el producto señalado; el stock se actualizó sin borrar lo escrito.'
+          : message,
+      );
     } finally {
       this.busy.set(false);
     }

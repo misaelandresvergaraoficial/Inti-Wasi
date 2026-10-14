@@ -12,13 +12,17 @@ import { Icon } from '../shared/icon';
   template: ` <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <div class="app-layout">
       <aside class="sidebar">
-        <a [routerLink]="auth.landingRoute()" class="brand" aria-label="Inti Wasi, espacio principal"
+        <a
+          [routerLink]="auth.landingRoute()"
+          class="brand"
+          aria-label="Inti Wasi, espacio principal"
           ><img src="marca.svg" width="38" height="38" alt="" /><span
             >Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span
           ></a
         >
         <div class="nav-section">ESPACIO DE TRABAJO</div>
         <nav aria-label="Navegación principal">
+          <span class="nav-group-label">Operaciones</span>
           <a
             routerLink="/ordenes-compra"
             routerLinkActive="active"
@@ -27,14 +31,36 @@ import { Icon } from '../shared/icon';
             ><iw-icon name="orders" />Órdenes de compra</a
           >
           <a
+            routerLink="/entradas"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Entradas"
+            ><iw-icon name="orders" />Entradas</a
+          >
+          <a
+            routerLink="/salidas"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Salidas"
+            ><iw-icon name="orders" />Salidas</a
+          >
+          @if (auth.isAdmin()) {
+            <a
+              routerLink="/ajustes"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Ajustes"
+              ><iw-icon name="orders" />Ajustes</a
+            >
+          }
+          <span class="nav-group-label">Catálogos</span>
+          <a
             routerLink="/productos"
             routerLinkActive="active"
             ariaCurrentWhenActive="page"
             aria-label="Productos"
             ><iw-icon name="menu" />Productos</a
           >
-          <a routerLink="/entradas" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Entradas"><iw-icon name="orders" />Entradas</a>
-          <a routerLink="/salidas" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Salidas"><iw-icon name="orders" />Salidas</a>
           <a
             routerLink="/proveedores"
             routerLinkActive="active"
@@ -43,20 +69,45 @@ import { Icon } from '../shared/icon';
             ><iw-icon name="truck" />Proveedores</a
           >
           @if (auth.isAdmin()) {
-          <a
-            routerLink="/categorias"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Categorías"
-            ><iw-icon name="appstore-o" />Categorías</a
-          >
+            <a
+              routerLink="/categorias"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Categorías"
+              ><iw-icon name="appstore-o" />Categorías</a
+            >
           }
           @if (auth.isAdmin()) {
-            <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Dashboard"><iw-icon name="home" />Dashboard</a>
-            <a routerLink="/ajustes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Ajustes"><iw-icon name="orders" />Ajustes</a>
-            <a routerLink="/documentos" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Documentos"><iw-icon name="orders" />Documentos</a>
-            <a routerLink="/movimientos" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Movimientos"><iw-icon name="orders" />Movimientos</a>
-            <a routerLink="/reportes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Reportes"><iw-icon name="orders" />Reportes</a>
+            <span class="nav-group-label">Consultas</span>
+            <a
+              routerLink="/dashboard"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Dashboard"
+              ><iw-icon name="home" />Dashboard</a
+            >
+            <a
+              routerLink="/documentos"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Documentos"
+              ><iw-icon name="orders" />Documentos</a
+            >
+            <a
+              routerLink="/movimientos"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Movimientos"
+              ><iw-icon name="orders" />Movimientos</a
+            >
+            <a
+              routerLink="/reportes"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              aria-label="Reportes"
+              ><iw-icon name="orders" />Reportes</a
+            >
+            <span class="nav-group-label">Administración</span>
             <a
               routerLink="/usuarios"
               routerLinkActive="active"

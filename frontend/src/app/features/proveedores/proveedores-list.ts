@@ -33,8 +33,7 @@ export class ProveedoresList {
   readonly filtered = computed(() => {
     const term = this.query().trim().toLocaleLowerCase();
     return this.records().filter((supplier) => {
-      const matchesStatus =
-        !this.statusFilter() || supplier.estado === Number(this.statusFilter());
+      const matchesStatus = !this.statusFilter() || supplier.estado === Number(this.statusFilter());
       const matchesTerm =
         !term ||
         [
@@ -103,7 +102,7 @@ export class ProveedoresList {
           data: {
             title: `¿Desactivar a ${supplier.nomProveedor}?`,
             message:
-              'El proveedor dejará de aparecer en las selecciones para nuevos productos y órdenes. Su información y las órdenes existentes se conservarán.',
+              'El proveedor no podrá usarse en nuevas órdenes ni asignarse a productos. Sus productos asociados conservarán su estado, y las órdenes y el historial existentes permanecerán.',
             action: 'Desactivar proveedor',
             danger: true,
           },
@@ -167,9 +166,7 @@ export class ProveedoresList {
       this.afterStateChange(supplier.idProveedor);
       this.notice.show(`${supplier.nomProveedor} fue reactivado.`);
     } catch (error) {
-      this.error.set(
-        error instanceof Error ? error.message : 'No se pudo reactivar al proveedor.',
-      );
+      this.error.set(error instanceof Error ? error.message : 'No se pudo reactivar al proveedor.');
     } finally {
       this.busyId.set(null);
     }

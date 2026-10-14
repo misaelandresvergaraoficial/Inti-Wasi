@@ -7,6 +7,8 @@ import { AuthService } from '../../core/auth.service';
 import { EntradaResponse, estadoDocumento } from '../../core/entrada-models';
 import { EntradasService } from '../../core/entradas.service';
 import { NoticeService } from '../../core/notice.service';
+import { OrdenResponse } from '../../core/order-models';
+import { OrdersService } from '../../core/orders.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Icon } from '../../shared/icon';
 
@@ -18,10 +20,13 @@ import { Icon } from '../../shared/icon';
 export class EntradaDetail {
   readonly auth = inject(AuthService);
   private readonly entradas = inject(EntradasService);
+  private readonly orders = inject(OrdersService);
   private readonly dialog = inject(MatDialog);
   readonly notice = inject(NoticeService);
   readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
   readonly record = signal<EntradaResponse | null>(null);
+  readonly order = signal<OrdenResponse | null>(null);
+  readonly orderError = signal('');
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
@@ -36,10 +41,18 @@ export class EntradaDetail {
   async load(): Promise<void> {
     this.loading.set(true);
     this.error.set('');
+    this.orderError.set('');
     try {
       if (!Number.isInteger(this.id) || this.id < 1)
         throw new Error('El número de entrada no es válido.');
-      this.record.set(await this.entradas.get(this.id));
+      const entry = await this.entradas.get(this.id);
+      this.record.set(entry);
+      try {
+        this.order.set(await this.orders.get(entry.idOrden));
+      } catch {
+        this.order.set(null);
+        this.orderError.set('No se pudo consultar el saldo actual de la orden.');
+      }
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'No se pudo cargar la entrada.');
     } finally {
@@ -51,6 +64,10 @@ export class EntradaDetail {
     return new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(
       new Date(value),
     );
+  }
+
+  orderLine(idProducto: number) {
+    return this.order()?.detalles.find((line) => line.idProducto === idProducto);
   }
 
   async annul(): Promise<void> {

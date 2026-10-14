@@ -6,8 +6,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { EntradaRequest, EntradaResponse } from '../../core/entrada-models';
+import { ApiRequestError } from '../../core/models';
 import { EntradasService } from '../../core/entradas.service';
 import { PendingChanges } from '../../core/guards';
+import { productoIdDelError } from '../../core/inventory-error';
 import { NoticeService } from '../../core/notice.service';
 import { OrdenResponse } from '../../core/order-models';
 import { OrdersService } from '../../core/orders.service';
@@ -50,6 +52,7 @@ export class EntradaForm implements PendingChanges {
   readonly busy = signal(false);
   readonly loadError = signal('');
   readonly error = signal('');
+  readonly lineErrors = signal<Record<number, string>>({});
   readonly submitted = signal(false);
 
   constructor() {
@@ -120,6 +123,15 @@ export class EntradaForm implements PendingChanges {
     if (!id) return;
     try {
       this.order.set(await this.orders.get(id));
+      if (
+        this.id === undefined &&
+        this.lines.length === 1 &&
+        !this.lines.at(0).controls.idProducto.value
+      ) {
+        const available = this.availableProducts();
+        if (available.length === 1)
+          this.lines.at(0).controls.idProducto.setValue(available[0].idProducto);
+      }
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'No se pudo cargar la orden.');
     }
@@ -140,22 +152,40 @@ export class EntradaForm implements PendingChanges {
 
   availableProducts() {
     return (
-      this.order()?.detalles.filter((item) =>
-        this.products().some(
-          (product) => product.idProducto === item.idProducto && product.estado === 1,
-        ),
+      this.order()?.detalles.filter(
+        (item) =>
+          this.balance(item.idProducto) > 0 &&
+          this.products().some(
+            (product) => product.idProducto === item.idProducto && product.estado === 1,
+          ),
       ) ?? []
     );
   }
 
   balance(id: number): number {
-    const detail = this.order()?.detalles.find((item) => item.idProducto === id);
+    const detail = this.orderLine(id);
     if (!detail) return 0;
     const previouslyReceived =
       this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
     return this.order()?.estado === 'Cancelada'
       ? previouslyReceived
       : detail.cantidadPorRecibir + previouslyReceived;
+  }
+
+  orderLine(id: number) {
+    return this.order()?.detalles.find((item) => item.idProducto === id);
+  }
+
+  originalQuantity(id: number): number {
+    return this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
+  }
+
+  clearLineError(id: number): void {
+    this.lineErrors.update((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
   duplicate(index: number): boolean {
@@ -182,6 +212,7 @@ export class EntradaForm implements PendingChanges {
     if (this.busy()) return;
     this.submitted.set(true);
     this.error.set('');
+    this.lineErrors.set({});
     this.form.markAllAsTouched();
     const value = this.form.getRawValue();
     if (
@@ -235,7 +266,46 @@ export class EntradaForm implements PendingChanges {
       );
       await this.router.navigate(['/entradas', saved.idEntrada]);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar la entrada.');
+      const message = error instanceof Error ? error.message : 'No se pudo guardar la entrada.';
+      if (!(error instanceof ApiRequestError) || ![409, 422].includes(error.status)) {
+        this.error.set(message);
+        return;
+      }
+      const [updatedOrder, updatedProducts] = await Promise.allSettled([
+        this.orders.get(value.idOrden),
+        this.productos.list(),
+      ]);
+      if (updatedOrder.status === 'fulfilled') this.order.set(updatedOrder.value);
+      if (updatedProducts.status === 'fulfilled') this.products.set(updatedProducts.value);
+      const lineErrors: Record<number, string> = {};
+      if (updatedOrder.status === 'fulfilled') {
+        for (const line of value.movimientos) {
+          if (line.idProducto && line.cantidad > this.balance(line.idProducto))
+            lineErrors[line.idProducto] =
+              `El máximo disponible ahora es ${this.balance(line.idProducto)}.`;
+        }
+      }
+      const affectedId = productoIdDelError(error);
+      if (
+        affectedId &&
+        value.movimientos.some((line) => line.idProducto === affectedId) &&
+        !lineErrors[affectedId]
+      )
+        lineErrors[affectedId] = message;
+      this.lineErrors.set(lineErrors);
+      const refreshed =
+        updatedOrder.status === 'fulfilled' && updatedProducts.status === 'fulfilled';
+      if (!refreshed) {
+        this.error.set(
+          `${message} No se pudieron actualizar todos los saldos mostrados. Los datos escritos se conservaron.`,
+        );
+      } else {
+        this.error.set(
+          Object.keys(lineErrors).length
+            ? 'No se guardó la entrada. Revisa el producto señalado; los saldos se actualizaron sin borrar lo escrito.'
+            : message,
+        );
+      }
     } finally {
       this.busy.set(false);
     }

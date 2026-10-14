@@ -26,6 +26,27 @@
 .inventory-form .order-line-grid {
   grid-template-columns: minmax(230px, 2fr) minmax(120px, 1fr) auto;
 }
+.inventory-balance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.inventory-balance dt {
+  color: var(--muted);
+  font-size: 14px;
+}
+.inventory-balance dd {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.inventory-form .order-line > .field-description {
+  margin-top: 10px;
+}
 .inventory-form .order-form-panel > button {
   margin: 20px 24px;
 }
