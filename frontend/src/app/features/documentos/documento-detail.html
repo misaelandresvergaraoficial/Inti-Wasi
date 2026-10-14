@@ -1,0 +1,127 @@
+<div class="breadcrumb">
+  <a routerLink="/documentos">Documentos</a><iw-icon name="next" /><span
+    >Documento N.° {{ id() }}</span
+  >
+</div>
+<div class="page-heading">
+  <div class="eyebrow">HISTORIAL ADMINISTRATIVO</div>
+  <h1 tabindex="-1">Documento N.° {{ id() }}</h1>
+  <p>Datos y vínculos registrados para esta operación.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando documento…</p>
+  </div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (record(); as item) {
+  <section class="panel order-summary" aria-labelledby="documento-summary">
+    <div class="panel-heading">
+      <div>
+        <h2 id="documento-summary">Datos del documento</h2>
+        <p>Registro histórico de solo lectura.</p>
+      </div>
+      <span class="badge neutral">{{ estado(item.estado) }}</span>
+    </div>
+    <dl class="order-facts">
+      <div>
+        <dt>Tipo</dt>
+        <dd>{{ item.tipoDocumento === 'Correccion' ? 'Corrección' : item.tipoDocumento }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de emisión</dt>
+        <dd>{{ date(item.fechaEmision) }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ item.usuarioResponsable }} (ID {{ item.idUsuario }})</dd>
+      </div>
+      @if (item.idDocumentoOrigen) {
+        <div>
+          <dt>Documento de origen</dt>
+          <dd>
+            <a [routerLink]="['/documentos', item.idDocumentoOrigen]"
+              >N.° {{ item.idDocumentoOrigen }}</a
+            >
+          </dd>
+        </div>
+      }
+      @if (item.tipoDocumento === 'Correccion') {
+        <div>
+          <dt>Motivo de corrección</dt>
+          <dd>{{ item.motivoCorreccion || 'Sin motivo informado' }}</dd>
+        </div>
+      }
+    </dl>
+    @if (operation(); as link) {
+      <a mat-stroked-button [routerLink]="link.path">{{ link.label }}</a>
+    }
+    @if (operationError()) {
+      <div class="notice error" role="alert">
+        <iw-icon name="info" />
+        <p>{{ operationError() }}</p>
+      </div>
+    }
+  </section>
+  <section class="panel orders-panel" aria-labelledby="documento-related">
+    <div class="panel-heading">
+      <div>
+        <h2 id="documento-related">Documentos vinculados</h2>
+        <p>Correcciones y reemplazos que señalan este documento como origen.</p>
+      </div>
+    </div>
+    @if (relatedError()) {
+      <div class="notice error" role="alert">
+        <iw-icon name="info" />
+        <p>{{ relatedError() }}</p>
+      </div>
+      <button mat-button (click)="load()">Reintentar</button>
+    } @else if (!related().length) {
+      <div class="empty-state"><p>No hay documentos vinculados a este registro.</p></div>
+    } @else {
+      <div class="table-scroll" role="region" aria-label="Documentos vinculados" tabindex="0">
+        <table>
+          <caption class="sr-only">
+            Documentos relacionados con el documento N.°
+            {{
+              id()
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Documento</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (relatedDocument of related(); track relatedDocument.idDocumento) {
+              <tr>
+                <th scope="row">N.° {{ relatedDocument.idDocumento }}</th>
+                <td>
+                  {{
+                    relatedDocument.tipoDocumento === 'Correccion'
+                      ? 'Corrección'
+                      : relatedDocument.tipoDocumento
+                  }}
+                </td>
+                <td>{{ estado(relatedDocument.estado) }}</td>
+                <td>
+                  <a mat-button [routerLink]="['/documentos', relatedDocument.idDocumento]"
+                    >Ver detalle</a
+                  >
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

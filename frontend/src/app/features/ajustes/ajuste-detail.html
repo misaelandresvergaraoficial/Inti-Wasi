@@ -44,7 +44,11 @@
     <div class="panel-heading">
       <div>
         <h2 id="ajuste-summary">Datos del ajuste</h2>
-        <p>Documento N.° {{ item.idDocumento }}</p>
+        <p>
+          <a [routerLink]="['/documentos', item.idDocumento]"
+            >Documento N.° {{ item.idDocumento }}</a
+          >
+        </p>
       </div>
       <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
     </div>
@@ -68,7 +72,11 @@
       @if (item.idDocumentoOrigen) {
         <div>
           <dt>Documento original</dt>
-          <dd>N.° {{ item.idDocumentoOrigen }}</dd>
+          <dd>
+            <a [routerLink]="['/documentos', item.idDocumentoOrigen]"
+              >N.° {{ item.idDocumentoOrigen }}</a
+            >
+          </dd>
         </div>
       }
       <div>

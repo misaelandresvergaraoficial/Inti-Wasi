@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
 import { NoticeService } from '../../core/notice.service';
 import { SalidaResponse, estadoDocumentoSalida } from '../../core/salida-models';
 import { SalidasService } from '../../core/salidas.service';
@@ -15,6 +16,7 @@ import { Icon } from '../../shared/icon';
   templateUrl: './salida-detail.html',
 })
 export class SalidaDetail {
+  readonly auth = inject(AuthService);
   private readonly salidas = inject(SalidasService);
   private readonly dialog = inject(MatDialog);
   readonly notice = inject(NoticeService);
