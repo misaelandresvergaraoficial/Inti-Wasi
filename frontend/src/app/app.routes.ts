@@ -56,6 +56,32 @@ export const routes: Routes = [
         loadComponent: () => import('./features/orders/orders-list').then((m) => m.OrdersList),
       },
       {
+        path: 'ajustes',
+        title: 'Ajustes · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/ajustes/ajustes-list').then((m) => m.AjustesList),
+      },
+      {
+        path: 'ajustes/nuevo',
+        title: 'Registrar ajuste · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/ajustes/ajuste-form').then((m) => m.AjusteForm),
+      },
+      {
+        path: 'ajustes/:id/editar',
+        title: 'Rectificar ajuste · Inti Wasi',
+        canActivate: [adminGuard],
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/ajustes/ajuste-form').then((m) => m.AjusteForm),
+      },
+      {
+        path: 'ajustes/:id',
+        title: 'Detalle de ajuste · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/ajustes/ajuste-detail').then((m) => m.AjusteDetail),
+      },
+      {
         path: 'ordenes-compra/nueva',
         title: 'Crear orden de compra · Inti Wasi',
         canActivate: [adminGuard],

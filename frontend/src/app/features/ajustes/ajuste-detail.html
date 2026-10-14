@@ -1,0 +1,151 @@
+<div class="breadcrumb">
+  <a routerLink="/ajustes">Ajustes</a><iw-icon name="next" /><span>Ajuste N.° {{ id }}</span>
+</div>
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">INVENTARIO</div>
+    <h1 tabindex="-1">Ajuste N.° {{ id }}</h1>
+    <p>Diferencias aplicadas y trazabilidad del documento.</p>
+  </div>
+  @if (record(); as item) {
+    @if (item.estadoDocumento === 1) {
+      <a mat-stroked-button [routerLink]="['/ajustes', id, 'editar']">Rectificar ajuste</a>
+    }
+  }
+</div>
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (actionError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ actionError() }}</p>
+  </div>
+}
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando ajuste…</p>
+  </div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (record(); as item) {
+  <section class="panel order-summary" aria-labelledby="ajuste-summary">
+    <div class="panel-heading">
+      <div>
+        <h2 id="ajuste-summary">Datos del ajuste</h2>
+        <p>Documento N.° {{ item.idDocumento }}</p>
+      </div>
+      <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
+    </div>
+    <dl class="order-facts">
+      <div>
+        <dt>Tipo</dt>
+        <dd>{{ item.tipoAjuste }}</dd>
+      </div>
+      <div>
+        <dt>Motivo del ajuste</dt>
+        <dd>{{ item.motivo }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de emisión</dt>
+        <dd>{{ date(item.fechaEmision) }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ item.usuarioResponsable }}</dd>
+      </div>
+      @if (item.idDocumentoOrigen) {
+        <div>
+          <dt>Documento original</dt>
+          <dd>N.° {{ item.idDocumentoOrigen }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Observaciones</dt>
+        <dd>{{ item.observaciones || 'Sin observaciones' }}</dd>
+      </div>
+    </dl>
+  </section>
+  <section class="panel orders-panel" aria-labelledby="ajuste-products">
+    <div class="panel-heading">
+      <div>
+        <h2 id="ajuste-products">Diferencias aplicadas</h2>
+        <p>
+          Las cantidades son diferencias registradas, no el stock final. El stock mostrado es el
+          actual.
+        </p>
+      </div>
+    </div>
+    <div class="table-scroll" role="region" aria-label="Productos del ajuste" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Movimientos del ajuste N.°
+          {{
+            id
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Producto</th>
+            <th scope="col">Diferencia</th>
+            <th scope="col">Stock actual</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of item.movimientos; track line.idMovimiento) {
+            <tr>
+              <th scope="row">
+                {{ line.nomProducto }} <span class="order-sku">{{ line.sku }}</span>
+              </th>
+              <td>{{ item.tipoAjuste === 'Incremento' ? '+' : '−' }}{{ line.cantidad }}</td>
+              <td>{{ line.stockActual }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  @if (item.estadoDocumento === 1) {
+    <section class="panel order-form-panel" aria-labelledby="ajuste-annul">
+      <div class="panel-heading">
+        <div>
+          <h2 id="ajuste-annul">Anular ajuste</h2>
+          <p>Se registrará una corrección inversa sin borrar el ajuste original.</p>
+        </div>
+      </div>
+      @if (reversalRisk(item)) {
+        <div class="notice warning" role="status">
+          <iw-icon name="info" />
+          <p>
+            El stock consultado es menor que el incremento original. La anulación probablemente será
+            rechazada; actualiza los datos antes de continuar.
+          </p>
+        </div>
+      }
+      <div class="field">
+        <label for="motivo-anulacion">Motivo de anulación</label
+        ><textarea
+          id="motivo-anulacion"
+          rows="3"
+          maxlength="255"
+          [value]="motivo()"
+          (input)="motivo.set($any($event.target).value)"
+        ></textarea>
+      </div>
+      <button mat-button class="subtle-danger" [disabled]="busy()" (click)="annul()">
+        {{ busy() ? 'Anulando…' : 'Anular ajuste' }}
+      </button>
+    </section>
+  }
+}
