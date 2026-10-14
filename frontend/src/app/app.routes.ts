@@ -56,6 +56,28 @@ export const routes: Routes = [
         loadComponent: () => import('./features/orders/orders-list').then((m) => m.OrdersList),
       },
       {
+        path: 'salidas',
+        title: 'Salidas · Inti Wasi',
+        loadComponent: () => import('./features/salidas/salidas-list').then((m) => m.SalidasList),
+      },
+      {
+        path: 'salidas/nueva',
+        title: 'Registrar salida · Inti Wasi',
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/salidas/salida-form').then((m) => m.SalidaForm),
+      },
+      {
+        path: 'salidas/:id/editar',
+        title: 'Rectificar salida · Inti Wasi',
+        canDeactivate: [changesGuard],
+        loadComponent: () => import('./features/salidas/salida-form').then((m) => m.SalidaForm),
+      },
+      {
+        path: 'salidas/:id',
+        title: 'Detalle de salida · Inti Wasi',
+        loadComponent: () => import('./features/salidas/salida-detail').then((m) => m.SalidaDetail),
+      },
+      {
         path: 'ordenes-compra/nueva',
         title: 'Crear orden de compra · Inti Wasi',
         canActivate: [adminGuard],
