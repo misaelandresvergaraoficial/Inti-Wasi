@@ -26,6 +26,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
@@ -57,12 +58,12 @@ public class EntradaService {
         return convertir(buscarEntrada(id));
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public EntradaResponse registrar(EntradaRequest request) {
         return registrarInterno(request, null);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public EntradaResponse actualizar(Integer id, EntradaRequest request) {
         validarRequest(request);
         validarMotivoCorreccion(request.getMotivoCorreccion());
@@ -87,7 +88,7 @@ public class EntradaService {
         return registrarInterno(request, origen);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void anular(Integer id, String motivo) {
         Entrada original = buscarEntrada(id);
         ordenCompraRepository.findByIdConDetallesForUpdate(original.getOrdenCompra().getIdOrden())

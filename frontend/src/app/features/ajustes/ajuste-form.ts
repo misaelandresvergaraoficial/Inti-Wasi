@@ -8,6 +8,8 @@ import { AjusteRequest, AjusteResponse, TipoAjuste } from '../../core/ajuste-mod
 import { AjustesService } from '../../core/ajustes.service';
 import { AuthService } from '../../core/auth.service';
 import { PendingChanges } from '../../core/guards';
+import { productoIdDelError } from '../../core/inventory-error';
+import { ApiRequestError } from '../../core/models';
 import { NoticeService } from '../../core/notice.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
@@ -43,6 +45,7 @@ export class AjusteForm implements PendingChanges {
   readonly busy = signal(false);
   readonly loadError = signal('');
   readonly error = signal('');
+  readonly lineErrors = signal<Record<number, string>>({});
   readonly submitted = signal(false);
 
   constructor() {
@@ -101,11 +104,31 @@ export class AjusteForm implements PendingChanges {
   }
 
   stockAfterReversal(id: number): number {
-    const current = this.products().find((item) => item.idProducto === id)?.stockActual ?? 0;
+    const current = this.currentStock(id);
     const quantity =
       this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
     if (!quantity) return current;
     return current + (this.original()?.tipoAjuste === 'Decremento' ? quantity : -quantity);
+  }
+
+  currentStock(id: number): number {
+    return this.products().find((item) => item.idProducto === id)?.stockActual ?? 0;
+  }
+
+  signedDifference(quantity: number): number {
+    return (this.form.controls.tipoAjuste.value === 'Decremento' ? -1 : 1) * quantity;
+  }
+
+  resultingStock(id: number, quantity: number): number {
+    return this.stockAfterReversal(id) + this.signedDifference(quantity);
+  }
+
+  clearLineError(id: number): void {
+    this.lineErrors.update((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
   reversalPossible(): boolean {
@@ -139,6 +162,7 @@ export class AjusteForm implements PendingChanges {
     if (this.busy()) return;
     this.submitted.set(true);
     this.error.set('');
+    this.lineErrors.set({});
     this.form.markAllAsTouched();
     const value = this.form.getRawValue();
     if (
@@ -197,7 +221,42 @@ export class AjusteForm implements PendingChanges {
       );
       await this.router.navigate(['/ajustes', saved.idAjuste]);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar el ajuste.');
+      const message = error instanceof Error ? error.message : 'No se pudo guardar el ajuste.';
+      if (!(error instanceof ApiRequestError) || ![409, 422].includes(error.status)) {
+        this.error.set(message);
+        return;
+      }
+      try {
+        this.products.set(await this.productos.list());
+      } catch {
+        this.error.set(`${message} No se pudo actualizar el stock mostrado.`);
+        return;
+      }
+      const lineErrors: Record<number, string> = {};
+      for (const line of value.movimientos) {
+        if (
+          line.idProducto &&
+          value.tipoAjuste === 'Decremento' &&
+          line.cantidad > this.stockAfterReversal(line.idProducto)
+        ) {
+          const stock = this.stockAfterReversal(line.idProducto);
+          lineErrors[line.idProducto] =
+            `Solo se ${stock === 1 ? 'puede descontar' : 'pueden descontar'} ${stock} ${stock === 1 ? 'unidad' : 'unidades'} ahora.`;
+        }
+      }
+      const affectedId = productoIdDelError(error);
+      if (
+        affectedId &&
+        value.movimientos.some((line) => line.idProducto === affectedId) &&
+        !lineErrors[affectedId]
+      )
+        lineErrors[affectedId] = message;
+      this.lineErrors.set(lineErrors);
+      this.error.set(
+        Object.keys(lineErrors).length
+          ? 'No se guardó el ajuste. Revisa el producto señalado; el stock se actualizó sin borrar lo escrito.'
+          : message,
+      );
     } finally {
       this.busy.set(false);
     }

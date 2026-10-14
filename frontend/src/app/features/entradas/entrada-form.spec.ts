@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../core/auth.service';
+import { ApiRequestError } from '../../core/models';
 import { EntradaResponse } from '../../core/entrada-models';
 import { EntradasService } from '../../core/entradas.service';
 import { OrdenResponse } from '../../core/order-models';
@@ -93,7 +94,7 @@ async function setup(edit = false, estado: OrdenResponse['estado'] = 'Parcial') 
   const fixture = TestBed.createComponent(EntradaForm);
   await fixture.componentInstance.load();
   fixture.detectChanges();
-  return { form: fixture.componentInstance, entradas, fixture };
+  return { form: fixture.componentInstance, entradas, orders, fixture };
 }
 
 describe('Formulario de Entradas', () => {
@@ -103,6 +104,8 @@ describe('Formulario de Entradas', () => {
     form.form.controls.idOrden.setValue(4);
     await form.selectOrder(4);
     expect(form.balance(7)).toBe(6);
+    expect(form.lines.at(0).controls.idProducto.value).toBe(7);
+    expect(form.orderLine(7)?.cantidadRecibida).toBe(4);
   });
 
   it('en una rectificación permite reutilizar lo recibido por la original', async () => {
@@ -127,5 +130,27 @@ describe('Formulario de Entradas', () => {
     await form.submit();
     expect(entradas.save).not.toHaveBeenCalled();
     expect(form.error()).toContain('campos obligatorios');
+  });
+
+  it('conserva la cantidad escrita y muestra el nuevo saldo de la línea tras un rechazo', async () => {
+    const { form, entradas, orders } = await setup();
+    form.form.controls.idOrden.setValue(4);
+    await form.selectOrder(4);
+    form.form.controls.numeroGuiaRemision.setValue('G-9');
+    form.lines.at(0).controls.cantidad.setValue(5);
+    orders.get.mockResolvedValueOnce({
+      ...order,
+      detalles: [{ ...order.detalles[0], cantidadRecibida: 8, cantidadPorRecibir: 2 }],
+    });
+    entradas.save.mockRejectedValueOnce(
+      new ApiRequestError(
+        'La cantidad recibida supera el saldo de la orden para el producto: 7',
+        422,
+      ),
+    );
+    await form.submit();
+    expect(form.lines.at(0).controls.cantidad.value).toBe(5);
+    expect(form.balance(7)).toBe(2);
+    expect(form.lineErrors()[7]).toContain('máximo disponible ahora es 2');
   });
 });
