@@ -1,0 +1,194 @@
+<div class="breadcrumb"><span>Inventario</span><iw-icon name="next" /><span>Movimientos</span></div>
+<div class="page-heading">
+  <div class="eyebrow">HISTORIAL ADMINISTRATIVO</div>
+  <h1 tabindex="-1">Movimientos de inventario</h1>
+  <p>Consulta cada cambio de stock, incluidos los documentos rectificados y sus correcciones.</p>
+</div>
+<section class="panel mt-6" aria-labelledby="movimientos-filtros">
+  <div class="panel-heading">
+    <div>
+      <h2 id="movimientos-filtros">Filtros</h2>
+      <p>El último día del rango se incluye en la consulta.</p>
+    </div>
+  </div>
+  <div class="filter-bar reports-filters">
+    <div>
+      <label for="movimiento-desde">Desde</label>
+      <input
+        id="movimiento-desde"
+        type="date"
+        [value]="filters().fechaInicial ?? ''"
+        (change)="changeFilter('fechaInicial', $any($event.target).value)"
+      />
+    </div>
+    <div>
+      <label for="movimiento-hasta">Hasta</label>
+      <input
+        id="movimiento-hasta"
+        type="date"
+        [value]="filters().fechaFinal ?? ''"
+        (change)="changeFilter('fechaFinal', $any($event.target).value)"
+      />
+    </div>
+    <div>
+      <label for="movimiento-producto">Producto</label>
+      <select
+        id="movimiento-producto"
+        [value]="filters().idProducto ?? ''"
+        (change)="changeFilter('idProducto', $any($event.target).value)"
+      >
+        <option value="">Todos los productos</option>
+        @for (product of products(); track product.idProducto) {
+          <option [value]="product.idProducto">
+            {{ product.sku }} · {{ product.nomProducto }}
+          </option>
+        }
+      </select>
+    </div>
+    <div>
+      <label for="movimiento-tipo">Tipo de documento</label>
+      <select
+        id="movimiento-tipo"
+        [value]="filters().tipoDocumento ?? ''"
+        (change)="changeFilter('tipoDocumento', $any($event.target).value)"
+      >
+        <option value="">Todos los tipos</option>
+        <option value="Entrada">Entrada</option>
+        <option value="Salida">Salida</option>
+        <option value="Ajuste">Ajuste</option>
+        <option value="Correccion">Corrección</option>
+      </select>
+    </div>
+    <div>
+      <label for="movimiento-usuario">Usuario</label>
+      <select
+        id="movimiento-usuario"
+        [value]="filters().idUsuario ?? ''"
+        (change)="changeFilter('idUsuario', $any($event.target).value)"
+      >
+        <option value="">Todos los usuarios</option>
+        @for (user of users(); track user.idUsuario) {
+          <option [value]="user.idUsuario">{{ user.nomUsuario }}</option>
+        }
+      </select>
+    </div>
+    <button mat-flat-button [disabled]="!!filterError() || loading()" (click)="load()">
+      Consultar
+    </button>
+    @if (hasFilters()) {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
+    }
+  </div>
+  @if (optionsError()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ optionsError() }}</p>
+      <button mat-button (click)="loadOptions()">Reintentar filtros</button>
+    </div>
+  }
+  @if (filterError()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ filterError() }}</p>
+    </div>
+  }
+</section>
+@if (error()) {
+  <div class="notice error mt-6" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+}
+<section class="panel mt-6" aria-labelledby="movimientos-resultados" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <div>
+      <h2 id="movimientos-resultados">Resultados</h2>
+      <p>
+        @if (result(); as data) {
+          {{ data.totalElements }} movimientos con estos filtros
+        } @else {
+          Consulta pendiente
+        }
+      </p>
+    </div>
+    <a mat-stroked-button routerLink="/documentos">Ver documentos</a>
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando movimientos…</p>
+    </div>
+  } @else if (result(); as data) {
+    @if (!data.content.length) {
+      <div class="empty-state">
+        <h3>No hay movimientos</h3>
+        <p>Prueba otro rango o filtro.</p>
+      </div>
+    } @else {
+      <div class="table-scroll" role="region" aria-label="Listado de movimientos" tabindex="0">
+        <table>
+          <caption class="sr-only">
+            Movimientos del inventario
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Movimiento</th>
+              <th scope="col">Emisión</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Cantidad</th>
+              <th scope="col">Documento</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data.content; track item.idMovimiento) {
+              <tr [class.inactive-row]="item.estadoDocumento !== 1">
+                <th scope="row">N.° {{ item.idMovimiento }}</th>
+                <td>{{ date(item.fechaEmision) }}</td>
+                <td>{{ type(item.tipoDocumento) }}</td>
+                <td>{{ item.sku }} · {{ item.nomProducto }}</td>
+                <td>{{ item.cantidadConSigno > 0 ? '+' : '' }}{{ item.cantidadConSigno }}</td>
+                <td>
+                  <a [routerLink]="['/documentos', item.idDocumento]">N.° {{ item.idDocumento }}</a>
+                </td>
+                <td>{{ estado(item.estadoDocumento) }}</td>
+                <td>
+                  <a mat-button [routerLink]="['/movimientos', item.idMovimiento]">Ver detalle</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <p role="status">
+          Página {{ data.number + 1 }} de {{ data.totalPages }} ·
+          {{ data.totalElements }} movimientos
+        </p>
+        <div class="flex items-center gap-2">
+          <button
+            mat-icon-button
+            aria-label="Página anterior"
+            [disabled]="data.number === 0 || loading()"
+            (click)="go(data.number - 1)"
+          >
+            <iw-icon name="arrow" />
+          </button>
+          <button
+            mat-icon-button
+            aria-label="Página siguiente"
+            [disabled]="data.number + 1 >= data.totalPages || loading()"
+            (click)="go(data.number + 1)"
+          >
+            <iw-icon name="next" />
+          </button>
+        </div>
+      </div>
+    }
+  } @else if (!error() && !filterError()) {
+    <div class="empty-state"><p>Aplica los filtros para consultar movimientos.</p></div>
+  }
+</section>
