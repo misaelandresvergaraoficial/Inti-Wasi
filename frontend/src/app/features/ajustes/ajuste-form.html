@@ -1,0 +1,212 @@
+<div class="breadcrumb">
+  <a routerLink="/ajustes">Ajustes</a><iw-icon name="next" /><span>{{
+    id === undefined ? 'Registrar' : 'Rectificar'
+  }}</span>
+</div>
+<div class="page-heading">
+  <div class="eyebrow">INVENTARIO</div>
+  <h1 tabindex="-1">{{ id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste N.° ' + id }}</h1>
+  <p>Regulariza diferencias de inventario con una justificación.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando datos…</p>
+  </div>
+} @else if (loadError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ loadError() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (original() && original()!.estadoDocumento !== 1) {
+  <div class="notice warning" role="alert">
+    <iw-icon name="info" />
+    <p>Solo se puede rectificar un ajuste vigente.</p>
+  </div>
+  <a mat-button [routerLink]="['/ajustes', id]">Ver detalle</a>
+} @else {
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ error() }}</p>
+    </div>
+  }
+  @if (original() && !reversalPossible()) {
+    <div class="notice warning" role="status">
+      <iw-icon name="info" />
+      <p>
+        El stock consultado no alcanza para revertir el incremento original. La API rechazará la
+        rectificación mientras persista esta situación.
+      </p>
+    </div>
+  }
+  <form
+    #ajusteForm
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+    [attr.aria-busy]="busy()"
+    class="inventory-form"
+  >
+    <section class="panel order-form-panel" aria-labelledby="ajuste-head">
+      <div class="panel-heading">
+        <div>
+          <h2 id="ajuste-head">Datos de la regularización</h2>
+          <p>
+            El tipo determina la dirección de todas las líneas. La fecha y el responsable se asignan
+            al guardar.
+          </p>
+        </div>
+      </div>
+      <div class="order-form-fields">
+        <div class="field">
+          <label for="ajuste-tipo">Tipo de ajuste</label
+          ><select
+            id="ajuste-tipo"
+            formControlName="tipoAjuste"
+            [attr.aria-invalid]="submitted() && form.controls.tipoAjuste.invalid"
+          >
+            <option value="">Selecciona un tipo</option>
+            <option value="Incremento">Incremento</option>
+            <option value="Decremento">Decremento</option>
+          </select>
+          @if (submitted() && form.controls.tipoAjuste.invalid) {
+            <p class="order-field-error">Selecciona Incremento o Decremento.</p>
+          }
+        </div>
+        <div class="field">
+          <label for="ajuste-motivo">Motivo del ajuste</label
+          ><input
+            id="ajuste-motivo"
+            type="text"
+            formControlName="motivo"
+            maxlength="255"
+            [attr.aria-invalid]="
+              submitted() && (!form.controls.motivo.value.trim() || form.controls.motivo.invalid)
+            "
+          />
+          @if (
+            submitted() && (!form.controls.motivo.value.trim() || form.controls.motivo.invalid)
+          ) {
+            <p class="order-field-error">Explica la diferencia de inventario.</p>
+          }
+        </div>
+      </div>
+      <div class="field">
+        <label for="ajuste-observaciones"
+          >Observaciones <span class="optional">(opcional)</span></label
+        ><textarea
+          id="ajuste-observaciones"
+          formControlName="observaciones"
+          maxlength="255"
+          rows="3"
+        ></textarea>
+      </div>
+      @if (id !== undefined) {
+        <div class="field">
+          <label for="ajuste-correccion">Motivo de corrección</label
+          ><textarea
+            id="ajuste-correccion"
+            formControlName="motivoCorreccion"
+            maxlength="255"
+            rows="3"
+            [attr.aria-invalid]="submitted() && !form.controls.motivoCorreccion.value.trim()"
+          ></textarea>
+          <p class="field-description">
+            Este motivo explica la rectificación del registro anterior; es distinto del motivo del
+            nuevo ajuste.
+          </p>
+          @if (submitted() && !form.controls.motivoCorreccion.value.trim()) {
+            <p class="order-field-error">Explica la rectificación.</p>
+          }
+        </div>
+      }
+    </section>
+    <section class="panel order-form-panel" aria-labelledby="ajuste-lines">
+      <div class="panel-heading">
+        <div>
+          <h2 id="ajuste-lines">Diferencias por producto</h2>
+          <p>Ingresa unidades a sumar o restar, no el stock final deseado.</p>
+        </div>
+        <span class="badge neutral"
+          >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
+        >
+      </div>
+      <div formArrayName="movimientos" class="order-line-list">
+        @for (line of lines.controls; track index; let index = $index) {
+          <fieldset class="order-line" [formGroupName]="index">
+            <legend>Producto {{ index + 1 }}</legend>
+            <div class="order-line-grid">
+              <div class="field">
+                <label [for]="'ajuste-producto-' + index">Producto</label
+                ><select
+                  [id]="'ajuste-producto-' + index"
+                  formControlName="idProducto"
+                  [attr.aria-invalid]="
+                    submitted() && (line.controls.idProducto.invalid || duplicate(index))
+                  "
+                >
+                  <option [ngValue]="0">Selecciona un producto</option>
+                  @for (item of products(); track item.idProducto) {
+                    <option [ngValue]="item.idProducto">
+                      {{ item.sku }} · {{ item.nomProducto }}
+                    </option>
+                  }
+                </select>
+                @if (duplicate(index)) {
+                  <p class="order-field-error">Este producto ya aparece en el ajuste.</p>
+                }
+              </div>
+              <div class="field">
+                <label [for]="'ajuste-cantidad-' + index">Diferencia en unidades</label
+                ><input
+                  [id]="'ajuste-cantidad-' + index"
+                  type="number"
+                  min="1"
+                  step="1"
+                  formControlName="cantidad"
+                  [attr.aria-invalid]="
+                    submitted() &&
+                    (line.controls.cantidad.invalid ||
+                      (form.controls.tipoAjuste.value === 'Decremento' &&
+                        line.controls.cantidad.value >
+                          stockAfterReversal(line.controls.idProducto.value)))
+                  "
+                />
+                @if (
+                  line.controls.idProducto.value && form.controls.tipoAjuste.value === 'Decremento'
+                ) {
+                  <p class="field-description">
+                    Máximo disponible para descontar:
+                    {{ stockAfterReversal(line.controls.idProducto.value) }}
+                  </p>
+                }
+                @if (submitted() && line.controls.cantidad.invalid) {
+                  <p class="order-field-error">Ingresa un entero mayor que cero.</p>
+                }
+              </div>
+              <button
+                mat-button
+                type="button"
+                [disabled]="lines.length === 1 || busy()"
+                (click)="removeLine(index)"
+              >
+                Quitar
+              </button>
+            </div>
+          </fieldset>
+        }
+      </div>
+      <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
+        <iw-icon name="plus" />Agregar producto
+      </button>
+    </section>
+    <div class="form-actions">
+      <a mat-button routerLink="/ajustes">Cancelar</a
+      ><button mat-flat-button type="submit" [disabled]="busy()">
+        {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste' }}
+      </button>
+    </div>
+  </form>
+}
