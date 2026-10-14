@@ -20,7 +20,14 @@ const notBlank = (control: AbstractControl) =>
 
 @Component({
   selector: 'iw-proveedor-form',
-  imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatInputModule, Icon],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    Icon,
+  ],
   templateUrl: './proveedor-form.html',
 })
 export class ProveedorForm implements PendingChanges {
@@ -34,19 +41,32 @@ export class ProveedorForm implements PendingChanges {
   private readonly rawId = inject(ActivatedRoute).snapshot.paramMap.get('id');
 
   readonly id = this.rawId === null ? undefined : Number(this.rawId);
+
   readonly invalidId =
     this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
+
   readonly form = this.fb.nonNullable.group({
     nomProveedor: ['', [Validators.required, notBlank, Validators.maxLength(100)]],
     ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     contacto: ['', [Validators.maxLength(100)]],
-    telefono: ['', [Validators.required, notBlank, Validators.maxLength(20)]],
+    telefono: [
+      '',
+      [
+        Validators.required,
+        notBlank,
+        Validators.maxLength(20),
+        Validators.pattern(/^(?=.*[1-9])[0-9]{1,20}$/),
+      ],
+    ],
     direccion: ['', [Validators.maxLength(150)]],
   });
+
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal(this.invalidId ? 'El identificador del proveedor no es válido.' : '');
+  readonly loadError = signal(
+    this.invalidId ? 'El identificador del proveedor no es válido.' : '',
+  );
   readonly errorText = fieldError;
 
   constructor() {
@@ -55,10 +75,13 @@ export class ProveedorForm implements PendingChanges {
 
   async load(): Promise<void> {
     if (!this.id) return;
+
     this.loading.set(true);
     this.loadError.set('');
+
     try {
       const supplier = await this.suppliers.get(this.id);
+
       this.form.patchValue({
         nomProveedor: supplier.nomProveedor,
         ruc: supplier.ruc,
@@ -66,6 +89,7 @@ export class ProveedorForm implements PendingChanges {
         telefono: supplier.telefono,
         direccion: supplier.direccion ?? '',
       });
+
       this.form.markAsPristine();
     } catch (error) {
       this.loadError.set(
@@ -78,16 +102,22 @@ export class ProveedorForm implements PendingChanges {
 
   async save(): Promise<void> {
     if (this.busy() || this.loading() || this.loadError()) return;
+
     this.error.set('');
     this.form.markAllAsTouched();
+
     if (this.form.invalid) {
-      if (this.element()) focusFirstInvalid(this.element()!.nativeElement);
+      if (this.element()) {
+        focusFirstInvalid(this.element()!.nativeElement);
+      }
       return;
     }
 
     this.busy.set(true);
+
     try {
       const value = this.form.getRawValue();
+
       const supplier = await this.suppliers.save(
         {
           nomProveedor: value.nomProveedor.trim(),
@@ -98,18 +128,33 @@ export class ProveedorForm implements PendingChanges {
         },
         this.id,
       );
+
       this.form.markAsPristine();
+
       this.notice.show(
-        `${supplier.nomProveedor}: ${this.id ? 'cambios guardados' : 'proveedor creado correctamente'}.`,
+        `${supplier.nomProveedor}: ${
+          this.id ? 'cambios guardados' : 'proveedor creado correctamente'
+        }.`,
       );
+
       await this.router.navigate(['/proveedores']);
     } catch (error) {
       if (error instanceof ApiRequestError && error.field && error.field in this.form.controls) {
         const control = this.form.controls[error.field as keyof typeof this.form.controls];
-        control.setErrors({ ...control.errors, server: error.message });
-        if (this.element()) focusFirstInvalid(this.element()!.nativeElement);
+
+        control.setErrors({
+          ...control.errors,
+          server: error.message,
+        });
+
+        if (this.element()) {
+          focusFirstInvalid(this.element()!.nativeElement);
+        }
       }
-      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar el proveedor.');
+
+      this.error.set(
+        error instanceof Error ? error.message : 'No se pudo guardar el proveedor.',
+      );
     } finally {
       this.busy.set(false);
     }
@@ -118,6 +163,7 @@ export class ProveedorForm implements PendingChanges {
   async canLeave(): Promise<boolean> {
     if (!this.auth.valid() || !this.form.dirty) return true;
     if (this.busy()) return false;
+
     return !!(await firstValueFrom(
       this.dialog
         .open(ConfirmDialog, {
