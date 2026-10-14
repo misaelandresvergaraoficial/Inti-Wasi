@@ -1,0 +1,222 @@
+<div class="breadcrumb">
+  <a routerLink="/entradas">Entradas</a><iw-icon name="next" /><span>{{
+    id === undefined ? 'Registrar' : 'Rectificar'
+  }}</span>
+</div>
+<div class="page-heading">
+  <div class="eyebrow">INVENTARIO</div>
+  <h1 tabindex="-1">
+    {{ id === undefined ? 'Registrar entrada' : 'Rectificar entrada N.° ' + id }}
+  </h1>
+  <p>Registra las unidades realmente recibidas de una orden de compra.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando datos…</p>
+  </div>
+} @else if (loadError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ loadError() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (original() && original()!.estadoDocumento !== 1) {
+  <div class="notice warning" role="alert">
+    <iw-icon name="info" />
+    <p>Solo se puede rectificar una entrada vigente.</p>
+  </div>
+  <a mat-button [routerLink]="['/entradas', id]">Ver detalle</a>
+} @else {
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ error() }}</p>
+    </div>
+  }
+  <form
+    #entradaForm
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+    [attr.aria-busy]="busy()"
+    class="inventory-form"
+  >
+    <section class="panel order-form-panel" aria-labelledby="entrada-head">
+      <div class="panel-heading">
+        <div>
+          <h2 id="entrada-head">Datos de la recepción</h2>
+          <p>La fecha y el responsable se asignan al guardar.</p>
+        </div>
+      </div>
+      <div class="order-form-fields">
+        <div class="field">
+          <label for="entrada-orden">Orden de compra</label>
+          @if (original(); as previous) {
+            <input id="entrada-orden" readonly [value]="'N.° ' + previous.idOrden" />
+          } @else {
+            <select
+              id="entrada-orden"
+              formControlName="idOrden"
+              (change)="onOrderChange()"
+              [attr.aria-invalid]="submitted() && !order()"
+            >
+              <option [ngValue]="0">Selecciona una orden</option>
+              @for (item of availableOrders(); track item.idOrden) {
+                <option [ngValue]="item.idOrden">
+                  N.° {{ item.idOrden }} · {{ item.nomProveedor }} · {{ item.estado }}
+                </option>
+              }
+            </select>
+          }
+          @if (original(); as previous) {
+            <p class="field-description">
+              La rectificación conserva la orden N.° {{ previous.idOrden }}. Estado actual:
+              {{ order()?.estado ?? previous.estadoOrden }}.
+            </p>
+          } @else {
+            <p class="field-description">Solo se admiten órdenes Pendientes o Parciales.</p>
+          }
+          @if (submitted() && !order()) {
+            <p class="order-field-error">Selecciona una orden válida.</p>
+          }
+        </div>
+        <div class="field">
+          <label for="entrada-guia">Número de guía de remisión</label
+          ><input
+            id="entrada-guia"
+            type="text"
+            formControlName="numeroGuiaRemision"
+            maxlength="50"
+            [attr.aria-invalid]="
+              submitted() &&
+              (!form.controls.numeroGuiaRemision.value.trim() ||
+                form.controls.numeroGuiaRemision.invalid)
+            "
+          />
+          @if (
+            submitted() &&
+            (!form.controls.numeroGuiaRemision.value.trim() ||
+              form.controls.numeroGuiaRemision.invalid)
+          ) {
+            <p class="order-field-error">Ingresa una guía de hasta 50 caracteres.</p>
+          }
+        </div>
+      </div>
+      <div class="field">
+        <label for="entrada-observaciones"
+          >Observaciones <span class="optional">(opcional)</span></label
+        ><textarea
+          id="entrada-observaciones"
+          formControlName="observaciones"
+          maxlength="255"
+          rows="3"
+        ></textarea>
+      </div>
+      @if (id !== undefined) {
+        <div class="field">
+          <label for="entrada-correccion">Motivo de corrección</label
+          ><textarea
+            id="entrada-correccion"
+            formControlName="motivoCorreccion"
+            maxlength="255"
+            rows="3"
+            [attr.aria-invalid]="submitted() && !form.controls.motivoCorreccion.value.trim()"
+          ></textarea>
+          <p class="field-description">
+            La entrada original quedará Rectificada y se creará otra vinculada.
+          </p>
+          @if (submitted() && !form.controls.motivoCorreccion.value.trim()) {
+            <p class="order-field-error">Explica la rectificación.</p>
+          }
+        </div>
+      }
+    </section>
+    <section class="panel order-form-panel" aria-labelledby="entrada-lines">
+      <div class="panel-heading">
+        <div>
+          <h2 id="entrada-lines">Productos recibidos</h2>
+          <p>Indica la cantidad real, no la cantidad total solicitada.</p>
+        </div>
+        <span class="badge neutral"
+          >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
+        >
+      </div>
+      @if (order(); as selected) {
+        <p class="field-description">
+          Orden N.° {{ selected.idOrden }} · {{ selected.estado }}. El saldo mostrado puede cambiar
+          si otra operación se confirma antes.
+        </p>
+      }
+      <div formArrayName="movimientos" class="order-line-list">
+        @for (line of lines.controls; track index; let index = $index) {
+          <fieldset class="order-line" [formGroupName]="index">
+            <legend>Producto {{ index + 1 }}</legend>
+            <div class="order-line-grid">
+              <div class="field">
+                <label [for]="'entrada-producto-' + index">Producto</label
+                ><select
+                  [id]="'entrada-producto-' + index"
+                  formControlName="idProducto"
+                  [attr.aria-invalid]="
+                    submitted() && (line.controls.idProducto.invalid || duplicate(index))
+                  "
+                >
+                  <option [ngValue]="0">Selecciona un producto</option>
+                  @for (item of availableProducts(); track item.idProducto) {
+                    <option [ngValue]="item.idProducto">
+                      {{ item.sku }} · {{ item.nomProducto }}
+                    </option>
+                  }
+                </select>
+                @if (duplicate(index)) {
+                  <p class="order-field-error">Este producto ya está en la recepción.</p>
+                }
+              </div>
+              <div class="field">
+                <label [for]="'entrada-cantidad-' + index">Cantidad recibida</label
+                ><input
+                  [id]="'entrada-cantidad-' + index"
+                  type="number"
+                  min="1"
+                  step="1"
+                  formControlName="cantidad"
+                  [attr.aria-invalid]="
+                    submitted() &&
+                    (line.controls.cantidad.invalid ||
+                      line.controls.cantidad.value > balance(line.controls.idProducto.value))
+                  "
+                />
+                @if (line.controls.idProducto.value) {
+                  <p class="field-description">
+                    Máximo disponible: {{ balance(line.controls.idProducto.value) }}
+                  </p>
+                }
+                @if (submitted() && line.controls.cantidad.invalid) {
+                  <p class="order-field-error">Ingresa un entero mayor que cero.</p>
+                }
+              </div>
+              <button
+                mat-button
+                type="button"
+                [disabled]="lines.length === 1 || busy()"
+                (click)="removeLine(index)"
+              >
+                Quitar
+              </button>
+            </div>
+          </fieldset>
+        }
+      </div>
+      <button mat-stroked-button type="button" [disabled]="!order() || busy()" (click)="addLine()">
+        <iw-icon name="plus" />Agregar producto
+      </button>
+    </section>
+    <div class="form-actions">
+      <a mat-button routerLink="/entradas">Cancelar</a
+      ><button mat-flat-button type="submit" [disabled]="busy() || !order()">
+        {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar entrada' : 'Rectificar entrada' }}
+      </button>
+    </div>
+  </form>
+}

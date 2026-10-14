@@ -1,0 +1,271 @@
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
+import { EntradaRequest, EntradaResponse } from '../../core/entrada-models';
+import { EntradasService } from '../../core/entradas.service';
+import { PendingChanges } from '../../core/guards';
+import { NoticeService } from '../../core/notice.service';
+import { OrdenResponse } from '../../core/order-models';
+import { OrdersService } from '../../core/orders.service';
+import { ProductoResponse } from '../../core/producto-models';
+import { ProductosService } from '../../core/productos.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { Icon } from '../../shared/icon';
+
+@Component({
+  selector: 'iw-entrada-form',
+  imports: [ReactiveFormsModule, RouterLink, MatButtonModule, Icon],
+  templateUrl: './entrada-form.html',
+})
+export class EntradaForm implements PendingChanges {
+  private readonly entradas = inject(EntradasService);
+  private readonly orders = inject(OrdersService);
+  private readonly productos = inject(ProductosService);
+  private readonly auth = inject(AuthService);
+  private readonly notice = inject(NoticeService);
+  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
+  private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly element = viewChild<ElementRef<HTMLFormElement>>('entradaForm');
+  private readonly route = inject(ActivatedRoute);
+  readonly id = this.route.snapshot.paramMap.has('id')
+    ? Number(this.route.snapshot.paramMap.get('id'))
+    : undefined;
+  readonly form = this.fb.group({
+    idOrden: [0, [Validators.required, Validators.min(1)]],
+    numeroGuiaRemision: ['', [Validators.required, Validators.maxLength(50)]],
+    observaciones: ['', Validators.maxLength(255)],
+    motivoCorreccion: ['', Validators.maxLength(255)],
+    movimientos: this.fb.array([this.newLine()]),
+  });
+  readonly ordersList = signal<OrdenResponse[]>([]);
+  readonly order = signal<OrdenResponse | null>(null);
+  readonly products = signal<ProductoResponse[]>([]);
+  readonly original = signal<EntradaResponse | null>(null);
+  readonly loading = signal(true);
+  readonly busy = signal(false);
+  readonly loadError = signal('');
+  readonly error = signal('');
+  readonly submitted = signal(false);
+
+  constructor() {
+    void this.load();
+  }
+
+  get lines() {
+    return this.form.controls.movimientos;
+  }
+
+  private newLine(idProducto = 0, cantidad = 1) {
+    return this.fb.group({
+      idProducto: [idProducto, [Validators.required, Validators.min(1)]],
+      cantidad: [
+        cantidad,
+        [
+          Validators.required,
+          Validators.min(1),
+          Validators.max(2147483647),
+          Validators.pattern(/^\d+$/),
+        ],
+      ],
+    });
+  }
+
+  async load(): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set('');
+    try {
+      if (this.id !== undefined && (!Number.isInteger(this.id) || this.id < 1))
+        throw new Error('El número de entrada no es válido.');
+      const [orders, products, original] = await Promise.all([
+        this.orders.list(),
+        this.productos.list(),
+        this.id === undefined ? Promise.resolve(null) : this.entradas.get(this.id),
+      ]);
+      this.ordersList.set(orders);
+      this.products.set(products);
+      this.original.set(original);
+      const selectedId =
+        original?.idOrden ?? Number(this.route.snapshot.queryParamMap.get('orden'));
+      if (selectedId > 0) {
+        this.form.controls.idOrden.setValue(selectedId);
+        await this.selectOrder(selectedId);
+      }
+      if (original) {
+        this.form.patchValue({
+          numeroGuiaRemision: original.numeroGuiaRemision,
+          observaciones: original.observaciones ?? '',
+        });
+        this.lines.clear();
+        for (const item of original.movimientos)
+          this.lines.push(this.newLine(item.idProducto, item.cantidad));
+      }
+      this.form.markAsPristine();
+    } catch (error) {
+      this.loadError.set(
+        error instanceof Error ? error.message : 'No se pudo cargar el formulario.',
+      );
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async selectOrder(id: number): Promise<void> {
+    this.order.set(null);
+    this.error.set('');
+    if (!id) return;
+    try {
+      this.order.set(await this.orders.get(id));
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'No se pudo cargar la orden.');
+    }
+  }
+
+  onOrderChange(): void {
+    const id = this.form.controls.idOrden.value;
+    this.lines.clear();
+    this.lines.push(this.newLine());
+    void this.selectOrder(id);
+  }
+
+  availableOrders(): OrdenResponse[] {
+    return this.ordersList().filter(
+      (order) => order.estado === 'Pendiente' || order.estado === 'Parcial',
+    );
+  }
+
+  availableProducts() {
+    return (
+      this.order()?.detalles.filter((item) =>
+        this.products().some(
+          (product) => product.idProducto === item.idProducto && product.estado === 1,
+        ),
+      ) ?? []
+    );
+  }
+
+  balance(id: number): number {
+    const detail = this.order()?.detalles.find((item) => item.idProducto === id);
+    if (!detail) return 0;
+    const previouslyReceived =
+      this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
+    return this.order()?.estado === 'Cancelada'
+      ? previouslyReceived
+      : detail.cantidadPorRecibir + previouslyReceived;
+  }
+
+  duplicate(index: number): boolean {
+    const id = this.lines.at(index).controls.idProducto.value;
+    return (
+      id > 0 &&
+      this.lines.controls.some(
+        (line, other) => other !== index && line.controls.idProducto.value === id,
+      )
+    );
+  }
+
+  addLine(): void {
+    this.lines.push(this.newLine());
+    this.form.markAsDirty();
+  }
+  removeLine(index: number): void {
+    if (this.lines.length < 2) return;
+    this.lines.removeAt(index);
+    this.form.markAsDirty();
+  }
+
+  async submit(): Promise<void> {
+    if (this.busy()) return;
+    this.submitted.set(true);
+    this.error.set('');
+    this.form.markAllAsTouched();
+    const value = this.form.getRawValue();
+    if (
+      this.form.invalid ||
+      !value.numeroGuiaRemision.trim() ||
+      (this.id !== undefined && !value.motivoCorreccion.trim())
+    ) {
+      this.error.set('Completa los campos obligatorios y revisa las cantidades.');
+      this.focusInvalid();
+      return;
+    }
+    const order = this.order();
+    if (
+      !order ||
+      (this.id === undefined && !['Pendiente', 'Parcial'].includes(order.estado)) ||
+      (this.id !== undefined && this.original()?.estadoDocumento !== 1)
+    ) {
+      this.error.set('La entrada o la orden ya no admite esta operación. Actualiza la página.');
+      return;
+    }
+    if (
+      value.movimientos.some(
+        (line, index) =>
+          this.duplicate(index) ||
+          !this.availableProducts().some((item) => item.idProducto === line.idProducto) ||
+          line.cantidad > this.balance(line.idProducto),
+      )
+    ) {
+      this.error.set(
+        'Cada producto debe estar activo, aparecer una sola vez y no superar el saldo permitido de la orden.',
+      );
+      this.focusInvalid();
+      return;
+    }
+    const request: EntradaRequest = {
+      idOrden: value.idOrden,
+      numeroGuiaRemision: value.numeroGuiaRemision.trim(),
+      observaciones: value.observaciones.trim() || null,
+      movimientos: value.movimientos.map((line) => ({
+        idProducto: line.idProducto,
+        cantidad: Number(line.cantidad),
+      })),
+      ...(this.id !== undefined ? { motivoCorreccion: value.motivoCorreccion.trim() } : {}),
+    };
+    this.busy.set(true);
+    try {
+      const saved = await this.entradas.save(request, this.id);
+      this.form.markAsPristine();
+      this.notice.show(
+        `Entrada N.° ${saved.idEntrada} ${this.id === undefined ? 'registrada' : 'creada como rectificación'} correctamente.`,
+      );
+      await this.router.navigate(['/entradas', saved.idEntrada]);
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar la entrada.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  private focusInvalid(): void {
+    requestAnimationFrame(() =>
+      this.element()
+        ?.nativeElement.querySelector<HTMLElement>(
+          'input.ng-invalid, select.ng-invalid, input[aria-invalid="true"], select[aria-invalid="true"]',
+        )
+        ?.focus(),
+    );
+  }
+
+  async canLeave(): Promise<boolean> {
+    if (!this.auth.valid() || !this.form.dirty) return true;
+    if (this.busy()) return false;
+    return !!(await firstValueFrom(
+      this.dialog
+        .open(ConfirmDialog, {
+          width: '460px',
+          maxWidth: 'calc(100vw - 32px)',
+          data: {
+            title: '¿Salir sin guardar?',
+            message: 'Los cambios de esta entrada se perderán.',
+            action: 'Salir sin guardar',
+          },
+        })
+        .afterClosed(),
+    ));
+  }
+}
