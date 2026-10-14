@@ -55,6 +55,7 @@ import { Icon } from '../shared/icon';
             <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Dashboard"><iw-icon name="home" />Dashboard</a>
             <a routerLink="/ajustes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Ajustes"><iw-icon name="orders" />Ajustes</a>
             <a routerLink="/documentos" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Documentos"><iw-icon name="orders" />Documentos</a>
+            <a routerLink="/movimientos" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Movimientos"><iw-icon name="orders" />Movimientos</a>
             <a routerLink="/reportes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Reportes"><iw-icon name="orders" />Reportes</a>
             <a
               routerLink="/usuarios"

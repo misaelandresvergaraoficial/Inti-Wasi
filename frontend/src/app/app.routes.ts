@@ -138,6 +138,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/documentos/documento-detail').then((m) => m.DocumentoDetail),
       },
       {
+        path: 'movimientos',
+        title: 'Movimientos · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/movimientos/movimientos-list').then((m) => m.MovimientosList),
+      },
+      {
+        path: 'movimientos/:id',
+        title: 'Detalle de movimiento · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/movimientos/movimiento-detail').then((m) => m.MovimientoDetail),
+      },
+      {
         path: 'ordenes-compra/nueva',
         title: 'Crear orden de compra · Inti Wasi',
         canActivate: [adminGuard],

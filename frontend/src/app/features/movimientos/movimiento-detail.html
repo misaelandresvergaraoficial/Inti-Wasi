@@ -1,0 +1,102 @@
+<div class="breadcrumb">
+  <a routerLink="/movimientos">Movimientos</a><iw-icon name="next" /><span
+    >Movimiento N.° {{ id() }}</span
+  >
+</div>
+<div class="page-heading">
+  <div class="eyebrow">HISTORIAL ADMINISTRATIVO</div>
+  <h1 tabindex="-1">Movimiento N.° {{ id() }}</h1>
+  <p>Detalle registrado en el historial de inventario.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando movimiento…</p>
+  </div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (record(); as item) {
+  <section class="panel order-summary" aria-labelledby="movimiento-summary">
+    <div class="panel-heading">
+      <div>
+        <h2 id="movimiento-summary">Datos del movimiento</h2>
+        <p>La cantidad guardada es positiva; el signo refleja su efecto en stock.</p>
+      </div>
+      <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
+    </div>
+    <dl class="order-facts">
+      <div>
+        <dt>Tipo de documento</dt>
+        <dd>{{ item.tipoDocumento === 'Correccion' ? 'Corrección' : item.tipoDocumento }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de emisión</dt>
+        <dd>{{ date(item.fechaEmision) }}</dd>
+      </div>
+      <div>
+        <dt>Producto</dt>
+        <dd>{{ item.sku }} · {{ item.nomProducto }} (ID {{ item.idProducto }})</dd>
+      </div>
+      <div>
+        <dt>Categoría actual</dt>
+        <dd>{{ item.nomCategoria }}</dd>
+      </div>
+      <div>
+        <dt>Cantidad registrada</dt>
+        <dd>{{ item.cantidad }}</dd>
+      </div>
+      <div>
+        <dt>Efecto en stock</dt>
+        <dd>{{ item.cantidadConSigno > 0 ? '+' : '' }}{{ item.cantidadConSigno }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ item.usuarioResponsable }} (ID {{ item.idUsuario }})</dd>
+      </div>
+      <div>
+        <dt>Documento</dt>
+        <dd>
+          <a [routerLink]="['/documentos', item.idDocumento]">N.° {{ item.idDocumento }}</a>
+        </dd>
+      </div>
+      @if (item.idDocumentoOrigen) {
+        <div>
+          <dt>Documento de origen</dt>
+          <dd>
+            <a [routerLink]="['/documentos', item.idDocumentoOrigen]"
+              >N.° {{ item.idDocumentoOrigen }}</a
+            >
+          </dd>
+        </div>
+      }
+      @if (item.idOrden) {
+        <div>
+          <dt>Orden de compra</dt>
+          <dd>
+            <a [routerLink]="['/ordenes-compra', item.idOrden]">N.° {{ item.idOrden }}</a>
+          </dd>
+        </div>
+      }
+      @if (item.numeroGuiaRemision) {
+        <div>
+          <dt>Guía de remisión</dt>
+          <dd>{{ item.numeroGuiaRemision }}</dd>
+        </div>
+      }
+      @if (item.motivo) {
+        <div>
+          <dt>Motivo</dt>
+          <dd>{{ item.motivo }}</dd>
+        </div>
+      }
+    </dl>
+    <p class="field-description">
+      Los nombres del catálogo pueden reflejar su valor actual; las cantidades y vínculos pertenecen
+      al historial.
+    </p>
+  </section>
+}
