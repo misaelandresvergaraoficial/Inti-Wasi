@@ -147,7 +147,12 @@
                 </span>
               </td>
               <td>{{ p.nomCategoria }}</td>
-              <td>{{ p.nomProveedor || 'Sin proveedor asignado' }}</td>
+              <td>
+                {{ p.nomProveedor || 'Sin proveedor asignado' }}
+                @if (!p.idProveedor) {
+                  <span class="order-sku">Asígnalo para incluirlo en una orden nueva.</span>
+                }
+              </td>
               <td>
                 <span class="font-medium">{{ p.stockActual }}</span>
                 @if (p.estado === 1 && p.stockActual <= p.stockMinimo) {

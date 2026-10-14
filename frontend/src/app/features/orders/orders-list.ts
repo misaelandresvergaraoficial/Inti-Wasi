@@ -94,6 +94,14 @@ export class OrdersList {
     return puedeCancelarOrden(order);
   }
 
+  receivedUnits(order: OrdenResponse): number {
+    return order.detalles.reduce((total, item) => total + item.cantidadRecibida, 0);
+  }
+
+  requestedUnits(order: OrdenResponse): number {
+    return order.detalles.reduce((total, item) => total + item.cantidad, 0);
+  }
+
   async cancel(order: OrdenResponse): Promise<void> {
     if (!this.auth.isAdmin() || !this.canCancel(order) || this.busyId() !== null) return;
     const received = order.detalles.some((item) => item.cantidadRecibida > 0);

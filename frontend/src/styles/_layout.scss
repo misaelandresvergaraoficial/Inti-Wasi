@@ -31,6 +31,17 @@
   flex-direction: column;
   gap: 6px;
 }
+.sidebar nav .nav-group-label {
+  margin: 14px 14px 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.sidebar nav .nav-group-label:first-child {
+  margin-top: 0;
+}
 .sidebar nav a {
   min-height: 46px;
   display: flex;
@@ -300,6 +311,9 @@
   .sidebar nav a {
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+  .sidebar nav .nav-group-label {
+    display: none;
   }
   .topbar {
     padding: 14px 16px;

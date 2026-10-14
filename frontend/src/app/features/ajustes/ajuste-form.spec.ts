@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AjusteResponse } from '../../core/ajuste-models';
 import { AjustesService } from '../../core/ajustes.service';
 import { AuthService } from '../../core/auth.service';
+import { ApiRequestError } from '../../core/models';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
 import { AjusteForm } from './ajuste-form';
@@ -47,12 +48,13 @@ const product = (stockActual: number): ProductoResponse[] => [
 
 async function setup(existing?: AjusteResponse, stock = 1) {
   const ajustes = { get: vi.fn().mockResolvedValue(existing), save: vi.fn() };
+  const productos = { list: vi.fn().mockResolvedValue(product(stock)) };
   await TestBed.configureTestingModule({
     imports: [AjusteForm],
     providers: [
       provideRouter([]),
       { provide: AjustesService, useValue: ajustes },
-      { provide: ProductosService, useValue: { list: vi.fn().mockResolvedValue(product(stock)) } },
+      { provide: ProductosService, useValue: productos },
       { provide: AuthService, useValue: { valid: () => true } },
       { provide: MatDialog, useValue: {} },
       {
@@ -64,7 +66,7 @@ async function setup(existing?: AjusteResponse, stock = 1) {
   const fixture = TestBed.createComponent(AjusteForm);
   await fixture.componentInstance.load();
   fixture.detectChanges();
-  return { form: fixture.componentInstance, ajustes };
+  return { form: fixture.componentInstance, ajustes, productos };
 }
 
 describe('Formulario de Ajustes', () => {
@@ -93,6 +95,32 @@ describe('Formulario de Ajustes', () => {
     const { form } = await setup({ ...original, tipoAjuste: 'Decremento' });
     expect(form.stockAfterReversal(7)).toBe(6);
     expect(form.reversalPossible()).toBe(true);
+  });
+
+  it('muestra diferencia con signo y stock final antes de guardar', async () => {
+    const { form } = await setup(undefined, 10);
+    form.form.controls.tipoAjuste.setValue('Decremento');
+    expect(form.signedDifference(3)).toBe(-3);
+    expect(form.resultingStock(7, 3)).toBe(7);
+    form.form.controls.tipoAjuste.setValue('Incremento');
+    expect(form.signedDifference(3)).toBe(3);
+    expect(form.resultingStock(7, 3)).toBe(13);
+  });
+
+  it('conserva el formulario y señala la línea si el stock cambió', async () => {
+    const { form, ajustes, productos } = await setup(undefined, 5);
+    form.form.controls.tipoAjuste.setValue('Decremento');
+    form.form.controls.motivo.setValue('Conteo físico');
+    form.lines.at(0).controls.idProducto.setValue(7);
+    form.lines.at(0).controls.cantidad.setValue(4);
+    productos.list.mockResolvedValueOnce(product(2));
+    ajustes.save.mockRejectedValueOnce(
+      new ApiRequestError('El decremento supera el stock del producto: 7', 422),
+    );
+    await form.submit();
+    expect(form.lines.at(0).controls.cantidad.value).toBe(4);
+    expect(form.currentStock(7)).toBe(2);
+    expect(form.lineErrors()[7]).toContain('Solo se pueden descontar 2');
   });
 
   it('exige motivo de corrección independiente del motivo del ajuste', async () => {

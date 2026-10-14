@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../core/auth.service';
+import { ApiRequestError } from '../../core/models';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
 import { SalidaResponse } from '../../core/salida-models';
@@ -46,12 +47,13 @@ const original: SalidaResponse = {
 
 async function setup(edit = false) {
   const salidas = { get: vi.fn().mockResolvedValue(original), save: vi.fn() };
+  const productos = { list: vi.fn().mockResolvedValue(products) };
   await TestBed.configureTestingModule({
     imports: [SalidaForm],
     providers: [
       provideRouter([]),
       { provide: SalidasService, useValue: salidas },
-      { provide: ProductosService, useValue: { list: vi.fn().mockResolvedValue(products) } },
+      { provide: ProductosService, useValue: productos },
       { provide: AuthService, useValue: { valid: () => true } },
       { provide: MatDialog, useValue: {} },
       {
@@ -63,7 +65,7 @@ async function setup(edit = false) {
   const fixture = TestBed.createComponent(SalidaForm);
   await fixture.componentInstance.load();
   fixture.detectChanges();
-  return { form: fixture.componentInstance, salidas };
+  return { form: fixture.componentInstance, salidas, productos };
 }
 
 describe('Formulario de Salidas', () => {
@@ -81,6 +83,8 @@ describe('Formulario de Salidas', () => {
   it('al rectificar considera la reversión completa de la salida original', async () => {
     const { form } = await setup(true);
     expect(form.availableStock(7)).toBe(5);
+    expect(form.currentStock(7)).toBe(3);
+    expect(form.resultingStock(7, 2)).toBe(3);
     expect(form.lines.at(0).controls.cantidad.value).toBe(2);
   });
 
@@ -101,5 +105,21 @@ describe('Formulario de Salidas', () => {
     await form.submit();
     expect(salidas.save).not.toHaveBeenCalled();
     expect(form.duplicate(1)).toBe(true);
+  });
+
+  it('mantiene lo escrito y actualiza el stock después de un rechazo concurrente', async () => {
+    const { form, salidas, productos } = await setup();
+    form.form.controls.motivo.setValue('Merma');
+    form.lines.at(0).controls.idProducto.setValue(7);
+    form.lines.at(0).controls.cantidad.setValue(2);
+    productos.list.mockResolvedValueOnce([{ ...products[0], stockActual: 1 }]);
+    salidas.save.mockRejectedValueOnce(
+      new ApiRequestError('Stock insuficiente para el producto: 7', 422),
+    );
+    await form.submit();
+    expect(form.lines.at(0).controls.cantidad.value).toBe(2);
+    expect(form.currentStock(7)).toBe(1);
+    expect(form.resultingStock(7, 2)).toBe(-1);
+    expect(form.lineErrors()[7]).toContain('Solo hay 1');
   });
 });
