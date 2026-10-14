@@ -1,0 +1,40 @@
+.inventory-form .order-form-panel > .field,
+.order-form-panel > .field {
+  padding: 0 24px 20px;
+}
+.inventory-form .field input,
+.inventory-form .field select,
+.inventory-form .field textarea,
+.order-form-panel > .field textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 10px 12px;
+  font: inherit;
+}
+.inventory-form .field textarea,
+.order-form-panel > .field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.inventory-form .field [aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.inventory-form .order-line-grid {
+  grid-template-columns: minmax(230px, 2fr) minmax(120px, 1fr) auto;
+}
+.inventory-form .order-form-panel > button {
+  margin: 20px 24px;
+}
+.inventory-form .form-actions {
+  background: transparent;
+  border: 0;
+}
+@media (max-width: 700px) {
+  .inventory-form .order-line-grid {
+    grid-template-columns: 1fr;
+  }
+}

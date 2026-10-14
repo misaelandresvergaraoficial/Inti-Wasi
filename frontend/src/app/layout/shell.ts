@@ -51,6 +51,7 @@ import { Icon } from '../shared/icon';
           }
           @if (auth.isAdmin()) {
             <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Dashboard"><iw-icon name="home" />Dashboard</a>
+            <a routerLink="/ajustes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Ajustes"><iw-icon name="orders" />Ajustes</a>
             <a routerLink="/reportes" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Reportes"><iw-icon name="orders" />Reportes</a>
             <a
               routerLink="/usuarios"
