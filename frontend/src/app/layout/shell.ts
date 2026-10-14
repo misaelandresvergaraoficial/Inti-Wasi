@@ -33,6 +33,7 @@ import { Icon } from '../shared/icon';
             aria-label="Productos"
             ><iw-icon name="menu" />Productos</a
           >
+          <a routerLink="/entradas" routerLinkActive="active" ariaCurrentWhenActive="page" aria-label="Entradas"><iw-icon name="orders" />Entradas</a>
           <a
             routerLink="/proveedores"
             routerLinkActive="active"

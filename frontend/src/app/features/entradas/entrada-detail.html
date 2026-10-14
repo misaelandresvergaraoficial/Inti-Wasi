@@ -1,0 +1,145 @@
+<div class="breadcrumb">
+  <a routerLink="/entradas">Entradas</a><iw-icon name="next" /><span>Entrada N.° {{ id }}</span>
+</div>
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">INVENTARIO</div>
+    <h1 tabindex="-1">Entrada N.° {{ id }}</h1>
+    <p>Recepción y trazabilidad de su documento.</p>
+  </div>
+  @if (record(); as item) {
+    @if (item.estadoDocumento === 1) {
+      <a mat-stroked-button [routerLink]="['/entradas', id, 'editar']">Rectificar entrada</a>
+    }
+  }
+</div>
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (actionError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ actionError() }}</p>
+  </div>
+}
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando entrada…</p>
+  </div>
+} @else if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (record(); as item) {
+  <section class="panel order-summary" aria-labelledby="entrada-summary">
+    <div class="panel-heading">
+      <div>
+        <h2 id="entrada-summary">Datos de la recepción</h2>
+        <p>Documento N.° {{ item.idDocumento }}</p>
+      </div>
+      <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
+    </div>
+    <dl class="order-facts">
+      <div>
+        <dt>Orden de compra</dt>
+        <dd>
+          <a [routerLink]="['/ordenes-compra', item.idOrden]">N.° {{ item.idOrden }}</a> ·
+          {{ item.estadoOrden }}
+        </dd>
+      </div>
+      <div>
+        <dt>Guía de remisión</dt>
+        <dd>{{ item.numeroGuiaRemision }}</dd>
+      </div>
+      <div>
+        <dt>Fecha de emisión</dt>
+        <dd>{{ date(item.fechaEmision) }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ item.usuarioResponsable }}</dd>
+      </div>
+      @if (item.idDocumentoOrigen) {
+        <div>
+          <dt>Documento original</dt>
+          <dd>N.° {{ item.idDocumentoOrigen }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Observaciones</dt>
+        <dd>{{ item.observaciones || 'Sin observaciones' }}</dd>
+      </div>
+    </dl>
+  </section>
+  <section class="panel orders-panel" aria-labelledby="entrada-products">
+    <div class="panel-heading">
+      <div>
+        <h2 id="entrada-products">Productos recibidos</h2>
+        <p>Las cantidades son las registradas en este documento. El stock mostrado es el actual.</p>
+      </div>
+    </div>
+    <div class="table-scroll" role="region" aria-label="Productos de la entrada" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Movimientos de la entrada N.°
+          {{
+            id
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Producto</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Stock actual</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of item.movimientos; track line.idMovimiento) {
+            <tr>
+              <th scope="row">
+                {{ line.nomProducto }} <span class="order-sku">{{ line.sku }}</span>
+              </th>
+              <td>{{ line.cantidad }}</td>
+              <td>{{ line.stockActual }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  @if (item.estadoDocumento === 1) {
+    <section class="panel order-form-panel" aria-labelledby="entrada-annul">
+      <div class="panel-heading">
+        <div>
+          <h2 id="entrada-annul">Anular entrada</h2>
+          <p>
+            Se conservarán el documento y sus movimientos. La reversión puede fallar si ya no hay
+            stock suficiente.
+          </p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="motivo-anulacion">Motivo de anulación</label
+        ><textarea
+          id="motivo-anulacion"
+          rows="3"
+          maxlength="255"
+          [value]="motivo()"
+          (input)="motivo.set($any($event.target).value)"
+        ></textarea>
+      </div>
+      <button mat-button class="subtle-danger" [disabled]="busy()" (click)="annul()">
+        {{ busy() ? 'Anulando…' : 'Anular entrada' }}
+      </button>
+    </section>
+  }
+}

@@ -11,6 +11,9 @@
   </div>
   @if (record(); as order) {
     <div class="order-heading-actions">
+      @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
+        <a mat-flat-button routerLink="/entradas/nueva" [queryParams]="{ orden: order.idOrden }">Registrar entrada</a>
+      }
       @if (auth.isAdmin() && canEdit(order)) {
         <a mat-stroked-button [routerLink]="['/ordenes-compra', order.idOrden, 'editar']"
           >Editar orden</a
