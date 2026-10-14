@@ -126,10 +126,25 @@
                   [class.cancelled]="order.estado === 'Cancelada'"
                   >{{ order.estado }}</span
                 >
+                @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
+                  <span class="order-sku"
+                    >Recibido {{ receivedUnits(order) }} de
+                    {{ requestedUnits(order) }} unidades</span
+                  >
+                }
               </td>
               <td class="order-amount">{{ importe(order.totalOrden) }}</td>
               <td>
                 <div class="row-actions">
+                  @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
+                    <a
+                      mat-button
+                      routerLink="/entradas/nueva"
+                      [queryParams]="{ orden: order.idOrden }"
+                      [attr.aria-label]="'Registrar entrada de la orden N.° ' + order.idOrden"
+                      >Registrar entrada</a
+                    >
+                  }
                   <a
                     mat-button
                     [routerLink]="['/ordenes-compra', order.idOrden]"

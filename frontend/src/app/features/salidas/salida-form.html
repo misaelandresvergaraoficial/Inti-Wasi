@@ -114,6 +114,7 @@
                 ><select
                   [id]="'salida-producto-' + index"
                   formControlName="idProducto"
+                  (change)="lineErrors.set({})"
                   [attr.aria-invalid]="
                     submitted() && (line.controls.idProducto.invalid || duplicate(index))
                   "
@@ -128,29 +129,45 @@
                 @if (duplicate(index)) {
                   <p class="order-field-error">Este producto ya aparece en la salida.</p>
                 }
+                @if (submitted() && line.controls.idProducto.invalid) {
+                  <p class="order-field-error">Selecciona un producto activo.</p>
+                }
               </div>
               <div class="field">
-                <label [for]="'salida-cantidad-' + index">Cantidad</label
+                <label [for]="'salida-cantidad-' + index">Cantidad a retirar</label
                 ><input
                   [id]="'salida-cantidad-' + index"
                   type="number"
                   min="1"
                   step="1"
                   formControlName="cantidad"
+                  (input)="clearLineError(line.controls.idProducto.value)"
                   [attr.aria-invalid]="
                     submitted() &&
                     (line.controls.cantidad.invalid ||
-                      line.controls.cantidad.value > availableStock(line.controls.idProducto.value))
+                      line.controls.cantidad.value >
+                        availableStock(line.controls.idProducto.value) ||
+                      !!lineErrors()[line.controls.idProducto.value])
                   "
                 />
-                @if (line.controls.idProducto.value) {
-                  <p class="field-description">
-                    Stock disponible para esta operación:
-                    {{ availableStock(line.controls.idProducto.value) }}
-                  </p>
-                }
                 @if (submitted() && line.controls.cantidad.invalid) {
                   <p class="order-field-error">Ingresa un entero mayor que cero.</p>
+                }
+                @if (
+                  submitted() &&
+                  !line.controls.cantidad.invalid &&
+                  !lineErrors()[line.controls.idProducto.value] &&
+                  line.controls.cantidad.value > availableStock(line.controls.idProducto.value)
+                ) {
+                  <p class="order-field-error">
+                    Supera el stock disponible: {{ availableStock(line.controls.idProducto.value) }}
+                    {{
+                      availableStock(line.controls.idProducto.value) === 1 ? 'unidad' : 'unidades'
+                    }}.
+                  </p>
+                }
+                @if (lineErrors()[line.controls.idProducto.value]; as lineError) {
+                  <p class="order-field-error" role="alert">{{ lineError }}</p>
                 }
               </div>
               <button
@@ -162,6 +179,35 @@
                 Quitar
               </button>
             </div>
+            @if (line.controls.idProducto.value) {
+              <dl class="inventory-balance">
+                <div>
+                  <dt>Stock actual</dt>
+                  <dd>{{ currentStock(line.controls.idProducto.value) }}</dd>
+                </div>
+                @if (id !== undefined) {
+                  <div>
+                    <dt>Se devuelve de la salida original</dt>
+                    <dd>+{{ originalQuantity(line.controls.idProducto.value) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Disponible para reemplazar</dt>
+                    <dd>{{ availableStock(line.controls.idProducto.value) }}</dd>
+                  </div>
+                }
+                <div>
+                  <dt>Stock resultante</dt>
+                  <dd>
+                    {{
+                      resultingStock(line.controls.idProducto.value, line.controls.cantidad.value)
+                    }}
+                  </dd>
+                </div>
+              </dl>
+              <p class="field-description">
+                El stock puede cambiar antes de guardar; el servidor validará la cantidad actual.
+              </p>
+            }
           </fieldset>
         }
       </div>

@@ -100,7 +100,10 @@
     <div class="panel-heading">
       <div>
         <h2 id="entrada-products">Productos recibidos</h2>
-        <p>Las cantidades son las registradas en este documento. El stock mostrado es el actual.</p>
+        <p>
+          Las cantidades pertenecen a este documento; la recepción acumulada y el pendiente son
+          actuales.
+        </p>
       </div>
     </div>
     <div class="table-scroll" role="region" aria-label="Productos de la entrada" tabindex="0">
@@ -114,7 +117,9 @@
         <thead>
           <tr>
             <th scope="col">Producto</th>
-            <th scope="col">Cantidad</th>
+            <th scope="col">Recibido aquí</th>
+            <th scope="col">Recibido acumulado</th>
+            <th scope="col">Pendiente actual</th>
             <th scope="col">Stock actual</th>
           </tr>
         </thead>
@@ -125,12 +130,19 @@
                 {{ line.nomProducto }} <span class="order-sku">{{ line.sku }}</span>
               </th>
               <td>{{ line.cantidad }}</td>
+              <td>{{ orderLine(line.idProducto)?.cantidadRecibida ?? '—' }}</td>
+              <td>{{ orderLine(line.idProducto)?.cantidadPorRecibir ?? '—' }}</td>
               <td>{{ line.stockActual }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+    @if (orderError()) {
+      <p class="field-description" role="status">
+        {{ orderError() }} <a [routerLink]="['/ordenes-compra', item.idOrden]">Ver orden</a>
+      </p>
+    }
   </section>
   @if (item.estadoDocumento === 1) {
     <section class="panel order-form-panel" aria-labelledby="entrada-annul">
