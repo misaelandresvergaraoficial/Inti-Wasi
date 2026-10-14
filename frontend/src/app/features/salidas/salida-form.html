@@ -1,0 +1,179 @@
+<div class="breadcrumb">
+  <a routerLink="/salidas">Salidas</a><iw-icon name="next" /><span>{{
+    id === undefined ? 'Registrar' : 'Rectificar'
+  }}</span>
+</div>
+<div class="page-heading">
+  <div class="eyebrow">INVENTARIO</div>
+  <h1 tabindex="-1">{{ id === undefined ? 'Registrar salida' : 'Rectificar salida N.° ' + id }}</h1>
+  <p>Indica por qué y cuántas unidades salen del almacén.</p>
+</div>
+@if (loading()) {
+  <div class="panel empty-state" role="status">
+    <span class="loading-line"></span>
+    <p>Cargando datos…</p>
+  </div>
+} @else if (loadError()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ loadError() }}</p>
+  </div>
+  <button mat-stroked-button (click)="load()">Reintentar</button>
+} @else if (original() && original()!.estadoDocumento !== 1) {
+  <div class="notice warning" role="alert">
+    <iw-icon name="info" />
+    <p>Solo se puede rectificar una salida vigente.</p>
+  </div>
+  <a mat-button [routerLink]="['/salidas', id]">Ver detalle</a>
+} @else {
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <iw-icon name="info" />
+      <p>{{ error() }}</p>
+    </div>
+  }
+  <form
+    #salidaForm
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+    [attr.aria-busy]="busy()"
+    class="inventory-form"
+  >
+    <section class="panel order-form-panel" aria-labelledby="salida-head">
+      <div class="panel-heading">
+        <div>
+          <h2 id="salida-head">Datos de la salida</h2>
+          <p>La fecha y el responsable se asignan al guardar.</p>
+        </div>
+      </div>
+      <div class="order-form-fields">
+        <div class="field">
+          <label for="salida-motivo">Motivo de salida</label
+          ><select
+            id="salida-motivo"
+            formControlName="motivo"
+            [attr.aria-invalid]="submitted() && form.controls.motivo.invalid"
+          >
+            <option value="">Selecciona un motivo</option>
+            <option value="Despacho/Venta">Despacho/Venta</option>
+            <option value="Merma">Merma</option>
+            <option value="Otro">Otro</option>
+          </select>
+          @if (submitted() && form.controls.motivo.invalid) {
+            <p class="order-field-error">Selecciona un motivo.</p>
+          }
+        </div>
+      </div>
+      <div class="field">
+        <label for="salida-observaciones"
+          >Observaciones <span class="optional">(opcional)</span></label
+        ><textarea
+          id="salida-observaciones"
+          formControlName="observaciones"
+          maxlength="255"
+          rows="3"
+        ></textarea>
+      </div>
+      @if (id !== undefined) {
+        <div class="field">
+          <label for="salida-correccion">Motivo de corrección</label
+          ><textarea
+            id="salida-correccion"
+            formControlName="motivoCorreccion"
+            maxlength="255"
+            rows="3"
+            [attr.aria-invalid]="submitted() && !form.controls.motivoCorreccion.value.trim()"
+          ></textarea>
+          <p class="field-description">
+            La salida original quedará Rectificada y se creará otra vinculada.
+          </p>
+          @if (submitted() && !form.controls.motivoCorreccion.value.trim()) {
+            <p class="order-field-error">Explica la rectificación.</p>
+          }
+        </div>
+      }
+    </section>
+    <section class="panel order-form-panel" aria-labelledby="salida-lines">
+      <div class="panel-heading">
+        <div>
+          <h2 id="salida-lines">Productos retirados</h2>
+          <p>Solo se pueden retirar productos activos con stock suficiente.</p>
+        </div>
+        <span class="badge neutral"
+          >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
+        >
+      </div>
+      <div formArrayName="movimientos" class="order-line-list">
+        @for (line of lines.controls; track index; let index = $index) {
+          <fieldset class="order-line" [formGroupName]="index">
+            <legend>Producto {{ index + 1 }}</legend>
+            <div class="order-line-grid">
+              <div class="field">
+                <label [for]="'salida-producto-' + index">Producto</label
+                ><select
+                  [id]="'salida-producto-' + index"
+                  formControlName="idProducto"
+                  [attr.aria-invalid]="
+                    submitted() && (line.controls.idProducto.invalid || duplicate(index))
+                  "
+                >
+                  <option [ngValue]="0">Selecciona un producto</option>
+                  @for (item of products(); track item.idProducto) {
+                    <option [ngValue]="item.idProducto">
+                      {{ item.sku }} · {{ item.nomProducto }}
+                    </option>
+                  }
+                </select>
+                @if (duplicate(index)) {
+                  <p class="order-field-error">Este producto ya aparece en la salida.</p>
+                }
+              </div>
+              <div class="field">
+                <label [for]="'salida-cantidad-' + index">Cantidad</label
+                ><input
+                  [id]="'salida-cantidad-' + index"
+                  type="number"
+                  min="1"
+                  step="1"
+                  formControlName="cantidad"
+                  [attr.aria-invalid]="
+                    submitted() &&
+                    (line.controls.cantidad.invalid ||
+                      line.controls.cantidad.value > availableStock(line.controls.idProducto.value))
+                  "
+                />
+                @if (line.controls.idProducto.value) {
+                  <p class="field-description">
+                    Stock disponible para esta operación:
+                    {{ availableStock(line.controls.idProducto.value) }}
+                  </p>
+                }
+                @if (submitted() && line.controls.cantidad.invalid) {
+                  <p class="order-field-error">Ingresa un entero mayor que cero.</p>
+                }
+              </div>
+              <button
+                mat-button
+                type="button"
+                [disabled]="lines.length === 1 || busy()"
+                (click)="removeLine(index)"
+              >
+                Quitar
+              </button>
+            </div>
+          </fieldset>
+        }
+      </div>
+      <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
+        <iw-icon name="plus" />Agregar producto
+      </button>
+    </section>
+    <div class="form-actions">
+      <a mat-button routerLink="/salidas">Cancelar</a
+      ><button mat-flat-button type="submit" [disabled]="busy()">
+        {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar salida' : 'Rectificar salida' }}
+      </button>
+    </div>
+  </form>
+}

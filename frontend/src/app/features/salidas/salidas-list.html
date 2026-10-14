@@ -1,0 +1,132 @@
+<div class="breadcrumb"><span>Inventario</span><iw-icon name="next" /><span>Salidas</span></div>
+<div class="page-heading flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="eyebrow">INVENTARIO</div>
+    <h1 tabindex="-1">Salidas</h1>
+    <p>Despachos, mermas y otras salidas del almacén.</p>
+  </div>
+  <a mat-flat-button routerLink="/salidas/nueva"><iw-icon name="plus" />Registrar salida</a>
+</div>
+@if (notice.message()) {
+  <div class="notice success" role="status">
+    <iw-icon name="check" />
+    <p>{{ notice.message() }}</p>
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
+      <iw-icon name="close" />
+    </button>
+  </div>
+}
+@if (error()) {
+  <div class="notice error" role="alert">
+    <iw-icon name="info" />
+    <p>{{ error() }}</p>
+    <button mat-button (click)="load()">Reintentar</button>
+  </div>
+}
+<section class="panel orders-panel" aria-labelledby="salidas-heading" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <div>
+      <h2 id="salidas-heading">Salidas registradas</h2>
+      <p>Las rectificadas y anuladas permanecen en el historial.</p>
+    </div>
+    <span class="badge neutral">{{
+      error() ? 'Sin datos' : records().length + (records().length === 1 ? ' salida' : ' salidas')
+    }}</span>
+  </div>
+  <div class="filter-bar flex flex-wrap items-end gap-4">
+    <div class="search-field">
+      <label for="salida-search">Buscar salida</label>
+      <div class="input-with-icon">
+        <iw-icon name="search" /><input
+          id="salida-search"
+          type="search"
+          placeholder="Número, motivo o responsable"
+          [value]="query()"
+          (input)="search($any($event.target).value)"
+        />
+      </div>
+    </div>
+    <div class="status-filter">
+      <label for="salida-status">Estado</label
+      ><select
+        id="salida-status"
+        [value]="status()"
+        (change)="filterStatus($any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        <option value="1">Vigente</option>
+        <option value="2">Rectificado</option>
+        <option value="0">Anulado</option>
+      </select>
+    </div>
+    @if (query() || status()) {
+      <button mat-button (click)="search(''); filterStatus('')">Limpiar filtros</button>
+    }
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="loading-line"></span>
+      <p>Cargando salidas…</p>
+    </div>
+  } @else if (error()) {
+    <div class="empty-state"><p>No se pudo cargar el listado.</p></div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay salidas' }}</h3>
+      <p>{{ records().length ? 'Prueba otro filtro.' : 'Las salidas aparecerán aquí.' }}</p>
+    </div>
+  } @else {
+    <div class="table-scroll" role="region" aria-label="Listado de salidas" tabindex="0">
+      <table>
+        <caption class="sr-only">
+          Salidas registradas
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Salida</th>
+            <th scope="col">Motivo</th>
+            <th scope="col">Emisión</th>
+            <th scope="col">Responsable</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of visible(); track record.idSalida) {
+            <tr [class.inactive-row]="record.estadoDocumento !== 1">
+              <th scope="row">N.° {{ record.idSalida }}</th>
+              <td>{{ record.motivo }}</td>
+              <td>{{ date(record.fechaEmision) }}</td>
+              <td>{{ record.usuarioResponsable }}</td>
+              <td>{{ estado(record.estadoDocumento) }}</td>
+              <td><a mat-button [routerLink]="['/salidas', record.idSalida]">Ver detalle</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <p role="status">
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }}
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          mat-icon-button
+          aria-label="Página anterior"
+          [disabled]="page() === 0"
+          (click)="page.set(page() - 1)"
+        >
+          <iw-icon name="arrow" /></button
+        ><span>Página {{ page() + 1 }} de {{ pages() }}</span
+        ><button
+          mat-icon-button
+          aria-label="Página siguiente"
+          [disabled]="page() + 1 >= pages()"
+          (click)="page.set(page() + 1)"
+        >
+          <iw-icon name="next" />
+        </button>
+      </div>
+    </div>
+  }
+</section>
