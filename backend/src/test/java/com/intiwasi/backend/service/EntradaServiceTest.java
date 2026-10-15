@@ -6,14 +6,14 @@ import com.intiwasi.backend.entity.DetalleOrdenCompra;
 import com.intiwasi.backend.entity.Documento;
 import com.intiwasi.backend.entity.Entrada;
 import com.intiwasi.backend.entity.GuiaRemision;
-import com.intiwasi.backend.entity.Proveedor;
 import com.intiwasi.backend.entity.MovimientoInventario;
 import com.intiwasi.backend.entity.OrdenCompra;
 import com.intiwasi.backend.entity.Producto;
+import com.intiwasi.backend.entity.Proveedor;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
-import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.exception.ConflictoException;
+import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
 import com.intiwasi.backend.repository.GuiaRemisionRepository;
@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EntradaServiceTest {
+
     @Mock EntradaRepository entradas;
     @Mock GuiaRemisionRepository guias;
     @Mock DocumentoRepository documentos;
@@ -72,10 +73,13 @@ class EntradaServiceTest {
 
         orden = new OrdenCompra();
         orden.setIdOrden(7);
+
         Proveedor proveedor = new Proveedor();
         proveedor.setIdProveedor(2);
+        proveedor.setPrefijoGuia("GUIA-TEST-");
         orden.setProveedor(proveedor);
         orden.setEstado("Pendiente");
+
         DetalleOrdenCompra detalle = new DetalleOrdenCompra();
         detalle.setProducto(producto);
         detalle.setCantidad(10);
@@ -108,10 +112,16 @@ class EntradaServiceTest {
         Producto ajeno = new Producto();
         ajeno.setIdProducto(13);
         ajeno.setEstado((byte) 1);
-        when(ordenes.findByIdConDetallesForUpdate(7)).thenReturn(Optional.of(orden));
-        when(productos.findAllByIdForUpdate(List.of(13))).thenReturn(List.of(ajeno));
 
-        assertThrows(ReglaNegocioException.class, () -> service.registrar(request(13, 1)));
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+        when(productos.findAllByIdForUpdate(List.of(13)))
+                .thenReturn(List.of(ajeno));
+
+        assertThrows(
+                ReglaNegocioException.class,
+                () -> service.registrar(request(13, 1))
+        );
 
         verifyNoInteractions(documentos, entradas, movimientos);
     }
@@ -128,11 +138,16 @@ class EntradaServiceTest {
 
     @Test
     void rechazaRecepcionQueSuperaElSaldoPendiente() {
-        when(ordenes.findByIdConDetallesForUpdate(7)).thenReturn(Optional.of(orden));
-        when(productos.findAllByIdForUpdate(List.of(12))).thenReturn(List.of(producto));
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+        when(productos.findAllByIdForUpdate(List.of(12)))
+                .thenReturn(List.of(producto));
         when(entradas.cantidadRecibida(7, 12)).thenReturn(8);
 
-        assertThrows(ReglaNegocioException.class, () -> service.registrar(request(12, 3)));
+        assertThrows(
+                ReglaNegocioException.class,
+                () -> service.registrar(request(12, 3))
+        );
 
         verifyNoInteractions(documentos, movimientos);
         verify(entradas).cantidadRecibida(7, 12);
@@ -141,20 +156,63 @@ class EntradaServiceTest {
 
     @Test
     void rechazaGuiaYaRegistradaParaElProveedor() {
-        when(ordenes.findByIdConDetallesForUpdate(7)).thenReturn(Optional.of(orden));
-        when(guias.existsByProveedor_IdProveedorAndNumeroGuia(2, "GUIA-7")).thenReturn(true);
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+        when(guias.existsByProveedor_IdProveedorAndNumeroGuia(
+                2, "GUIA-TEST-7"
+        )).thenReturn(true);
 
-        assertThrows(ConflictoException.class, () -> service.registrar(request(12, 1)));
+        assertThrows(
+                ConflictoException.class,
+                () -> service.registrar(request(12, 1))
+        );
+
         verifyNoInteractions(documentos, movimientos);
+    }
+
+    @Test
+    void rechazaPrefijoDeOtroProveedorAntesDeGuardar() {
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+
+        EntradaRequest datos = request(12, 1);
+        datos.setNumeroGuiaRemision("GUIA-OTRO-001-123");
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.registrar(datos)
+        );
+
+        verifyNoInteractions(
+                guias, productos, documentos, entradas, movimientos
+        );
+    }
+
+    @Test
+    void rechazaProveedorSinPrefijoAntesDeGuardar() {
+        orden.getProveedor().setPrefijoGuia(null);
+
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+
+        assertThrows(
+                ReglaNegocioException.class,
+                () -> service.registrar(request(12, 1))
+        );
+
+        verifyNoInteractions(
+                guias, productos, documentos, entradas, movimientos
+        );
     }
 
     private EntradaRequest request(int idProducto, int cantidad) {
         MovimientoRequest movimiento = new MovimientoRequest();
         movimiento.setIdProducto(idProducto);
         movimiento.setCantidad(cantidad);
+
         EntradaRequest request = new EntradaRequest();
         request.setIdOrden(7);
-        request.setNumeroGuiaRemision(" GUIA-7 ");
+        request.setNumeroGuiaRemision(" GUIA-TEST-7 ");
         request.setMovimientos(List.of(movimiento));
         return request;
     }
@@ -163,38 +221,67 @@ class EntradaServiceTest {
         Documento documentoGuardado = new Documento();
         documentoGuardado.setIdDocumento(30);
         documentoGuardado.setUsuario(usuario);
+
         Entrada entradaGuardada = new Entrada();
         entradaGuardada.setIdEntrada(40);
         entradaGuardada.setDocumento(documentoGuardado);
         entradaGuardada.setOrdenCompra(orden);
+
         GuiaRemision guia = new GuiaRemision();
-        guia.setNumeroGuia("GUIA-7");
+        guia.setNumeroGuia("GUIA-TEST-7");
         guia.setProveedor(orden.getProveedor());
         entradaGuardada.setGuia(guia);
+
         MovimientoInventario movimientoGuardado = new MovimientoInventario();
         movimientoGuardado.setProducto(producto);
         movimientoGuardado.setCantidad(cantidad);
 
-        when(ordenes.findByIdConDetallesForUpdate(7)).thenReturn(Optional.of(orden));
-        when(productos.findAllByIdForUpdate(List.of(12))).thenReturn(List.of(producto));
+        when(ordenes.findByIdConDetallesForUpdate(7))
+                .thenReturn(Optional.of(orden));
+        when(productos.findAllByIdForUpdate(List.of(12)))
+                .thenReturn(List.of(producto));
         when(entradas.cantidadRecibida(7, 12)).thenReturn(recibida);
+
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("responsable@intiwasi.test", null, List.of()));
-        when(usuarios.findByCorreoAndEstado("responsable@intiwasi.test", 1)).thenReturn(Optional.of(usuario));
-        when(documentos.saveAndFlush(any(Documento.class))).thenReturn(documentoGuardado);
-        when(guias.saveAndFlush(any(GuiaRemision.class))).thenReturn(guia);
-        when(entradas.saveAndFlush(any(Entrada.class))).thenReturn(entradaGuardada);
-        when(entradas.findByIdConRelaciones(40)).thenReturn(Optional.of(entradaGuardada));
+                new UsernamePasswordAuthenticationToken(
+                        "responsable@intiwasi.test",
+                        null,
+                        List.of()
+                )
+        );
+
+        when(usuarios.findByCorreoAndEstado(
+                "responsable@intiwasi.test", 1
+        )).thenReturn(Optional.of(usuario));
+
+        when(documentos.saveAndFlush(any(Documento.class)))
+                .thenReturn(documentoGuardado);
+        when(guias.saveAndFlush(any(GuiaRemision.class)))
+                .thenReturn(guia);
+        when(entradas.saveAndFlush(any(Entrada.class)))
+                .thenReturn(entradaGuardada);
+        when(entradas.findByIdConRelaciones(40))
+                .thenReturn(Optional.of(entradaGuardada));
         when(movimientos.findByDocumento_IdDocumentoOrderByIdMovimientoAsc(30))
                 .thenReturn(List.of(movimientoGuardado));
     }
 
     private void comprobarGuardado(int cantidad) {
-        verify(documentos).saveAndFlush(argThat(d -> d.getTipoDocumento() == TipoDocumento.ENTRADA
-                && d.getUsuario() == usuario));
-        verify(entradas).saveAndFlush(argThat(e -> e.getOrdenCompra() == orden
-                && "GUIA-7".equals(e.getGuia().getNumeroGuia())));
-        verify(movimientos).save(argThat(m -> m.getProducto() == producto
-                && m.getCantidad() == cantidad));
+        verify(documentos).saveAndFlush(argThat(
+                documento -> documento.getTipoDocumento() == TipoDocumento.ENTRADA
+                        && documento.getUsuario() == usuario
+        ));
+
+        verify(entradas).saveAndFlush(argThat(
+                entrada -> entrada.getOrdenCompra() == orden
+                        && "GUIA-TEST-7".equals(
+                                entrada.getGuia().getNumeroGuia()
+                        )
+        ));
+
+        verify(movimientos).save(argThat(
+                movimiento -> movimiento.getProducto() == producto
+                        && movimiento.getCantidad() == cantidad
+        ));
     }
 }

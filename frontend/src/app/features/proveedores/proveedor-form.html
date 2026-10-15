@@ -43,14 +43,15 @@
     <div class="panel-heading">
       <div>
         <h2>Información del proveedor</h2>
-        <p>Completa los datos obligatorios y agrega información de contacto si la tienes.</p>
+        <p>
+          Completa los datos obligatorios y agrega información de contacto si la tienes.
+        </p>
       </div>
     </div>
 
     <div class="supplier-form-fields">
       <div class="field">
         <label for="supplier-name">Nombre del proveedor</label>
-
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <input
             matInput
@@ -70,7 +71,6 @@
 
       <div class="field">
         <label for="supplier-ruc">RUC</label>
-
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <input
             matInput
@@ -93,6 +93,43 @@
             <mat-error>El RUC debe tener exactamente 11 dígitos numéricos.</mat-error>
           } @else if (form.controls.ruc.hasError('server')) {
             <mat-error>{{ form.controls.ruc.getError('server') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="field">
+        <label for="supplier-prefix">Prefijo de guía de remisión</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input
+            matInput
+            id="supplier-prefix"
+            formControlName="prefijoGuia"
+            maxlength="30"
+            autocomplete="off"
+            spellcheck="false"
+            [readonly]="prefijoGuiaBloqueado()"
+            aria-describedby="supplier-prefix-hint"
+          />
+
+          <mat-hint id="supplier-prefix-hint">
+            @if (prefijoGuiaBloqueado()) {
+              No editable: este proveedor ya tiene guías registradas.
+            } @else {
+              Ejemplo: GUIA-TECHDATA-. Código en mayúsculas, único y estable.
+            }
+          </mat-hint>
+
+          @if (form.controls.prefijoGuia.hasError('server')) {
+            <mat-error>
+              {{ form.controls.prefijoGuia.getError('server') }}
+            </mat-error>
+          } @else if (form.controls.prefijoGuia.hasError('required')) {
+            <mat-error>Ingresa el prefijo de guía del proveedor.</mat-error>
+          } @else if (form.controls.prefijoGuia.invalid) {
+            <mat-error>
+              Usa GUIA-CODIGO-, hasta 30 caracteres. El código empieza con una letra
+              y solo admite A–Z y 0–9.
+            </mat-error>
           }
         </mat-form-field>
       </div>
@@ -123,7 +160,6 @@
 
       <div class="field">
         <label for="supplier-phone">Teléfono</label>
-
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <input
             matInput
@@ -163,7 +199,6 @@
         <label for="supplier-address">
           Dirección <span class="optional">(opcional)</span>
         </label>
-
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <textarea
             matInput

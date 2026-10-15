@@ -18,17 +18,22 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidaciones(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidaciones(
+            MethodArgumentNotValidException ex
+    ) {
         var camposConError = ex.getBindingResult().getFieldErrors().stream()
-                .map(e -> e.getField())
+                .map(error -> error.getField())
                 .toList();
 
         String mensaje;
-        if (camposConError.contains("correo") && camposConError.contains("contrasena")) {
+
+        if (camposConError.contains("correo")
+                && camposConError.contains("contrasena")) {
             mensaje = "El correo y la contraseña son obligatorios";
         } else {
             mensaje = ex.getBindingResult().getFieldErrors().stream()
-                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .map(error -> error.getField()
+                            + ": " + error.getDefaultMessage())
                     .findFirst()
                     .orElse("Datos inválidos");
         }
@@ -37,7 +42,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleJsonMalFormado(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ErrorResponse> handleJsonMalFormado(
+            HttpMessageNotReadableException ex
+    ) {
         return crearRespuesta(
                 HttpStatus.BAD_REQUEST,
                 "El cuerpo de la solicitud contiene un JSON inválido"
@@ -45,7 +52,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTipoParametroInvalido(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ErrorResponse> handleTipoParametroInvalido(
+            MethodArgumentTypeMismatchException ex
+    ) {
         return crearRespuesta(
                 HttpStatus.BAD_REQUEST,
                 "El parámetro '" + ex.getName() + "' tiene un valor inválido"
@@ -53,17 +62,26 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleArgumentoInvalido(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorResponse> handleArgumentoInvalido(
+            IllegalArgumentException ex
+    ) {
         return crearRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAutenticacion(AuthenticationException ex) {
-        return crearRespuesta(HttpStatus.UNAUTHORIZED, "Se requiere un token JWT válido");
+    public ResponseEntity<ErrorResponse> handleAutenticacion(
+            AuthenticationException ex
+    ) {
+        return crearRespuesta(
+                HttpStatus.UNAUTHORIZED,
+                "Se requiere un token JWT válido"
+        );
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccesoDenegado(AccessDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleAccesoDenegado(
+            AccessDeniedException ex
+    ) {
         return crearRespuesta(
                 HttpStatus.FORBIDDEN,
                 "No tiene permisos suficientes para realizar esta operación"
@@ -71,17 +89,23 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handleRecursoNoEncontrado(RecursoNoEncontradoException ex) {
+    public ResponseEntity<ErrorResponse> handleRecursoNoEncontrado(
+            RecursoNoEncontradoException ex
+    ) {
         return crearRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ConflictoException.class)
-    public ResponseEntity<ErrorResponse> handleConflicto(ConflictoException ex) {
+    public ResponseEntity<ErrorResponse> handleConflicto(
+            ConflictoException ex
+    ) {
         return crearRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(ReglaNegocioException.class)
-    public ResponseEntity<ErrorResponse> handleReglaNegocio(ReglaNegocioException ex) {
+    public ResponseEntity<ErrorResponse> handleReglaNegocio(
+            ReglaNegocioException ex
+    ) {
         return crearRespuesta(
                 HttpStatus.UNPROCESSABLE_CONTENT,
                 "Unprocessable Entity",
@@ -90,16 +114,34 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleIntegridadDatos(DataIntegrityViolationException ex) {
-        if (ex.getMostSpecificCause().getMessage() != null
-                && ex.getMostSpecificCause().getMessage().contains("UQ_Guias_ProveedorNumero")) {
-            return crearRespuesta(HttpStatus.CONFLICT,
-                    "La guía de remisión ya está registrada para este proveedor");
+    public ResponseEntity<ErrorResponse> handleIntegridadDatos(
+            DataIntegrityViolationException ex
+    ) {
+        String causa = ex.getMostSpecificCause().getMessage();
+
+        if (causa != null
+                && causa.contains("UQ_Proveedores_PrefijoGuia")) {
+            return crearRespuesta(
+                    HttpStatus.CONFLICT,
+                    "prefijoGuia: Este prefijo ya pertenece a otro proveedor."
+            );
         }
-        if (ex.getMostSpecificCause().getMessage() != null
-                && ex.getMostSpecificCause().getMessage().contains("UQ_Usuarios_Telefono")) {
-            return crearRespuesta(HttpStatus.CONFLICT, "telefono: El teléfono ya se encuentra registrado por otro usuario");
+
+        if (causa != null && causa.contains("UQ_Guias_ProveedorNumero")) {
+            return crearRespuesta(
+                    HttpStatus.CONFLICT,
+                    "numeroGuiaRemision: La guía de remisión ya está "
+                            + "registrada para este proveedor"
+            );
         }
+
+        if (causa != null && causa.contains("UQ_Usuarios_Telefono")) {
+            return crearRespuesta(
+                    HttpStatus.CONFLICT,
+                    "telefono: El teléfono ya se encuentra registrado por otro usuario"
+            );
+        }
+
         return crearRespuesta(
                 HttpStatus.CONFLICT,
                 "La operación entra en conflicto con datos existentes"
@@ -107,7 +149,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+    public ResponseEntity<ErrorResponse> handleRuntimeException(
+            RuntimeException ex
+    ) {
         return crearRespuesta(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Se produjo un error interno en el servidor"
@@ -122,20 +166,25 @@ public class GlobalExceptionHandler {
         );
     }
 
-    private ResponseEntity<ErrorResponse> crearRespuesta(HttpStatus estado, String mensaje) {
+    private ResponseEntity<ErrorResponse> crearRespuesta(
+            HttpStatus estado,
+            String mensaje
+    ) {
         return crearRespuesta(estado, estado.getReasonPhrase(), mensaje);
     }
 
     private ResponseEntity<ErrorResponse> crearRespuesta(
             HttpStatus estado,
             String descripcion,
-            String mensaje) {
+            String mensaje
+    ) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 estado.value(),
                 descripcion,
                 mensaje
         );
+
         return new ResponseEntity<>(error, estado);
     }
 }

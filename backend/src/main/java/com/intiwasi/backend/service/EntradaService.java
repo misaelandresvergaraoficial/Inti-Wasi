@@ -13,8 +13,8 @@ import com.intiwasi.backend.entity.OrdenCompra;
 import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
-import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ConflictoException;
+import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
@@ -24,6 +24,7 @@ import com.intiwasi.backend.repository.OrdenCompraRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EntradaService {
+
     private final EntradaRepository entradaRepository;
     private final GuiaRemisionRepository guiaRepository;
     private final DocumentoRepository documentoRepository;
@@ -54,7 +56,9 @@ public class EntradaService {
 
     @Transactional(readOnly = true)
     public List<EntradaResponse> listar() {
-        return entradaRepository.findAllConRelaciones().stream().map(this::convertir).toList();
+        return entradaRepository.findAllConRelaciones().stream()
+                .map(this::convertir)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -71,57 +75,125 @@ public class EntradaService {
     public EntradaResponse actualizar(Integer id, EntradaRequest request) {
         validarRequest(request);
         validarMotivoCorreccion(request.getMotivoCorreccion());
+
         Entrada original = buscarEntrada(id);
-        if (!original.getGuia().getNumeroGuia().equalsIgnoreCase(request.getNumeroGuiaRemision().trim())) {
-            throw new ReglaNegocioException("La rectificación debe conservar la guía de remisión original");
+
+        if (!original.getGuia().getNumeroGuia().equalsIgnoreCase(
+                request.getNumeroGuiaRemision().trim()
+        )) {
+            throw new ReglaNegocioException(
+                    "La rectificación debe conservar la guía de remisión original"
+            );
         }
+
         if (!original.getOrdenCompra().getIdOrden().equals(request.getIdOrden())) {
-            throw new ReglaNegocioException("La entrada corregida debe pertenecer a la misma orden");
+            throw new ReglaNegocioException(
+                    "La entrada corregida debe pertenecer a la misma orden"
+            );
         }
-        OrdenCompra ordenActual = ordenCompraRepository.findByIdConDetallesForUpdate(request.getIdOrden())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada"));
+
+        OrdenCompra ordenActual = ordenCompraRepository
+                .findByIdConDetallesForUpdate(request.getIdOrden())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Orden de compra no encontrada"
+                ));
+
         if ("Cancelada".equals(ordenActual.getEstado())) {
             Map<Integer, Integer> cantidadesOriginales = movimientoRepository
-                    .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(original.getDocumento().getIdDocumento())
-                    .stream().collect(Collectors.toMap(m -> m.getProducto().getIdProducto(), m -> m.getCantidad()));
+                    .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(
+                            original.getDocumento().getIdDocumento()
+                    )
+                    .stream()
+                    .collect(Collectors.toMap(
+                            movimiento -> movimiento.getProducto().getIdProducto(),
+                            MovimientoInventario::getCantidad
+                    ));
+
             for (MovimientoRequest item : request.getMovimientos()) {
-                if (item.getCantidad() > cantidadesOriginales.getOrDefault(item.getIdProducto(), 0)) {
-                    throw new ReglaNegocioException("Una orden cancelada no admite aumentar la cantidad recibida");
+                if (item.getCantidad() > cantidadesOriginales.getOrDefault(
+                        item.getIdProducto(), 0
+                )) {
+                    throw new ReglaNegocioException(
+                            "Una orden cancelada no admite aumentar la cantidad recibida"
+                    );
                 }
             }
         }
-        Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
-                TipoDocumento.ENTRADA, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
+
+        Documento origen = correccionService.revertir(
+                original.getDocumento().getIdDocumento(),
+                TipoDocumento.ENTRADA,
+                usuarioActual(),
+                request.getMotivoCorreccion(),
+                (byte) 2
+        );
+
         return registrarInterno(request, origen, original.getGuia());
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void anular(Integer id, String motivo) {
         Entrada original = buscarEntrada(id);
-        ordenCompraRepository.findByIdConDetallesForUpdate(original.getOrdenCompra().getIdOrden())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada"));
-        correccionService.revertir(original.getDocumento().getIdDocumento(),
-                TipoDocumento.ENTRADA, usuarioActual(), motivo, (byte) 0);
+
+        ordenCompraRepository.findByIdConDetallesForUpdate(
+                        original.getOrdenCompra().getIdOrden()
+                )
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Orden de compra no encontrada"
+                ));
+
+        correccionService.revertir(
+                original.getDocumento().getIdDocumento(),
+                TipoDocumento.ENTRADA,
+                usuarioActual(),
+                motivo,
+                (byte) 0
+        );
     }
 
-    private EntradaResponse registrarInterno(EntradaRequest request, Documento origen,
-                                            GuiaRemision guiaOriginal) {
+    private EntradaResponse registrarInterno(
+            EntradaRequest request,
+            Documento origen,
+            GuiaRemision guiaOriginal
+    ) {
         validarRequest(request);
-        OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(request.getIdOrden())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Orden de compra no encontrada con ID: " + request.getIdOrden()));
 
-        if (origen == null && !Set.of("Pendiente", "Parcial").contains(orden.getEstado())) {
-            throw new ReglaNegocioException("La orden de compra no admite nuevas recepciones");
+        OrdenCompra orden = ordenCompraRepository
+                .findByIdConDetallesForUpdate(request.getIdOrden())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Orden de compra no encontrada con ID: " + request.getIdOrden()
+                ));
+
+        if (origen == null
+                && !Set.of("Pendiente", "Parcial").contains(orden.getEstado())) {
+            throw new ReglaNegocioException(
+                    "La orden de compra no admite nuevas recepciones"
+            );
         }
 
         GuiaRemision guia;
+
         if (origen == null) {
-            String numero = request.getNumeroGuiaRemision().trim();
+            entityManager.lock(
+                    orden.getProveedor(),
+                    LockModeType.PESSIMISTIC_WRITE
+            );
+            entityManager.refresh(orden.getProveedor());
+
+            String numero = GuiaRemisionFormato.validarNueva(
+                    request.getNumeroGuiaRemision(),
+                    orden.getProveedor().getPrefijoGuia()
+            );
+
             if (guiaRepository.existsByProveedor_IdProveedorAndNumeroGuia(
-                    orden.getProveedor().getIdProveedor(), numero)) {
-                throw new ConflictoException("La guía de remisión ya está registrada para este proveedor");
+                    orden.getProveedor().getIdProveedor(), numero
+            )) {
+                throw new ConflictoException(
+                        "numeroGuiaRemision: La guía de remisión ya está "
+                                + "registrada para este proveedor"
+                );
             }
+
             guia = new GuiaRemision();
             guia.setProveedor(orden.getProveedor());
             guia.setNumeroGuia(numero);
@@ -130,32 +202,67 @@ public class EntradaService {
             guia = guiaOriginal;
         }
 
-        Map<Integer, DetalleOrdenCompra> detallePorProducto = orden.getDetalles().stream()
-                .collect(Collectors.toMap(d -> d.getProducto().getIdProducto(), Function.identity()));
-        List<Integer> ids = request.getMovimientos().stream().map(movimiento -> movimiento.getIdProducto()).sorted().toList();
+        Map<Integer, DetalleOrdenCompra> detallePorProducto =
+                orden.getDetalles().stream()
+                        .collect(Collectors.toMap(
+                                detalle -> detalle.getProducto().getIdProducto(),
+                                Function.identity()
+                        ));
+
+        List<Integer> ids = request.getMovimientos().stream()
+                .map(MovimientoRequest::getIdProducto)
+                .sorted()
+                .toList();
+
         List<Producto> bloqueados = productoRepository.findAllByIdForUpdate(ids);
+
         if (bloqueados.size() != ids.size()) {
-            throw new RecursoNoEncontradoException("Uno o más productos no existen");
+            throw new RecursoNoEncontradoException(
+                    "Uno o más productos no existen"
+            );
         }
+
         Map<Integer, Producto> productos = bloqueados.stream()
-                .collect(Collectors.toMap(producto -> producto.getIdProducto(), Function.identity()));
+                .collect(Collectors.toMap(
+                        Producto::getIdProducto,
+                        Function.identity()
+                ));
 
         for (MovimientoRequest movimiento : request.getMovimientos()) {
             Producto producto = productos.get(movimiento.getIdProducto());
+
             if (!Byte.valueOf((byte) 1).equals(producto.getEstado())) {
-                throw new ReglaNegocioException("El producto está inactivo: " + producto.getIdProducto());
+                throw new ReglaNegocioException(
+                        "El producto está inactivo: " + producto.getIdProducto()
+                );
             }
-            DetalleOrdenCompra detalle = detallePorProducto.get(producto.getIdProducto());
+
+            DetalleOrdenCompra detalle = detallePorProducto.get(
+                    producto.getIdProducto()
+            );
+
             if (detalle == null) {
-                throw new ReglaNegocioException("El producto no pertenece a la orden de compra: " + producto.getIdProducto());
+                throw new ReglaNegocioException(
+                        "El producto no pertenece a la orden de compra: "
+                                + producto.getIdProducto()
+                );
             }
-            int recibida = entradaRepository.cantidadRecibida(orden.getIdOrden(), producto.getIdProducto());
+
+            int recibida = entradaRepository.cantidadRecibida(
+                    orden.getIdOrden(), producto.getIdProducto()
+            );
+
             if (recibida + movimiento.getCantidad() > detalle.getCantidad()) {
-                throw new ReglaNegocioException("La cantidad recibida supera el saldo de la orden para el producto: " + producto.getIdProducto());
+                throw new ReglaNegocioException(
+                        "La cantidad recibida supera el saldo de la orden "
+                                + "para el producto: " + producto.getIdProducto()
+                );
             }
         }
 
-        Documento documento = nuevoDocumento(TipoDocumento.ENTRADA, usuarioActual());
+        Documento documento = nuevoDocumento(
+                TipoDocumento.ENTRADA, usuarioActual()
+        );
         documento.setDocumentoOrigen(origen);
         documento = documentoRepository.saveAndFlush(documento);
 
@@ -173,76 +280,136 @@ public class EntradaService {
             movimiento.setCantidad(item.getCantidad());
             movimientoRepository.save(movimiento);
         }
+
         movimientoRepository.flush();
 
         Integer idEntrada = entrada.getIdEntrada();
         entityManager.clear();
+
         return convertir(buscarEntrada(idEntrada));
     }
 
     private Entrada buscarEntrada(Integer id) {
         return entradaRepository.findByIdConRelaciones(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Entrada no encontrada con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Entrada no encontrada con ID: " + id
+                ));
     }
 
     private EntradaResponse convertir(Entrada entrada) {
         List<MovimientoResponse> movimientos = movimientoRepository
-                .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(entrada.getDocumento().getIdDocumento())
-                .stream().map(this::convertirMovimiento).toList();
+                .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(
+                        entrada.getDocumento().getIdDocumento()
+                )
+                .stream()
+                .map(this::convertirMovimiento)
+                .toList();
+
         return EntradaResponse.builder()
                 .idEntrada(entrada.getIdEntrada())
                 .idDocumento(entrada.getDocumento().getIdDocumento())
                 .idOrden(entrada.getOrdenCompra().getIdOrden())
                 .numeroGuiaRemision(entrada.getGuia().getNumeroGuia())
                 .estadoDocumento(entrada.getDocumento().getEstado())
-                .idDocumentoOrigen(entrada.getDocumento().getDocumentoOrigen() == null ? null
-                        : entrada.getDocumento().getDocumentoOrigen().getIdDocumento())
+                .idDocumentoOrigen(
+                        entrada.getDocumento().getDocumentoOrigen() == null
+                                ? null
+                                : entrada.getDocumento()
+                                        .getDocumentoOrigen()
+                                        .getIdDocumento()
+                )
                 .observaciones(entrada.getObservaciones())
                 .fechaEmision(entrada.getDocumento().getFechaEmision())
                 .idUsuario(entrada.getDocumento().getUsuario().getIdUsuario())
-                .usuarioResponsable(entrada.getDocumento().getUsuario().getNomUsuario())
+                .usuarioResponsable(
+                        entrada.getDocumento().getUsuario().getNomUsuario()
+                )
                 .estadoOrden(entrada.getOrdenCompra().getEstado())
                 .movimientos(movimientos)
                 .build();
     }
 
-    private MovimientoResponse convertirMovimiento(MovimientoInventario movimiento) {
-        Producto p = movimiento.getProducto();
-        return MovimientoResponse.builder().idMovimiento(movimiento.getIdMovimiento())
-                .idProducto(p.getIdProducto()).sku(p.getSku()).nomProducto(p.getNomProducto())
-                .cantidad(movimiento.getCantidad()).stockActual(p.getStockActual()).build();
+    private MovimientoResponse convertirMovimiento(
+            MovimientoInventario movimiento
+    ) {
+        Producto producto = movimiento.getProducto();
+
+        return MovimientoResponse.builder()
+                .idMovimiento(movimiento.getIdMovimiento())
+                .idProducto(producto.getIdProducto())
+                .sku(producto.getSku())
+                .nomProducto(producto.getNomProducto())
+                .cantidad(movimiento.getCantidad())
+                .stockActual(producto.getStockActual())
+                .build();
     }
 
     private void validarRequest(EntradaRequest request) {
         if (request == null || request.getIdOrden() == null) {
-            throw new IllegalArgumentException("La orden de compra es obligatoria");
+            throw new IllegalArgumentException(
+                    "La orden de compra es obligatoria"
+            );
         }
-        if (request.getNumeroGuiaRemision() == null || request.getNumeroGuiaRemision().isBlank()
+
+        if (request.getNumeroGuiaRemision() == null
+                || request.getNumeroGuiaRemision().isBlank()
                 || request.getNumeroGuiaRemision().length() > 50) {
-            throw new IllegalArgumentException("El número de guía de remisión es obligatorio y no debe exceder 50 caracteres");
+            throw new IllegalArgumentException(
+                    "El número de guía de remisión es obligatorio "
+                            + "y no debe exceder 50 caracteres"
+            );
         }
+
         validarMovimientos(request.getMovimientos());
     }
 
     private void validarMovimientos(List<MovimientoRequest> movimientos) {
         if (movimientos == null || movimientos.isEmpty()) {
-            throw new IllegalArgumentException("Debe incluir al menos un movimiento");
+            throw new IllegalArgumentException(
+                    "Debe incluir al menos un movimiento"
+            );
         }
+
         Set<Integer> ids = new HashSet<>();
-        for (MovimientoRequest m : movimientos) {
-            if (m == null || m.getIdProducto() == null) throw new IllegalArgumentException("El producto es obligatorio");
-            if (m.getCantidad() == null || m.getCantidad() <= 0) throw new IllegalArgumentException("La cantidad debe ser entera y mayor que cero");
-            if (!ids.add(m.getIdProducto())) throw new ReglaNegocioException("No se permiten productos repetidos");
+
+        for (MovimientoRequest movimiento : movimientos) {
+            if (movimiento == null || movimiento.getIdProducto() == null) {
+                throw new IllegalArgumentException("El producto es obligatorio");
+            }
+
+            if (movimiento.getCantidad() == null
+                    || movimiento.getCantidad() <= 0) {
+                throw new IllegalArgumentException(
+                        "La cantidad debe ser entera y mayor que cero"
+                );
+            }
+
+            if (!ids.add(movimiento.getIdProducto())) {
+                throw new ReglaNegocioException(
+                        "No se permiten productos repetidos"
+                );
+            }
         }
     }
 
     private Usuario usuarioActual() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            throw new AuthenticationCredentialsNotFoundException("Usuario autenticado no encontrado");
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new AuthenticationCredentialsNotFoundException(
+                    "Usuario autenticado no encontrado"
+            );
         }
-        return usuarioRepository.findByCorreoAndEstado(auth.getName(), 1)
-                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException("Usuario autenticado no encontrado"));
+
+        return usuarioRepository.findByCorreoAndEstado(
+                        authentication.getName(), 1
+                )
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException(
+                        "Usuario autenticado no encontrado"
+                ));
     }
 
     private Documento nuevoDocumento(TipoDocumento tipo, Usuario usuario) {
@@ -259,7 +426,10 @@ public class EntradaService {
 
     private void validarMotivoCorreccion(String motivo) {
         if (motivo == null || motivo.isBlank() || motivo.length() > 255) {
-            throw new IllegalArgumentException("El motivo de corrección es obligatorio y no debe exceder 255 caracteres");
+            throw new IllegalArgumentException(
+                    "El motivo de corrección es obligatorio "
+                            + "y no debe exceder 255 caracteres"
+            );
         }
     }
 }

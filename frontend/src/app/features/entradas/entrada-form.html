@@ -1,7 +1,7 @@
 <div class="breadcrumb">
-  <a routerLink="/entradas">Entradas</a><iw-icon name="next" /><span>{{
-    id === undefined ? 'Registrar' : 'Rectificar'
-  }}</span>
+  <a routerLink="/entradas">Entradas</a>
+  <iw-icon name="next" />
+  <span>{{ id === undefined ? 'Registrar' : 'Rectificar' }}</span>
 </div>
 
 <div class="page-heading">
@@ -58,7 +58,11 @@
           <label for="entrada-orden">Orden de compra</label>
 
           @if (original(); as previous) {
-            <input id="entrada-orden" readonly [value]="'N.° ' + previous.idOrden" />
+            <input
+              id="entrada-orden"
+              readonly
+              [value]="'N.° ' + previous.idOrden"
+            />
           } @else {
             <select
               id="entrada-orden"
@@ -78,11 +82,13 @@
 
           @if (original(); as previous) {
             <p class="field-description">
-              La rectificación conserva la orden N.° {{ previous.idOrden }}. Estado actual:
-              {{ order()?.estado ?? previous.estadoOrden }}.
+              La rectificación conserva la orden N.° {{ previous.idOrden }}.
+              Estado actual: {{ order()?.estado ?? previous.estadoOrden }}.
             </p>
           } @else {
-            <p class="field-description">Solo se admiten órdenes Pendientes o Parciales.</p>
+            <p class="field-description">
+              Solo se admiten órdenes Pendientes o Parciales.
+            </p>
           }
 
           @if (submitted() && !order()) {
@@ -92,33 +98,46 @@
 
         <div class="field">
           <label for="entrada-guia">Número de guía de remisión</label>
+
           <input
             id="entrada-guia"
             type="text"
             formControlName="numeroGuiaRemision"
             [readonly]="id !== undefined"
             maxlength="50"
-            [attr.aria-invalid]="
-              submitted() &&
-              (!form.controls.numeroGuiaRemision.value.trim() ||
-                form.controls.numeroGuiaRemision.invalid)
-            "
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="entrada-guia-ayuda entrada-guia-error"
+            [attr.aria-invalid]="mostrarErrorGuia()"
           />
-          <p class="field-description">
-            {{
-              id === undefined
-                ? 'Cada entrega necesita una guía nueva de este proveedor.'
-                : 'Una rectificación conserva la guía de la entrada original.'
-            }}
+
+          <p class="field-description" id="entrada-guia-ayuda">
+            @if (id !== undefined) {
+              La rectificación conserva la guía original, incluso si es anterior
+              al nuevo formato.
+            } @else if (order(); as selected) {
+              @if (selected.prefijoGuia) {
+                Proveedor: {{ selected.nomProveedor }}.
+                Prefijo obligatorio: {{ selected.prefijoGuia }}.
+                Escribe la guía completa; ejemplo de formato:
+                {{ selected.prefijoGuia }}001-000123.
+                No reutilices una guía de otra entrega.
+              } @else {
+                Este proveedor aún no tiene prefijo de guía.
+                Solicita al Administrador que lo configure.
+              }
+            } @else {
+              Selecciona una orden para conocer el proveedor y el prefijo obligatorio.
+            }
           </p>
 
-          @if (
-            submitted() &&
-            (!form.controls.numeroGuiaRemision.value.trim() ||
-              form.controls.numeroGuiaRemision.invalid)
-          ) {
-            <p class="order-field-error">Ingresa una guía de hasta 50 caracteres.</p>
-          }
+          <p
+            id="entrada-guia-error"
+            class="order-field-error"
+            aria-live="polite"
+          >
+            {{ mostrarErrorGuia() ? guiaError() : '' }}
+          </p>
         </div>
       </div>
 
@@ -142,7 +161,9 @@
             formControlName="motivoCorreccion"
             maxlength="255"
             rows="3"
-            [attr.aria-invalid]="submitted() && !form.controls.motivoCorreccion.value.trim()"
+            [attr.aria-invalid]="
+              submitted() && !form.controls.motivoCorreccion.value.trim()
+            "
           ></textarea>
 
           <p class="field-description">
@@ -164,14 +185,15 @@
         </div>
 
         <span class="badge neutral">
-          {{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}
+          {{ lines.length }}
+          {{ lines.length === 1 ? 'producto' : 'productos' }}
         </span>
       </div>
 
       @if (order(); as selected) {
         <p class="field-description">
-          Orden N.° {{ selected.idOrden }} · {{ selected.estado }}. El saldo mostrado puede cambiar
-          si otra operación se confirma antes.
+          Orden N.° {{ selected.idOrden }} · {{ selected.estado }}.
+          El saldo mostrado puede cambiar si otra operación se confirma antes.
         </p>
       }
 
@@ -188,7 +210,8 @@
                   formControlName="idProducto"
                   (change)="lineErrors.set({})"
                   [attr.aria-invalid]="
-                    submitted() && (line.controls.idProducto.invalid || duplicate(index))
+                    submitted() &&
+                    (line.controls.idProducto.invalid || duplicate(index))
                   "
                 >
                   <option [ngValue]="0">Selecciona un producto</option>
@@ -201,11 +224,15 @@
                 </select>
 
                 @if (duplicate(index)) {
-                  <p class="order-field-error">Este producto ya está en la recepción.</p>
+                  <p class="order-field-error">
+                    Este producto ya está en la recepción.
+                  </p>
                 }
 
                 @if (submitted() && line.controls.idProducto.invalid) {
-                  <p class="order-field-error">Selecciona un producto pendiente de esta orden.</p>
+                  <p class="order-field-error">
+                    Selecciona un producto pendiente de esta orden.
+                  </p>
                 }
               </div>
 
@@ -220,25 +247,36 @@
                   (input)="clearLineError(line.controls.idProducto.value)"
                   [attr.aria-invalid]="
                     submitted() &&
-                    (line.controls.cantidad.invalid ||
-                      line.controls.cantidad.value > balance(line.controls.idProducto.value) ||
-                      !!lineErrors()[line.controls.idProducto.value])
+                    (
+                      line.controls.cantidad.invalid ||
+                      line.controls.cantidad.value >
+                        balance(line.controls.idProducto.value) ||
+                      !!lineErrors()[line.controls.idProducto.value]
+                    )
                   "
                 />
 
                 @if (submitted() && line.controls.cantidad.invalid) {
-                  <p class="order-field-error">Ingresa un entero mayor que cero.</p>
+                  <p class="order-field-error">
+                    Ingresa un entero mayor que cero.
+                  </p>
                 }
 
                 @if (
                   submitted() &&
                   !line.controls.cantidad.invalid &&
                   !lineErrors()[line.controls.idProducto.value] &&
-                  line.controls.cantidad.value > balance(line.controls.idProducto.value)
+                  line.controls.cantidad.value >
+                    balance(line.controls.idProducto.value)
                 ) {
                   <p class="order-field-error">
-                    Supera el máximo de {{ balance(line.controls.idProducto.value) }}
-                    {{ balance(line.controls.idProducto.value) === 1 ? 'unidad' : 'unidades' }}.
+                    Supera el máximo de
+                    {{ balance(line.controls.idProducto.value) }}
+                    {{
+                      balance(line.controls.idProducto.value) === 1
+                        ? 'unidad'
+                        : 'unidades'
+                    }}.
                   </p>
                 }
 
@@ -263,12 +301,10 @@
                   <dt>Pedido</dt>
                   <dd>{{ item.cantidad }}</dd>
                 </div>
-
                 <div>
                   <dt>Recibido antes</dt>
                   <dd>{{ item.cantidadRecibida }}</dd>
                 </div>
-
                 <div>
                   <dt>Pendiente actual</dt>
                   <dd>{{ item.cantidadPorRecibir }}</dd>
@@ -288,8 +324,8 @@
                   {{ originalQuantity(item.idProducto) }} unidades.
 
                   @if (order()?.estado === 'Cancelada') {
-                    La orden cancelada no se reabre; solo puedes sustituir hasta lo recibido en la
-                    entrada original.
+                    La orden cancelada no se reabre; solo puedes sustituir hasta
+                    lo recibido en la entrada original.
                   } @else {
                     Por eso el máximo puede superar el pendiente actual.
                   }
@@ -300,15 +336,34 @@
         }
       </div>
 
-      <button mat-stroked-button type="button" [disabled]="!order() || busy()" (click)="addLine()">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="!order() || busy()"
+        (click)="addLine()"
+      >
         <iw-icon name="plus" />Agregar producto
       </button>
     </section>
 
     <div class="form-actions">
       <a mat-button routerLink="/entradas">Cancelar</a>
-      <button mat-flat-button type="submit" [disabled]="busy() || !order()">
-        {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar entrada' : 'Rectificar entrada' }}
+      <button
+        mat-flat-button
+        type="submit"
+        [disabled]="
+          busy() ||
+          !order() ||
+          form.controls.numeroGuiaRemision.invalid
+        "
+      >
+        {{
+          busy()
+            ? 'Guardando…'
+            : id === undefined
+              ? 'Registrar entrada'
+              : 'Rectificar entrada'
+        }}
       </button>
     </div>
   </form>
