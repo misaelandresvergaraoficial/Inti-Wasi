@@ -59,10 +59,38 @@
         <option value="0">Anulado</option>
       </select>
     </div>
-    @if (query() || status()) {
-      <button mat-button (click)="search(''); filterStatus('')">Limpiar filtros</button>
+    <div class="status-filter">
+      <label for="salida-desde">Desde</label
+      ><input
+        id="salida-desde"
+        type="date"
+        [value]="desde()"
+        (change)="changeDate('desde', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="salida-hasta">Hasta</label
+      ><input
+        id="salida-hasta"
+        type="date"
+        [value]="hasta()"
+        (change)="changeDate('hasta', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="salida-orden">Orden de emisión</label
+      ><select id="salida-orden" [value]="sort()" (change)="changeSort($any($event.target).value)">
+        <option value="desc">Más recientes primero</option>
+        <option value="asc">Más antiguos primero</option>
+      </select>
+    </div>
+    @if (query() || status() || desde() || hasta() || sort() !== 'desc') {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
     }
   </div>
+  @if (dateError()) {
+    <div class="notice error" role="alert">{{ dateError() }}</div>
+  }
   @if (loading()) {
     <div class="empty-state" role="status">
       <span class="loading-line"></span>
@@ -70,6 +98,8 @@
     </div>
   } @else if (error()) {
     <div class="empty-state"><p>No se pudo cargar el listado.</p></div>
+  } @else if (dateError()) {
+    <div class="empty-state"><p>Corrige el rango de fechas para consultar las salidas.</p></div>
   } @else if (!filtered().length) {
     <div class="empty-state">
       <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay salidas' }}</h3>
@@ -98,7 +128,11 @@
               <td>{{ record.motivo }}</td>
               <td>{{ date(record.fechaEmision) }}</td>
               <td>{{ record.usuarioResponsable }}</td>
-              <td>{{ estado(record.estadoDocumento) }}</td>
+              <td>
+                <span class="badge status-badge" [attr.data-state]="record.estadoDocumento">{{
+                  estado(record.estadoDocumento)
+                }}</span>
+              </td>
               <td><a mat-button [routerLink]="['/salidas', record.idSalida]">Ver detalle</a></td>
             </tr>
           }

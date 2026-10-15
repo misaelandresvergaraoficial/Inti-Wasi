@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/documentos")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('Administrador')")
+@PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
 public class DocumentoController {
     private final DocumentoConsultaService documentoConsultaService;
 

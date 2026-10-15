@@ -10,6 +10,7 @@ import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.Salida;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
+import com.intiwasi.backend.entity.enums.MotivoSalida;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
@@ -64,6 +65,14 @@ public class SalidaService {
         validarRequest(request);
         validarMotivoCorreccion(request.getMotivoCorreccion());
         Salida original = buscar(id);
+        Set<Integer> originales = movimientoRepository
+                .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(original.getDocumento().getIdDocumento())
+                .stream().map(m -> m.getProducto().getIdProducto()).collect(Collectors.toSet());
+        Set<Integer> nuevos = request.getMovimientos().stream()
+                .map(MovimientoRequest::getIdProducto).collect(Collectors.toSet());
+        if (!originales.equals(nuevos)) {
+            throw new ReglaNegocioException("La rectificación debe conservar los mismos productos de la salida original");
+        }
         Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
                 TipoDocumento.SALIDA, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
         return registrarInterno(request, origen);
@@ -154,6 +163,9 @@ public class SalidaService {
     private void validarRequest(SalidaRequest request) {
         if (request == null || request.getMotivo() == null) throw new IllegalArgumentException("El motivo de salida es obligatorio");
         if (request.getObservaciones() != null && request.getObservaciones().length() > 255) throw new IllegalArgumentException("Las observaciones no deben exceder 255 caracteres");
+        if (request.getMotivo() == MotivoSalida.OTRO && normalizar(request.getObservaciones()) == null) {
+            throw new IllegalArgumentException("Las observaciones son obligatorias cuando el motivo es Otro");
+        }
         validarMovimientos(request.getMovimientos());
     }
 

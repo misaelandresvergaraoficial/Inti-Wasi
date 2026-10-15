@@ -152,7 +152,7 @@ export class CategoriaForm implements PendingChanges {
         this.categoryId,
       );
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `${categoria.nomCategoria}: ${
           this.isEdit() ? 'cambios guardados' : 'categoría creada correctamente'
         }.${willDeactivateProducts ? ' Los productos activos de esta categoría se desactivaron.' : ''}`,

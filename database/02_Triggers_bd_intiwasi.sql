@@ -208,25 +208,38 @@ BEGIN
     DECLARE v_Origen INT;
     DECLARE v_OrdenOrigen INT;
     DECLARE v_EstadoOrden VARCHAR(20);
+    DECLARE v_ProveedorOrden INT;
+    DECLARE v_ProveedorGuia INT;
+    DECLARE v_GuiaOrigen INT;
 
     SELECT TipoDocumento, IdDocumentoOrigen INTO v_Tipo, v_Origen
       FROM Documentos WHERE IdDocumento = NEW.IdDocumento;
     IF v_Tipo IS NULL OR v_Tipo <> 'Entrada' THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La entrada requiere un documento de tipo Entrada.';
     END IF;
-    SELECT Estado INTO v_EstadoOrden
+    SELECT Estado, IdProveedor INTO v_EstadoOrden, v_ProveedorOrden
       FROM OrdenesCompra WHERE IdOrden = NEW.IdOrden FOR UPDATE;
     IF v_EstadoOrden IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La orden de compra no existe.';
+    END IF;
+    SELECT IdProveedor INTO v_ProveedorGuia FROM GuiasRemision WHERE IdGuia = NEW.IdGuia;
+    IF v_ProveedorGuia IS NULL OR v_ProveedorGuia <> v_ProveedorOrden THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La guia no pertenece al proveedor de la orden.';
     END IF;
     IF v_Origen IS NULL AND v_EstadoOrden NOT IN ('Pendiente', 'Parcial') THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La orden no admite nuevas recepciones.';
     END IF;
     IF v_Origen IS NOT NULL THEN
-        SELECT IdOrden INTO v_OrdenOrigen FROM Entradas WHERE IdDocumento = v_Origen;
+        SELECT IdOrden, IdGuia INTO v_OrdenOrigen, v_GuiaOrigen
+          FROM Entradas WHERE IdDocumento = v_Origen;
         IF v_OrdenOrigen IS NULL OR v_OrdenOrigen <> NEW.IdOrden THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La entrada corregida debe pertenecer a la misma orden.';
         END IF;
+        IF v_GuiaOrigen <> NEW.IdGuia THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La rectificacion debe conservar la guia original.';
+        END IF;
+    ELSEIF EXISTS (SELECT 1 FROM Entradas WHERE IdGuia = NEW.IdGuia) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La guia ya tiene una entrega registrada.';
     END IF;
 END //
 
@@ -234,6 +247,9 @@ CREATE TRIGGER TRG_Salidas_BeforeInsert
 BEFORE INSERT ON Salidas
 FOR EACH ROW
 BEGIN
+    IF NEW.Motivo = 'Otro' AND (NEW.Observaciones IS NULL OR CHAR_LENGTH(TRIM(NEW.Observaciones)) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Las observaciones son obligatorias para Otro.';
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM Documentos
                     WHERE IdDocumento = NEW.IdDocumento AND TipoDocumento = 'Salida') THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La salida requiere un documento de tipo Salida.';

@@ -84,13 +84,9 @@ public class CategoriaService {
         return convertirAResponse(aplicarEstado(categoriaExistente, estado));
     }
 
-    /**
-     * Aplica el nuevo estado a la categoría y, cuando se desactiva, propaga la
-     * desactivación a todos los productos activos que pertenecen a ella, ya que
-     * un producto no puede permanecer activo bajo una categoría inactiva.
-     */
     private Categoria aplicarEstado(Categoria categoria, Integer nuevoEstado) {
         boolean seDesactiva = categoria.getEstado() == 1 && nuevoEstado == 0;
+        boolean seReactiva = categoria.getEstado() == 0 && nuevoEstado == 1;
 
         categoria.setEstado(nuevoEstado.byteValue());
         Categoria guardada = categoriaRepository.save(categoria);
@@ -98,7 +94,18 @@ public class CategoriaService {
         if (seDesactiva) {
             List<Producto> productosAfectados = productoRepository
                     .findByCategoria_IdCategoriaAndEstado(guardada.getIdCategoria(), (byte) 1);
-            productosAfectados.forEach(producto -> producto.setEstado((byte) 0));
+            productosAfectados.forEach(producto -> {
+                producto.setEstado((byte) 0);
+                producto.setDesactivadoPorCategoria((byte) 1);
+            });
+            productoRepository.saveAll(productosAfectados);
+        } else if (seReactiva) {
+            List<Producto> productosAfectados = productoRepository
+                    .findByCategoria_IdCategoriaAndDesactivadoPorCategoria(guardada.getIdCategoria(), (byte) 1);
+            productosAfectados.forEach(producto -> {
+                producto.setEstado((byte) 1);
+                producto.setDesactivadoPorCategoria((byte) 0);
+            });
             productoRepository.saveAll(productosAfectados);
         }
 

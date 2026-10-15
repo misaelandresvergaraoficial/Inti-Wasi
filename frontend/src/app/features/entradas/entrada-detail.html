@@ -54,7 +54,9 @@
           }
         </p>
       </div>
-      <span class="badge neutral">{{ estado(item.estadoDocumento) }}</span>
+      <span class="badge status-badge" [attr.data-state]="item.estadoDocumento">{{
+        estado(item.estadoDocumento)
+      }}</span>
     </div>
     <dl class="order-facts">
       <div>

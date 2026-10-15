@@ -57,4 +57,8 @@ public class Producto {
     @Column(name = "Estado", nullable = false)
     private Byte estado;
 
+    @Builder.Default
+    @Column(name = "DesactivadoPorCategoria", nullable = false)
+    private Byte desactivadoPorCategoria = (byte) 0;
+
 }

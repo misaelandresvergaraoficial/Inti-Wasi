@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { DocumentoResponse, nombreEstadoDocumento } from '../../core/documento-models';
+import { enRangoDeEmision, ordenarPorEmision, OrdenEmision } from '../../core/emission-filter';
 import { DocumentosService } from '../../core/documentos.service';
 import { Icon } from '../../shared/icon';
 
@@ -18,18 +19,32 @@ export class DocumentosList {
   readonly query = signal('');
   readonly tipo = signal('');
   readonly estadoFiltro = signal('');
+  readonly desde = signal('');
+  readonly hasta = signal('');
+  readonly sort = signal<OrdenEmision>('desc');
+  readonly dateError = computed(() =>
+    this.desde() && this.hasta() && this.desde() > this.hasta()
+      ? 'La fecha inicial no puede ser posterior a la fecha final.'
+      : '',
+  );
   readonly page = signal(0);
   readonly pageSize = 10;
   readonly estado = nombreEstadoDocumento;
   readonly filtered = computed(() => {
+    if (this.dateError()) return [];
     const search = this.query().trim().toLocaleLowerCase();
-    return this.records().filter(
-      (item) =>
-        (!this.tipo() || item.tipoDocumento === this.tipo()) &&
-        (!this.estadoFiltro() || String(item.estado) === this.estadoFiltro()) &&
-        (String(item.idDocumento).includes(search) ||
-          item.usuarioResponsable.toLocaleLowerCase().includes(search) ||
-          String(item.idDocumentoOrigen ?? '').includes(search)),
+    return ordenarPorEmision(
+      this.records().filter(
+        (item) =>
+          (!this.tipo() || item.tipoDocumento === this.tipo()) &&
+          (!this.estadoFiltro() || String(item.estado) === this.estadoFiltro()) &&
+          enRangoDeEmision(item.fechaEmision, this.desde(), this.hasta()) &&
+          (String(item.idDocumento).includes(search) ||
+            item.usuarioResponsable.toLocaleLowerCase().includes(search) ||
+            String(item.idDocumentoOrigen ?? '').includes(search)),
+      ),
+      this.sort(),
+      (item) => item.idDocumento,
     );
   });
   readonly pages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize)));
@@ -71,6 +86,18 @@ export class DocumentosList {
     this.query.set('');
     this.tipo.set('');
     this.estadoFiltro.set('');
+    this.desde.set('');
+    this.hasta.set('');
+    this.sort.set('desc');
+    this.page.set(0);
+  }
+
+  changeDate(field: 'desde' | 'hasta', value: string): void {
+    (field === 'desde' ? this.desde : this.hasta).set(value);
+    this.page.set(0);
+  }
+  changeSort(value: OrdenEmision): void {
+    this.sort.set(value);
     this.page.set(0);
   }
 

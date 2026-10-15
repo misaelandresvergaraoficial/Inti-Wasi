@@ -10,8 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import com.intiwasi.backend.entity.enums.TipoDocumento;
 
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
+    Optional<Documento> findByDocumentoOrigen_IdDocumentoAndTipoDocumento(Integer idDocumento, TipoDocumento tipo);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"usuario", "documentoOrigen"})
     @Query("select d from Documento d where d.idDocumento = :id")

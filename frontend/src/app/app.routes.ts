@@ -58,7 +58,8 @@ export const routes: Routes = [
       {
         path: 'entradas',
         title: 'Entradas · Inti Wasi',
-        loadComponent: () => import('./features/entradas/entradas-list').then((m) => m.EntradasList),
+        loadComponent: () =>
+          import('./features/entradas/entradas-list').then((m) => m.EntradasList),
       },
       {
         path: 'entradas/nueva',
@@ -75,7 +76,8 @@ export const routes: Routes = [
       {
         path: 'entradas/:id',
         title: 'Detalle de entrada · Inti Wasi',
-        loadComponent: () => import('./features/entradas/entrada-detail').then((m) => m.EntradaDetail),
+        loadComponent: () =>
+          import('./features/entradas/entrada-detail').then((m) => m.EntradaDetail),
       },
       {
         path: 'salidas',
@@ -128,26 +130,26 @@ export const routes: Routes = [
       {
         path: 'documentos',
         title: 'Documentos · Inti Wasi',
-        canActivate: [adminGuard],
-        loadComponent: () => import('./features/documentos/documentos-list').then((m) => m.DocumentosList),
+        loadComponent: () =>
+          import('./features/documentos/documentos-list').then((m) => m.DocumentosList),
       },
       {
         path: 'documentos/:id',
         title: 'Detalle de documento · Inti Wasi',
-        canActivate: [adminGuard],
-        loadComponent: () => import('./features/documentos/documento-detail').then((m) => m.DocumentoDetail),
+        loadComponent: () =>
+          import('./features/documentos/documento-detail').then((m) => m.DocumentoDetail),
       },
       {
         path: 'movimientos',
         title: 'Movimientos · Inti Wasi',
-        canActivate: [adminGuard],
-        loadComponent: () => import('./features/movimientos/movimientos-list').then((m) => m.MovimientosList),
+        loadComponent: () =>
+          import('./features/movimientos/movimientos-list').then((m) => m.MovimientosList),
       },
       {
         path: 'movimientos/:id',
         title: 'Detalle de movimiento · Inti Wasi',
-        canActivate: [adminGuard],
-        loadComponent: () => import('./features/movimientos/movimiento-detail').then((m) => m.MovimientoDetail),
+        loadComponent: () =>
+          import('./features/movimientos/movimiento-detail').then((m) => m.MovimientoDetail),
       },
       {
         path: 'ordenes-compra/nueva',
@@ -199,7 +201,8 @@ export const routes: Routes = [
         path: 'categorias',
         title: 'Categorías · Inti Wasi',
         canActivate: [adminGuard],
-        loadComponent: () => import('./features/categorias/categorias').then((m) => m.CategoriasList),
+        loadComponent: () =>
+          import('./features/categorias/categorias').then((m) => m.CategoriasList),
       },
       {
         path: 'categorias/nuevo',
@@ -220,29 +223,33 @@ export const routes: Routes = [
       {
         path: 'productos',
         title: 'Productos · Inti Wasi',
-        loadComponent: () => import('./features/productos/productos-list').then((m) => m.ProductosList),
+        loadComponent: () =>
+          import('./features/productos/productos-list').then((m) => m.ProductosList),
       },
       {
         path: 'productos/nuevo',
         title: 'Crear producto · Inti Wasi',
         canActivate: [adminGuard],
         canDeactivate: [changesGuard],
-        loadComponent: () => import('./features/productos/producto-form').then((m) => m.ProductoForm),
+        loadComponent: () =>
+          import('./features/productos/producto-form').then((m) => m.ProductoForm),
       },
       {
         path: 'productos/stock-bajo',
         title: 'Stock Bajo · Inti Wasi',
         canActivate: [adminGuard],
-        loadComponent: () => import('./features/productos/stock-bajo-list').then((m) => m.StockBajoList),
+        loadComponent: () =>
+          import('./features/productos/stock-bajo-list').then((m) => m.StockBajoList),
       },
       {
         path: 'productos/:id/editar',
         title: 'Editar producto · Inti Wasi',
         canActivate: [adminGuard],
         canDeactivate: [changesGuard],
-        loadComponent: () => import('./features/productos/producto-form').then((m) => m.ProductoForm),
+        loadComponent: () =>
+          import('./features/productos/producto-form').then((m) => m.ProductoForm),
       },
-      
+
       { path: '', pathMatch: 'full', redirectTo: landingRedirect },
       { path: '**', redirectTo: landingRedirect },
     ],

@@ -2,7 +2,7 @@
 
 Proyecto para la gestión y trazabilidad de inventario, compras y almacén para la Distribuidora Inti Wasi S.A.C.
 
-El frontend integra acceso por roles, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. El Administrador llega al Dashboard y el Operador al listado de órdenes tras iniciar sesión. Dashboard y reportes solo están disponibles para el Administrador; los reportes admiten filtros, paginación y exportación PDF o CSV con límite de 10 000 registros. La documentación actualizada del Grupo 03 está en `docs/documentos/`.
+El frontend integra acceso por roles, usuarios, categorías, proveedores, productos, órdenes de compra, entradas, salidas, ajustes, documentos, movimientos, dashboard y reportes. El Administrador llega al Dashboard y el Operador al listado de órdenes tras iniciar sesión. Ajustes, Dashboard y Reportes están reservados al Administrador; ambos roles consultan Documentos y Movimientos. Los reportes admiten filtros, paginación y exportación PDF o CSV con límite de 10 000 registros. La documentación del Grupo 03 está en `docs/documentos/`.
 
 ---
 
@@ -27,7 +27,13 @@ El teléfono es opcional, pero, si se informa, solo admite dígitos, debe ser ma
 
 El JWT dura ocho horas por defecto (`28800000` milisegundos). Si existe una configuración local de `JWT_EXPIRACION_MS` o `jwt.expiracion-ms`, actualízala para usar esa duración. El navegador avisa después de 15 minutos sin actividad y cierra la sesión 30 segundos después si nadie confirma; confirmar no prolonga la vigencia del JWT.
 
-Para reconstruir la base desde cero, ejecuta los cuatro scripts originales en orden. Si necesitas conservar los datos actuales, respáldalos y añade únicamente la restricción de teléfono con `ALTER TABLE Usuarios ADD CONSTRAINT UQ_Usuarios_Telefono UNIQUE (Telefono);` después de revisar que no existan duplicados. No ejecutes `01_DDL_bd_intiwasi.sql` sobre una base con datos que debas conservar.
+Para reconstruir la base desde cero, ejecuta los cuatro scripts originales en orden. Si necesitas conservar los datos actuales, respáldalos; para aplicar la regla del teléfono, revisa que no existan duplicados antes de ejecutar `ALTER TABLE Usuarios ADD CONSTRAINT UQ_Usuarios_Telefono UNIQUE (Telefono);`. No ejecutes `01_DDL_bd_intiwasi.sql` sobre una base con datos que debas conservar.
+
+### Reglas de inventario incorporadas
+
+Cada guía de remisión identifica una entrega del proveedor. `GuiasRemision` impide repetir el número para el mismo proveedor y una rectificación conserva la guía original. `Productos.DesactivadoPorCategoria` permite reactivar solo los productos que la desactivación de la categoría apagó; los que ya estaban inactivos permanecen así. En Salidas, el motivo «Otro» exige observaciones y una rectificación conserva exactamente los mismos productos, aunque cambien las cantidades.
+
+Los cuatro scripts maestros contienen estas reglas para instalaciones nuevas. Para actualizar una base **con datos**, haz primero un respaldo, comprueba si hay guías duplicadas por proveedor y adapta el esquema conservando las entradas existentes: crea `GuiasRemision`, relaciona cada entrada con su guía, incorpora `DesactivadoPorCategoria`, actualiza la vista Kardex y recrea los triggers con una cuenta MySQL que pueda hacerlo. No ejecutes el script 01 sobre datos que debas conservar. Los productos desactivados antes de incorporar el nuevo campo no se reactivan automáticamente porque no es posible saber cuáles desactivó la categoría.
 
 ### 1. Base de Datos (MySQL)
 

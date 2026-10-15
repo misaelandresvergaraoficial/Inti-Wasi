@@ -2,12 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { TipoDocumento, nombreEstadoDocumento } from '../../core/documento-models';
-import { FiltrosMovimiento, PaginaMovimientos } from '../../core/movimiento-models';
+import {
+  FiltrosMovimiento,
+  PaginaMovimientos,
+  OpcionProductoMovimiento,
+  OpcionResponsableMovimiento,
+} from '../../core/movimiento-models';
 import { MovimientosService } from '../../core/movimientos.service';
-import { ProductoResponse } from '../../core/producto-models';
-import { ProductosService } from '../../core/productos.service';
-import { UsersService } from '../../core/users.service';
-import { UsuarioResponse } from '../../core/models';
 import { Icon } from '../../shared/icon';
 
 @Component({
@@ -17,11 +18,10 @@ import { Icon } from '../../shared/icon';
 })
 export class MovimientosList {
   private readonly movimientos = inject(MovimientosService);
-  private readonly productos = inject(ProductosService);
-  private readonly usuarios = inject(UsersService);
   readonly filters = signal<FiltrosMovimiento>({});
-  readonly products = signal<ProductoResponse[]>([]);
-  readonly users = signal<UsuarioResponse[]>([]);
+  readonly products = signal<OpcionProductoMovimiento[]>([]);
+  readonly users = signal<OpcionResponsableMovimiento[]>([]);
+  readonly sort = signal<'asc' | 'desc'>('desc');
   readonly optionsError = signal('');
   readonly result = signal<PaginaMovimientos | null>(null);
   readonly page = signal(0);
@@ -45,8 +45,8 @@ export class MovimientosList {
   async loadOptions(): Promise<void> {
     this.optionsError.set('');
     const [products, users] = await Promise.allSettled([
-      this.productos.list(true),
-      this.usuarios.list(),
+      this.movimientos.productos(),
+      this.movimientos.responsables(),
     ]);
     if (products.status === 'fulfilled') this.products.set(products.value);
     if (users.status === 'fulfilled') this.users.set(users.value);
@@ -77,6 +77,13 @@ export class MovimientosList {
 
   clearFilters(): void {
     this.filters.set({});
+    this.sort.set('desc');
+    this.page.set(0);
+    void this.load();
+  }
+
+  changeSort(value: 'asc' | 'desc'): void {
+    this.sort.set(value);
     this.page.set(0);
     void this.load();
   }
@@ -91,7 +98,7 @@ export class MovimientosList {
     this.loading.set(true);
     this.error.set('');
     try {
-      const result = await this.movimientos.list(this.filters(), this.page());
+      const result = await this.movimientos.list(this.filters(), this.page(), this.sort());
       if (currentRequest === this.requestId) this.result.set(result);
     } catch (error) {
       if (currentRequest !== this.requestId) return;

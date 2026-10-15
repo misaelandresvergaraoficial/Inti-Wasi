@@ -96,6 +96,7 @@
             id="entrada-guia"
             type="text"
             formControlName="numeroGuiaRemision"
+            [readonly]="id !== undefined"
             maxlength="50"
             [attr.aria-invalid]="
               submitted() &&
@@ -103,6 +104,13 @@
                 form.controls.numeroGuiaRemision.invalid)
             "
           />
+          <p class="field-description">
+            {{
+              id === undefined
+                ? 'Cada entrega necesita una guía nueva de este proveedor.'
+                : 'Una rectificación conserva la guía de la entrada original.'
+            }}
+          </p>
 
           @if (
             submitted() &&
@@ -292,12 +300,7 @@
         }
       </div>
 
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="!order() || busy()"
-        (click)="addLine()"
-      >
+      <button mat-stroked-button type="button" [disabled]="!order() || busy()" (click)="addLine()">
         <iw-icon name="plus" />Agregar producto
       </button>
     </section>

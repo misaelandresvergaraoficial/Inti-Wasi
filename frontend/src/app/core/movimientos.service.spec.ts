@@ -84,7 +84,10 @@ describe('Consulta HTTP de Movimientos', () => {
     expect(request.request.params.get('tipoDocumento')).toBe('Correccion');
     expect(request.request.params.get('idUsuario')).toBe('1');
     expect(request.request.params.get('page')).toBe('1');
-    expect(request.request.params.get('sort')).toBe('idMovimiento,desc');
+    expect(request.request.params.getAll('sort')).toEqual([
+      'fechaEmision,desc',
+      'idMovimiento,desc',
+    ]);
     request.flush(page);
     expect((await listing).content[0].cantidadConSigno).toBe(-5);
   });

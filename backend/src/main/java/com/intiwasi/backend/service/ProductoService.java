@@ -123,6 +123,7 @@ public class ProductoService {
         producto.setSku(request.getSku());
         producto.setNomProducto(request.getNomProducto());
         producto.setCategoria(categoria);
+        producto.setDesactivadoPorCategoria((byte) 0);
         producto.setProveedor(proveedor);
         producto.setPrecio(request.getPrecio());
         producto.setStockMinimo(request.getStockMinimo());
@@ -138,6 +139,7 @@ public class ProductoService {
                         "Producto no encontrado con el ID: " + id
                 ));
         producto.setEstado((byte) 0);
+        producto.setDesactivadoPorCategoria((byte) 0);
         productoRepository.save(producto);
     }
 
@@ -158,6 +160,7 @@ public class ProductoService {
             }
         }
         producto.setEstado(estado.byteValue());
+        producto.setDesactivadoPorCategoria((byte) 0);
         Producto actualizado = productoRepository.save(producto);
         return convertirAResponse(actualizado);
     }

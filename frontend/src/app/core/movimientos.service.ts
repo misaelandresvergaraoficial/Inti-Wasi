@@ -8,6 +8,8 @@ import {
   FiltrosMovimiento,
   MovimientoConsultaResponse,
   PaginaMovimientos,
+  OpcionProductoMovimiento,
+  OpcionResponsableMovimiento,
 } from './movimiento-models';
 
 @Injectable({ providedIn: 'root' })
@@ -16,15 +18,28 @@ export class MovimientosService {
   private readonly auth = inject(AuthService);
   private readonly base = '/api/movimientos';
 
-  list(filtros: FiltrosMovimiento, page: number): Promise<PaginaMovimientos> {
+  list(
+    filtros: FiltrosMovimiento,
+    page: number,
+    orden: 'asc' | 'desc' = 'desc',
+  ): Promise<PaginaMovimientos> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', 20)
-      .set('sort', 'idMovimiento,desc');
+      .append('sort', `fechaEmision,${orden}`)
+      .append('sort', `idMovimiento,${orden}`);
     for (const [key, value] of Object.entries(filtros)) {
       if (value !== undefined && value !== '') params = params.set(key, String(value));
     }
     return this.request(this.http.get<PaginaMovimientos>(this.base, { params }));
+  }
+
+  responsables(): Promise<OpcionResponsableMovimiento[]> {
+    return this.request(this.http.get<OpcionResponsableMovimiento[]>(`${this.base}/responsables`));
+  }
+
+  productos(): Promise<OpcionProductoMovimiento[]> {
+    return this.request(this.http.get<OpcionProductoMovimiento[]>(`${this.base}/productos`));
   }
 
   get(id: number): Promise<MovimientoConsultaResponse> {

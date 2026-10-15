@@ -1,6 +1,6 @@
 # Frontend de Inti Wasi
 
-Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, usuarios, categorías, proveedores, productos, órdenes de compra, dashboard y reportes. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
+Aplicación Angular 22 integrada con la API Spring Boot de este repositorio. Implementa login, sesión, acceso por rol, usuarios, categorías, proveedores, productos, órdenes de compra, entradas, salidas, ajustes, documentos, movimientos, dashboard y reportes. Ajustes, Dashboard y Reportes requieren el rol Administrador; Documentos y Movimientos se consultan con ambos roles. Usa Angular Material/CDK, Tailwind e Inter alojada localmente.
 
 ## Ejecutar
 

@@ -261,7 +261,7 @@ export class EntradaForm implements PendingChanges {
     try {
       const saved = await this.entradas.save(request, this.id);
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `Entrada N.° ${saved.idEntrada} ${this.id === undefined ? 'registrada' : 'creada como rectificación'} correctamente.`,
       );
       await this.router.navigate(['/entradas', saved.idEntrada]);

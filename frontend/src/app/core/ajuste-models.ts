@@ -17,6 +17,7 @@ export interface AjusteResponse {
   tipoAjuste: TipoAjuste;
   motivo: string;
   observaciones: string | null;
+  motivoCorreccion?: string | null;
   fechaEmision: string;
   idUsuario: number;
   usuarioResponsable: string;

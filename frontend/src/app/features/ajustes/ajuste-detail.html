@@ -61,6 +61,14 @@
         <dt>Motivo del ajuste</dt>
         <dd>{{ item.motivo }}</dd>
       </div>
+      @if (item.motivoCorreccion) {
+        <div>
+          <dt>
+            {{ item.estadoDocumento === 0 ? 'Motivo de anulación' : 'Motivo de rectificación' }}
+          </dt>
+          <dd>{{ item.motivoCorreccion }}</dd>
+        </div>
+      }
       <div>
         <dt>Fecha de emisión</dt>
         <dd>{{ date(item.fechaEmision) }}</dd>

@@ -50,6 +50,7 @@ CREATE TABLE Productos (
     StockMinimo     INT NOT NULL DEFAULT 0,
     StockActual     INT NOT NULL DEFAULT 0,
     Estado          TINYINT NOT NULL DEFAULT 1,
+    DesactivadoPorCategoria TINYINT NOT NULL DEFAULT 0,
     CONSTRAINT UQ_Productos_SKU UNIQUE (SKU),
     CONSTRAINT FK_Productos_Categoria FOREIGN KEY (IdCategoria) REFERENCES Categorias(IdCategoria)
         ON UPDATE RESTRICT ON DELETE RESTRICT,                              
@@ -57,7 +58,18 @@ CREATE TABLE Productos (
         ON UPDATE RESTRICT ON DELETE RESTRICT,                              
     CONSTRAINT CK_Productos_Precio    CHECK (Precio >= 0),
     CONSTRAINT CK_Productos_StockMin  CHECK (StockMinimo >= 0),
-    CONSTRAINT CK_Productos_StockAct  CHECK (StockActual >= 0)
+    CONSTRAINT CK_Productos_StockAct  CHECK (StockActual >= 0),
+    CONSTRAINT CK_Productos_DesactivadoCategoria CHECK (DesactivadoPorCategoria IN (0, 1))
+) ENGINE=InnoDB;
+
+CREATE TABLE GuiasRemision (
+    IdGuia INT AUTO_INCREMENT PRIMARY KEY,
+    IdProveedor INT NOT NULL,
+    NumeroGuia VARCHAR(50) NOT NULL,
+    CONSTRAINT UQ_Guias_ProveedorNumero UNIQUE (IdProveedor, NumeroGuia),
+    CONSTRAINT FK_Guias_Proveedor FOREIGN KEY (IdProveedor) REFERENCES Proveedores(IdProveedor)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT CK_Guias_Numero CHECK (CHAR_LENGTH(TRIM(NumeroGuia)) > 0)
 ) ENGINE=InnoDB;
 
 CREATE INDEX IDX_Productos_Stock  ON Productos(StockActual, StockMinimo);
@@ -123,14 +135,15 @@ CREATE TABLE Entradas (
     IdEntrada       INT AUTO_INCREMENT PRIMARY KEY,
     IdDocumento     INT NOT NULL,
     IdOrden         INT NOT NULL,
-    NumeroGuiaRemision VARCHAR(50) NOT NULL,
+    IdGuia INT NOT NULL,
     Observaciones   VARCHAR(255),
     CONSTRAINT UQ_Entradas_Documento UNIQUE (IdDocumento),
     CONSTRAINT FK_Entrada_Documento FOREIGN KEY (IdDocumento) REFERENCES Documentos(IdDocumento)
         ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT FK_Entrada_Orden     FOREIGN KEY (IdOrden)     REFERENCES OrdenesCompra(IdOrden)
         ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT CK_Entrada_Guia CHECK (CHAR_LENGTH(TRIM(NumeroGuiaRemision)) > 0)
+    CONSTRAINT FK_Entrada_Guia FOREIGN KEY (IdGuia) REFERENCES GuiasRemision(IdGuia)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
 CREATE INDEX IDX_Entradas_Orden ON Entradas(IdOrden);

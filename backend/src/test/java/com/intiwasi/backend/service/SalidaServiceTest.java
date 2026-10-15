@@ -110,6 +110,33 @@ class SalidaServiceTest {
         verifyNoInteractions(documentos, salidas, movimientos);
     }
 
+    @Test
+    void exigeObservacionesParaMotivoOtro() {
+        SalidaRequest solicitud = request(1);
+        solicitud.setMotivo(MotivoSalida.OTRO);
+        assertThrows(IllegalArgumentException.class, () -> service.registrar(solicitud));
+        verifyNoInteractions(documentos, salidas, movimientos);
+    }
+
+    @Test
+    void rechazaRectificacionConOtroProductoAntesDeRevertir() {
+        Documento documento = new Documento();
+        documento.setIdDocumento(30);
+        Salida original = new Salida();
+        original.setDocumento(documento);
+        when(salidas.findByIdConRelaciones(5)).thenReturn(Optional.of(original));
+        MovimientoInventario movimiento = new MovimientoInventario();
+        producto.setIdProducto(8);
+        movimiento.setProducto(producto);
+        when(movimientos.findByDocumento_IdDocumentoOrderByIdMovimientoAsc(30))
+                .thenReturn(List.of(movimiento));
+        SalidaRequest solicitud = request(1);
+        solicitud.setMotivoCorreccion("Cantidad incorrecta");
+
+        assertThrows(ReglaNegocioException.class, () -> service.actualizar(5, solicitud));
+        verifyNoInteractions(documentos);
+    }
+
     private SalidaRequest request(int cantidad) {
         MovimientoRequest movimiento = new MovimientoRequest();
         movimiento.setIdProducto(12);

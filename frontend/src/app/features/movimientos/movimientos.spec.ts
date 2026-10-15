@@ -3,8 +3,6 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { MovimientosService } from '../../core/movimientos.service';
-import { ProductosService } from '../../core/productos.service';
-import { UsersService } from '../../core/users.service';
 import { MovimientoDetail } from './movimiento-detail';
 import { MovimientosList } from './movimientos-list';
 
@@ -40,9 +38,14 @@ describe('Pantallas de Movimientos', () => {
       imports: [MovimientosList],
       providers: [
         provideRouter([]),
-        { provide: MovimientosService, useValue: { list } },
-        { provide: ProductosService, useValue: { list: vi.fn().mockResolvedValue([]) } },
-        { provide: UsersService, useValue: { list: vi.fn().mockResolvedValue([]) } },
+        {
+          provide: MovimientosService,
+          useValue: {
+            list,
+            productos: vi.fn().mockResolvedValue([]),
+            responsables: vi.fn().mockResolvedValue([]),
+          },
+        },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(MovimientosList);
@@ -51,7 +54,11 @@ describe('Pantallas de Movimientos', () => {
     expect(fixture.componentInstance.result()?.content[0].cantidadConSigno).toBe(-5);
     fixture.componentInstance.go(1);
     await fixture.componentInstance.load();
-    expect(list).toHaveBeenLastCalledWith({}, 1);
+    expect(list).toHaveBeenLastCalledWith({}, 1, 'desc');
+
+    fixture.componentInstance.changeSort('asc');
+    await fixture.componentInstance.load();
+    expect(list).toHaveBeenLastCalledWith({}, 0, 'asc');
 
     fixture.componentInstance.changeFilter('fechaInicial', '2026-10-14');
     fixture.componentInstance.changeFilter('fechaFinal', '2026-10-13');

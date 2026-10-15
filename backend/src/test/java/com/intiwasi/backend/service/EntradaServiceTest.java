@@ -5,14 +5,18 @@ import com.intiwasi.backend.dto.inventario.MovimientoRequest;
 import com.intiwasi.backend.entity.DetalleOrdenCompra;
 import com.intiwasi.backend.entity.Documento;
 import com.intiwasi.backend.entity.Entrada;
+import com.intiwasi.backend.entity.GuiaRemision;
+import com.intiwasi.backend.entity.Proveedor;
 import com.intiwasi.backend.entity.MovimientoInventario;
 import com.intiwasi.backend.entity.OrdenCompra;
 import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.exception.ReglaNegocioException;
+import com.intiwasi.backend.exception.ConflictoException;
 import com.intiwasi.backend.repository.DocumentoRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
+import com.intiwasi.backend.repository.GuiaRemisionRepository;
 import com.intiwasi.backend.repository.MovimientoInventarioRepository;
 import com.intiwasi.backend.repository.OrdenCompraRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
@@ -43,6 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class EntradaServiceTest {
     @Mock EntradaRepository entradas;
+    @Mock GuiaRemisionRepository guias;
     @Mock DocumentoRepository documentos;
     @Mock MovimientoInventarioRepository movimientos;
     @Mock OrdenCompraRepository ordenes;
@@ -67,6 +72,9 @@ class EntradaServiceTest {
 
         orden = new OrdenCompra();
         orden.setIdOrden(7);
+        Proveedor proveedor = new Proveedor();
+        proveedor.setIdProveedor(2);
+        orden.setProveedor(proveedor);
         orden.setEstado("Pendiente");
         DetalleOrdenCompra detalle = new DetalleOrdenCompra();
         detalle.setProducto(producto);
@@ -131,6 +139,15 @@ class EntradaServiceTest {
         verify(entradas, never()).saveAndFlush(any(Entrada.class));
     }
 
+    @Test
+    void rechazaGuiaYaRegistradaParaElProveedor() {
+        when(ordenes.findByIdConDetallesForUpdate(7)).thenReturn(Optional.of(orden));
+        when(guias.existsByProveedor_IdProveedorAndNumeroGuia(2, "GUIA-7")).thenReturn(true);
+
+        assertThrows(ConflictoException.class, () -> service.registrar(request(12, 1)));
+        verifyNoInteractions(documentos, movimientos);
+    }
+
     private EntradaRequest request(int idProducto, int cantidad) {
         MovimientoRequest movimiento = new MovimientoRequest();
         movimiento.setIdProducto(idProducto);
@@ -150,7 +167,10 @@ class EntradaServiceTest {
         entradaGuardada.setIdEntrada(40);
         entradaGuardada.setDocumento(documentoGuardado);
         entradaGuardada.setOrdenCompra(orden);
-        entradaGuardada.setNumeroGuiaRemision("GUIA-7");
+        GuiaRemision guia = new GuiaRemision();
+        guia.setNumeroGuia("GUIA-7");
+        guia.setProveedor(orden.getProveedor());
+        entradaGuardada.setGuia(guia);
         MovimientoInventario movimientoGuardado = new MovimientoInventario();
         movimientoGuardado.setProducto(producto);
         movimientoGuardado.setCantidad(cantidad);
@@ -162,6 +182,7 @@ class EntradaServiceTest {
                 new UsernamePasswordAuthenticationToken("responsable@intiwasi.test", null, List.of()));
         when(usuarios.findByCorreoAndEstado("responsable@intiwasi.test", 1)).thenReturn(Optional.of(usuario));
         when(documentos.saveAndFlush(any(Documento.class))).thenReturn(documentoGuardado);
+        when(guias.saveAndFlush(any(GuiaRemision.class))).thenReturn(guia);
         when(entradas.saveAndFlush(any(Entrada.class))).thenReturn(entradaGuardada);
         when(entradas.findByIdConRelaciones(40)).thenReturn(Optional.of(entradaGuardada));
         when(movimientos.findByDocumento_IdDocumentoOrderByIdMovimientoAsc(30))
@@ -172,7 +193,7 @@ class EntradaServiceTest {
         verify(documentos).saveAndFlush(argThat(d -> d.getTipoDocumento() == TipoDocumento.ENTRADA
                 && d.getUsuario() == usuario));
         verify(entradas).saveAndFlush(argThat(e -> e.getOrdenCompra() == orden
-                && "GUIA-7".equals(e.getNumeroGuiaRemision())));
+                && "GUIA-7".equals(e.getGuia().getNumeroGuia())));
         verify(movimientos).save(argThat(m -> m.getProducto() == producto
                 && m.getCantidad() == cantidad));
     }

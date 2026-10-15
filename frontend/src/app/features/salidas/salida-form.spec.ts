@@ -99,12 +99,30 @@ describe('Formulario de Salidas', () => {
   it('impide repetir un producto en dos líneas', async () => {
     const { form, salidas } = await setup();
     form.form.controls.motivo.setValue('Otro');
+    form.form.controls.observaciones.setValue('Salida extraordinaria');
     form.lines.at(0).controls.idProducto.setValue(7);
     form.addLine();
     form.lines.at(1).controls.idProducto.setValue(7);
     await form.submit();
     expect(salidas.save).not.toHaveBeenCalled();
     expect(form.duplicate(1)).toBe(true);
+  });
+
+  it('exige observaciones cuando el motivo es Otro', async () => {
+    const { form, salidas } = await setup();
+    form.form.controls.motivo.setValue('Otro');
+    form.lines.at(0).controls.idProducto.setValue(7);
+    await form.submit();
+    expect(salidas.save).not.toHaveBeenCalled();
+    expect(form.form.controls.observaciones.invalid).toBe(true);
+  });
+
+  it('mantiene fijos los productos de la salida original al rectificar', async () => {
+    const { form } = await setup(true);
+    form.addLine();
+    expect(form.lines.length).toBe(1);
+    expect(form.lines.at(0).controls.idProducto.disabled).toBe(true);
+    expect(form.lines.at(0).controls.idProducto.value).toBe(7);
   });
 
   it('mantiene lo escrito y actualiza el stock después de un rechazo concurrente', async () => {

@@ -33,8 +33,9 @@ public class Entrada {
     @JoinColumn(name = "IdOrden", nullable = false)
     private OrdenCompra ordenCompra;
 
-    @Column(name = "NumeroGuiaRemision", nullable = false, length = 50)
-    private String numeroGuiaRemision;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "IdGuia", nullable = false)
+    private GuiaRemision guia;
 
     @Column(name = "Observaciones", length = 255)
     private String observaciones;

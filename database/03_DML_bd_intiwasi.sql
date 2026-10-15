@@ -76,11 +76,19 @@ INSERT INTO DetalleOrdenCompra (IdDetalle, IdOrden, IdProducto, Cantidad, Precio
 
 UPDATE OrdenesCompra SET Estado = 'Cancelada' WHERE IdOrden = 6;
 
+INSERT INTO GuiasRemision (IdGuia, IdProveedor, NumeroGuia) VALUES
+(1, 1, 'GUIA-DELTRON-001-98451'),
+(2, 2, 'GUIA-INGRAM-004-11204'),
+(3, 1, 'GUIA-DELTRON-001-99820'),
+(4, 3, 'GUIA-TECHDATA-002-33120'),
+(5, 4, 'GUIA-PCLINK-008-54210'),
+(6, 2, 'GUIA-INGRAM-007-001');
+
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (1, 'Entrada', 2, '2026-02-05 10:30:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(1, 1, 1, 'GUIA-DELTRON-001-98451', 'Recepción conforme de lote principal');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(1, 1, 1, 1, 'Recepción conforme de lote principal');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (1, 1, 1, 15),
 (2, 1, 3, 8),
@@ -89,8 +97,8 @@ INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantid
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (2, 'Entrada', 4, '2026-02-08 11:15:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(2, 2, 2, 'GUIA-INGRAM-004-11204', 'Ingreso verificado de procesadores Intel, memorias y fuentes');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(2, 2, 2, 2, 'Ingreso verificado de procesadores Intel, memorias y fuentes');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (5, 2, 2, 12),
 (6, 2, 6, 14),
@@ -98,23 +106,23 @@ INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantid
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (3, 'Entrada', 2, '2026-02-15 14:00:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(3, 3, 3, 'GUIA-DELTRON-001-99820', 'Ingreso por reposición programada');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(3, 3, 3, 3, 'Ingreso por reposición programada');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (8, 3, 1, 10),
 (9, 3, 7, 15);
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (4, 'Entrada', 5, '2026-02-17 09:45:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(4, 4, 4, 'GUIA-TECHDATA-002-33120', 'Lote de memorias Kingston DDR4 verificado');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(4, 4, 4, 4, 'Lote de memorias Kingston DDR4 verificado');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (10, 4, 5, 30);
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (5, 'Entrada', 4, '2026-02-23 16:20:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(5, 5, 5, 'GUIA-PCLINK-008-54210', 'Recepción de periféricos y unidades de estado sólido NVMe');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(5, 5, 5, 5, 'Recepción de periféricos y unidades de estado sólido NVMe');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (11, 5, 8, 6),
 (12, 5, 11, 15);
@@ -198,8 +206,8 @@ INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantid
 
 INSERT INTO Documentos (IdDocumento, TipoDocumento, IdUsuario, FechaEmision, Estado) VALUES
 (16, 'Entrada', 2, '2026-03-03 10:00:00', 1);
-INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, NumeroGuiaRemision, Observaciones) VALUES
-(6, 16, 7, 'GUIA-INGRAM-007-001', 'Primera entrega parcial de la orden 7');
+INSERT INTO Entradas (IdEntrada, IdDocumento, IdOrden, IdGuia, Observaciones) VALUES
+(6, 16, 7, 6, 'Primera entrega parcial de la orden 7');
 INSERT INTO MovimientosInventario (IdMovimiento, IdDocumento, IdProducto, Cantidad) VALUES
 (28, 16, 2, 4),
 (29, 16, 9, 3);

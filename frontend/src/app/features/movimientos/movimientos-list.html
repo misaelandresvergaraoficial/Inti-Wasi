@@ -72,6 +72,17 @@
         }
       </select>
     </div>
+    <div>
+      <label for="movimiento-orden">Orden de emisión</label>
+      <select
+        id="movimiento-orden"
+        [value]="sort()"
+        (change)="changeSort($any($event.target).value)"
+      >
+        <option value="desc">Más recientes primero</option>
+        <option value="asc">Más antiguos primero</option>
+      </select>
+    </div>
     <button mat-flat-button [disabled]="!!filterError() || loading()" (click)="load()">
       Consultar
     </button>
