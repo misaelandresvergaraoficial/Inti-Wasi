@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth.service';
 import { ThemeService } from '../core/theme.service';
 import { Icon } from '../shared/icon';
+import { NoticeService } from '../core/notice.service';
 @Component({
   selector: 'iw-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, Icon],
@@ -86,20 +87,25 @@ import { Icon } from '../shared/icon';
               aria-label="Dashboard"
               ><iw-icon name="home" />Dashboard</a
             >
-            <a
-              routerLink="/documentos"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Documentos"
-              ><iw-icon name="orders" />Documentos</a
-            >
-            <a
-              routerLink="/movimientos"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Movimientos"
-              ><iw-icon name="orders" />Movimientos</a
-            >
+          }
+          @if (!auth.isAdmin()) {
+            <span class="nav-group-label">Consultas</span>
+          }
+          <a
+            routerLink="/documentos"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Documentos"
+            ><iw-icon name="orders" />Documentos</a
+          >
+          <a
+            routerLink="/movimientos"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+            aria-label="Movimientos"
+            ><iw-icon name="orders" />Movimientos</a
+          >
+          @if (auth.isAdmin()) {
             <a
               routerLink="/reportes"
               routerLinkActive="active"
@@ -160,6 +166,7 @@ import { Icon } from '../shared/icon';
 export class Shell {
   readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
+  private readonly notice = inject(NoticeService);
   constructor() {
     inject(Router)
       .events.pipe(
@@ -167,6 +174,7 @@ export class Shell {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
+        this.notice.onNavigation();
         requestAnimationFrame(() => document.querySelector<HTMLElement>('main h1')?.focus());
       });
   }

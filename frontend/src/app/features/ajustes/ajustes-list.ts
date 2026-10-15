@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AjusteResponse, estadoDocumentoAjuste } from '../../core/ajuste-models';
+import { enRangoDeEmision, ordenarPorEmision, OrdenEmision } from '../../core/emission-filter';
 import { AjustesService } from '../../core/ajustes.service';
 import { NoticeService } from '../../core/notice.service';
 import { Icon } from '../../shared/icon';
@@ -19,17 +20,32 @@ export class AjustesList {
   readonly error = signal('');
   readonly query = signal('');
   readonly status = signal('');
+  readonly desde = signal('');
+  readonly hasta = signal('');
+  readonly sort = signal<OrdenEmision>('desc');
+  readonly dateError = computed(() =>
+    this.desde() && this.hasta() && this.desde() > this.hasta()
+      ? 'La fecha inicial no puede ser posterior a la fecha final.'
+      : '',
+  );
   readonly page = signal(0);
   readonly pageSize = 8;
   readonly estado = estadoDocumentoAjuste;
   readonly filtered = computed(() =>
-    this.records().filter(
-      (record) =>
-        (!this.status() || String(record.estadoDocumento) === this.status()) &&
-        `${record.idAjuste} ${record.tipoAjuste} ${record.motivo} ${record.usuarioResponsable}`
-          .toLocaleLowerCase()
-          .includes(this.query().trim().toLocaleLowerCase()),
-    ),
+    this.dateError()
+      ? []
+      : ordenarPorEmision(
+          this.records().filter(
+            (record) =>
+              (!this.status() || String(record.estadoDocumento) === this.status()) &&
+              enRangoDeEmision(record.fechaEmision, this.desde(), this.hasta()) &&
+              `${record.idAjuste} ${record.tipoAjuste} ${record.motivo} ${record.usuarioResponsable}`
+                .toLocaleLowerCase()
+                .includes(this.query().trim().toLocaleLowerCase()),
+          ),
+          this.sort(),
+          (record) => record.idAjuste,
+        ),
   );
   readonly visible = computed(() =>
     this.filtered().slice(this.page() * this.pageSize, (this.page() + 1) * this.pageSize),
@@ -62,6 +78,22 @@ export class AjustesList {
   }
   filterStatus(value: string): void {
     this.status.set(value);
+    this.page.set(0);
+  }
+  changeDate(field: 'desde' | 'hasta', value: string): void {
+    (field === 'desde' ? this.desde : this.hasta).set(value);
+    this.page.set(0);
+  }
+  changeSort(value: OrdenEmision): void {
+    this.sort.set(value);
+    this.page.set(0);
+  }
+  clearFilters(): void {
+    this.query.set('');
+    this.status.set('');
+    this.desde.set('');
+    this.hasta.set('');
+    this.sort.set('desc');
     this.page.set(0);
   }
   date(value: string): string {

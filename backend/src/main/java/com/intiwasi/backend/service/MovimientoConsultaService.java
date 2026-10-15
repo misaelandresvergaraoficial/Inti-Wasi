@@ -1,6 +1,8 @@
 package com.intiwasi.backend.service;
 
 import com.intiwasi.backend.dto.inventario.MovimientoConsultaResponse;
+import com.intiwasi.backend.dto.inventario.ResponsableMovimientoResponse;
+import com.intiwasi.backend.dto.inventario.ProductoMovimientoResponse;
 import com.intiwasi.backend.entity.KardexMovimiento;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
@@ -18,6 +20,21 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class MovimientoConsultaService {
     private final KardexRepository kardexRepository;
+
+    @Transactional(readOnly = true)
+    public java.util.List<ResponsableMovimientoResponse> responsables() {
+        return kardexRepository.listarResponsables().stream()
+                .map(fila -> new ResponsableMovimientoResponse((Integer) fila[0], (String) fila[1]))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<ProductoMovimientoResponse> productos() {
+        return kardexRepository.listarProductos().stream()
+                .map(fila -> new ProductoMovimientoResponse((Integer) fila[0],
+                        (String) fila[1], (String) fila[2]))
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public Page<MovimientoConsultaResponse> consultar(

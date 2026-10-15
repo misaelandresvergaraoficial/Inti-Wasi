@@ -67,13 +67,20 @@
       </div>
       <div class="field">
         <label for="salida-observaciones"
-          >Observaciones <span class="optional">(opcional)</span></label
+          >Observaciones
+          @if (form.controls.motivo.value !== 'Otro') {
+            <span class="optional">(opcional)</span>
+          }</label
         ><textarea
           id="salida-observaciones"
           formControlName="observaciones"
+          [attr.aria-invalid]="submitted() && form.controls.observaciones.invalid"
           maxlength="255"
           rows="3"
         ></textarea>
+        @if (submitted() && form.controls.observaciones.invalid) {
+          <p class="order-field-error">Describe la salida cuando seleccionas «Otro».</p>
+        }
       </div>
       @if (id !== undefined) {
         <div class="field">
@@ -98,7 +105,13 @@
       <div class="panel-heading">
         <div>
           <h2 id="salida-lines">Productos retirados</h2>
-          <p>Solo se pueden retirar productos activos con stock suficiente.</p>
+          <p>
+            {{
+              id === undefined
+                ? 'Solo se pueden retirar productos activos con stock suficiente.'
+                : 'La rectificación conserva los productos originales; puedes corregir sus cantidades.'
+            }}
+          </p>
         </div>
         <span class="badge neutral"
           >{{ lines.length }} {{ lines.length === 1 ? 'producto' : 'productos' }}</span
@@ -173,7 +186,7 @@
               <button
                 mat-button
                 type="button"
-                [disabled]="lines.length === 1 || busy()"
+                [disabled]="id !== undefined || lines.length === 1 || busy()"
                 (click)="removeLine(index)"
               >
                 Quitar
@@ -211,9 +224,11 @@
           </fieldset>
         }
       </div>
-      <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
-        <iw-icon name="plus" />Agregar producto
-      </button>
+      @if (id === undefined) {
+        <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
+          <iw-icon name="plus" />Agregar producto
+        </button>
+      }
     </section>
     <div class="form-actions">
       <a mat-button routerLink="/salidas">Cancelar</a

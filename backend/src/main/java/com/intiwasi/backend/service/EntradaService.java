@@ -7,15 +7,18 @@ import com.intiwasi.backend.dto.inventario.MovimientoResponse;
 import com.intiwasi.backend.entity.DetalleOrdenCompra;
 import com.intiwasi.backend.entity.Documento;
 import com.intiwasi.backend.entity.Entrada;
+import com.intiwasi.backend.entity.GuiaRemision;
 import com.intiwasi.backend.entity.MovimientoInventario;
 import com.intiwasi.backend.entity.OrdenCompra;
 import com.intiwasi.backend.entity.Producto;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
+import com.intiwasi.backend.exception.ConflictoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
+import com.intiwasi.backend.repository.GuiaRemisionRepository;
 import com.intiwasi.backend.repository.MovimientoInventarioRepository;
 import com.intiwasi.backend.repository.OrdenCompraRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
@@ -40,6 +43,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EntradaService {
     private final EntradaRepository entradaRepository;
+    private final GuiaRemisionRepository guiaRepository;
     private final DocumentoRepository documentoRepository;
     private final MovimientoInventarioRepository movimientoRepository;
     private final OrdenCompraRepository ordenCompraRepository;
@@ -60,7 +64,7 @@ public class EntradaService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public EntradaResponse registrar(EntradaRequest request) {
-        return registrarInterno(request, null);
+        return registrarInterno(request, null, null);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -68,6 +72,9 @@ public class EntradaService {
         validarRequest(request);
         validarMotivoCorreccion(request.getMotivoCorreccion());
         Entrada original = buscarEntrada(id);
+        if (!original.getGuia().getNumeroGuia().equalsIgnoreCase(request.getNumeroGuiaRemision().trim())) {
+            throw new ReglaNegocioException("La rectificación debe conservar la guía de remisión original");
+        }
         if (!original.getOrdenCompra().getIdOrden().equals(request.getIdOrden())) {
             throw new ReglaNegocioException("La entrada corregida debe pertenecer a la misma orden");
         }
@@ -85,7 +92,7 @@ public class EntradaService {
         }
         Documento origen = correccionService.revertir(original.getDocumento().getIdDocumento(),
                 TipoDocumento.ENTRADA, usuarioActual(), request.getMotivoCorreccion(), (byte) 2);
-        return registrarInterno(request, origen);
+        return registrarInterno(request, origen, original.getGuia());
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -97,7 +104,8 @@ public class EntradaService {
                 TipoDocumento.ENTRADA, usuarioActual(), motivo, (byte) 0);
     }
 
-    private EntradaResponse registrarInterno(EntradaRequest request, Documento origen) {
+    private EntradaResponse registrarInterno(EntradaRequest request, Documento origen,
+                                            GuiaRemision guiaOriginal) {
         validarRequest(request);
         OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(request.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -105,6 +113,21 @@ public class EntradaService {
 
         if (origen == null && !Set.of("Pendiente", "Parcial").contains(orden.getEstado())) {
             throw new ReglaNegocioException("La orden de compra no admite nuevas recepciones");
+        }
+
+        GuiaRemision guia;
+        if (origen == null) {
+            String numero = request.getNumeroGuiaRemision().trim();
+            if (guiaRepository.existsByProveedor_IdProveedorAndNumeroGuia(
+                    orden.getProveedor().getIdProveedor(), numero)) {
+                throw new ConflictoException("La guía de remisión ya está registrada para este proveedor");
+            }
+            guia = new GuiaRemision();
+            guia.setProveedor(orden.getProveedor());
+            guia.setNumeroGuia(numero);
+            guia = guiaRepository.saveAndFlush(guia);
+        } else {
+            guia = guiaOriginal;
         }
 
         Map<Integer, DetalleOrdenCompra> detallePorProducto = orden.getDetalles().stream()
@@ -139,7 +162,7 @@ public class EntradaService {
         Entrada entrada = new Entrada();
         entrada.setDocumento(documento);
         entrada.setOrdenCompra(orden);
-        entrada.setNumeroGuiaRemision(request.getNumeroGuiaRemision().trim());
+        entrada.setGuia(guia);
         entrada.setObservaciones(normalizar(request.getObservaciones()));
         entrada = entradaRepository.saveAndFlush(entrada);
 
@@ -170,7 +193,7 @@ public class EntradaService {
                 .idEntrada(entrada.getIdEntrada())
                 .idDocumento(entrada.getDocumento().getIdDocumento())
                 .idOrden(entrada.getOrdenCompra().getIdOrden())
-                .numeroGuiaRemision(entrada.getNumeroGuiaRemision())
+                .numeroGuiaRemision(entrada.getGuia().getNumeroGuia())
                 .estadoDocumento(entrada.getDocumento().getEstado())
                 .idDocumentoOrigen(entrada.getDocumento().getDocumentoOrigen() == null ? null
                         : entrada.getDocumento().getDocumentoOrigen().getIdDocumento())

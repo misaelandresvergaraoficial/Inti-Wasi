@@ -18,6 +18,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>{
     List<Producto> findByEstado(Byte estado);
 
     List<Producto> findByCategoria_IdCategoriaAndEstado(Integer idCategoria, Byte estado);
+    List<Producto> findByCategoria_IdCategoriaAndDesactivadoPorCategoria(Integer idCategoria, Byte valor);
 
     boolean existsBySku(String sku);
 

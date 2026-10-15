@@ -1,6 +1,8 @@
 package com.intiwasi.backend.controller;
 
 import com.intiwasi.backend.dto.inventario.MovimientoConsultaResponse;
+import com.intiwasi.backend.dto.inventario.ResponsableMovimientoResponse;
+import com.intiwasi.backend.dto.inventario.ProductoMovimientoResponse;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.service.MovimientoConsultaService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +21,19 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/movimientos")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('Administrador')")
+@PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
 public class MovimientoController {
     private final MovimientoConsultaService movimientoService;
+
+    @GetMapping("/responsables")
+    public java.util.List<ResponsableMovimientoResponse> responsables() {
+        return movimientoService.responsables();
+    }
+
+    @GetMapping("/productos")
+    public java.util.List<ProductoMovimientoResponse> productos() {
+        return movimientoService.productos();
+    }
 
     @GetMapping
     public Page<MovimientoConsultaResponse> consultar(

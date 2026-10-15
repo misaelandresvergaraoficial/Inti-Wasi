@@ -30,7 +30,7 @@ SELECT
              CONCAT('Recepcion de orden de compra Nro ', e.IdOrden))
     END AS Motivo,
     COALESCE(e.IdOrden, entradaOrigen.IdOrden) AS IdOrden,
-    COALESCE(e.NumeroGuiaRemision, entradaOrigen.NumeroGuiaRemision) AS DocumentoRef,
+    COALESCE(guia.NumeroGuia, guiaOrigen.NumeroGuia) AS DocumentoRef,
     d.Estado AS EstadoDocumento
 FROM MovimientosInventario m
 JOIN Documentos d ON d.IdDocumento = m.IdDocumento
@@ -38,10 +38,12 @@ JOIN Usuarios u ON u.IdUsuario = d.IdUsuario
 JOIN Productos p ON p.IdProducto = m.IdProducto
 JOIN Categorias c ON c.IdCategoria = p.IdCategoria
 LEFT JOIN Entradas e ON e.IdDocumento = d.IdDocumento
+LEFT JOIN GuiasRemision guia ON guia.IdGuia = e.IdGuia
 LEFT JOIN Salidas s ON s.IdDocumento = d.IdDocumento
 LEFT JOIN Ajustes a ON a.IdDocumento = d.IdDocumento
 LEFT JOIN Documentos origen ON origen.IdDocumento = d.IdDocumentoOrigen
 LEFT JOIN Entradas entradaOrigen ON entradaOrigen.IdDocumento = origen.IdDocumento
+LEFT JOIN GuiasRemision guiaOrigen ON guiaOrigen.IdGuia = entradaOrigen.IdGuia
 LEFT JOIN Ajustes ajusteOrigen ON ajusteOrigen.IdDocumento = origen.IdDocumento;
 
 CREATE OR REPLACE VIEW VW_RecepcionesPorProducto AS

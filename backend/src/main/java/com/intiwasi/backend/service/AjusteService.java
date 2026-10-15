@@ -139,6 +139,10 @@ public class AjusteService {
                 .idDocumentoOrigen(ajuste.getDocumento().getDocumentoOrigen() == null ? null
                         : ajuste.getDocumento().getDocumentoOrigen().getIdDocumento())
                 .motivo(ajuste.getMotivo()).observaciones(ajuste.getObservaciones())
+                .motivoCorreccion(documentoRepository
+                        .findByDocumentoOrigen_IdDocumentoAndTipoDocumento(
+                                ajuste.getDocumento().getIdDocumento(), TipoDocumento.CORRECCION)
+                        .map(Documento::getMotivoCorreccion).orElse(null))
                 .fechaEmision(ajuste.getDocumento().getFechaEmision())
                 .idUsuario(ajuste.getDocumento().getUsuario().getIdUsuario())
                 .usuarioResponsable(ajuste.getDocumento().getUsuario().getNomUsuario())

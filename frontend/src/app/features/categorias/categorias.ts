@@ -149,7 +149,9 @@ export class CategoriasList {
         curr.map((x) => (x.idCategoria === c.idCategoria ? { ...x, estado: 1 } : x)),
       );
       this.afterStateChange(c.idCategoria);
-      this.notice.show(`${c.nomCategoria} fue reactivada.`);
+      this.notice.show(
+        `${c.nomCategoria} fue reactivada. Se restauraron solo los productos desactivados por esta categoría.`,
+      );
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'No se pudo reactivar la categoría.');
     } finally {

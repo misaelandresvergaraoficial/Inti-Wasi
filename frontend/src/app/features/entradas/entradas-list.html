@@ -29,7 +29,9 @@
       <h2 id="entradas-heading">Recepciones registradas</h2>
       <p>Las rectificadas y anuladas permanecen en el historial.</p>
     </div>
-    <span class="badge neutral">{{ error() ? 'Sin datos' : records().length + (records().length === 1 ? ' entrada' : ' entradas') }}</span>
+    <span class="badge neutral">{{
+      error() ? 'Sin datos' : records().length + (records().length === 1 ? ' entrada' : ' entradas')
+    }}</span>
   </div>
   <div class="filter-bar flex flex-wrap items-end gap-4">
     <div class="search-field">
@@ -57,10 +59,38 @@
         <option value="0">Anulado</option>
       </select>
     </div>
-    @if (query() || status()) {
-      <button mat-button (click)="search(''); filterStatus('')">Limpiar filtros</button>
+    <div class="status-filter">
+      <label for="entrada-desde">Desde</label
+      ><input
+        id="entrada-desde"
+        type="date"
+        [value]="desde()"
+        (change)="changeDate('desde', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="entrada-hasta">Hasta</label
+      ><input
+        id="entrada-hasta"
+        type="date"
+        [value]="hasta()"
+        (change)="changeDate('hasta', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="entrada-orden">Orden de emisión</label
+      ><select id="entrada-orden" [value]="sort()" (change)="changeSort($any($event.target).value)">
+        <option value="desc">Más recientes primero</option>
+        <option value="asc">Más antiguos primero</option>
+      </select>
+    </div>
+    @if (query() || status() || desde() || hasta() || sort() !== 'desc') {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
     }
   </div>
+  @if (dateError()) {
+    <div class="notice error" role="alert">{{ dateError() }}</div>
+  }
   @if (loading()) {
     <div class="empty-state" role="status">
       <span class="loading-line"></span>
@@ -68,6 +98,8 @@
     </div>
   } @else if (error()) {
     <div class="empty-state"><p>No se pudo cargar el listado.</p></div>
+  } @else if (dateError()) {
+    <div class="empty-state"><p>Corrige el rango de fechas para consultar las entradas.</p></div>
   } @else if (!filtered().length) {
     <div class="empty-state">
       <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay entradas' }}</h3>
@@ -98,7 +130,11 @@
               <td>{{ record.numeroGuiaRemision }}</td>
               <td>{{ date(record.fechaEmision) }}</td>
               <td>{{ record.usuarioResponsable }}</td>
-              <td>{{ estado(record.estadoDocumento) }}</td>
+              <td>
+                <span class="badge status-badge" [attr.data-state]="record.estadoDocumento">{{
+                  estado(record.estadoDocumento)
+                }}</span>
+              </td>
               <td><a mat-button [routerLink]="['/entradas', record.idEntrada]">Ver detalle</a></td>
             </tr>
           }

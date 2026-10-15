@@ -3,6 +3,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { AjustesService } from '../../core/ajustes.service';
+import { AuthService } from '../../core/auth.service';
 import { DocumentoResponse } from '../../core/documento-models';
 import { DocumentosService } from '../../core/documentos.service';
 import { EntradasService } from '../../core/entradas.service';
@@ -60,6 +61,7 @@ describe('Pantallas de Documentos', () => {
       imports: [DocumentoDetail],
       providers: [
         provideRouter([]),
+        { provide: AuthService, useValue: { isAdmin: () => true } },
         {
           provide: ActivatedRoute,
           useValue: { paramMap: of(convertToParamMap({ id: '4' })) },
@@ -95,6 +97,7 @@ describe('Pantallas de Documentos', () => {
       imports: [DocumentoDetail],
       providers: [
         provideRouter([]),
+        { provide: AuthService, useValue: { isAdmin: () => true } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: '4' })) } },
         {
           provide: DocumentosService,
@@ -117,5 +120,34 @@ describe('Pantallas de Documentos', () => {
     expect(fixture.componentInstance.related().map((item) => item.idDocumento)).toEqual([7, 8]);
     expect(fixture.componentInstance.operationError()).toBe('Sin conexión');
     expect(fixture.nativeElement.textContent).toContain('N.° 7');
+  });
+
+  it('permite consultar un documento de ajuste sin abrir Ajustes como operador', async () => {
+    const adjustment = { ...original, tipoDocumento: 'Ajuste' as const };
+    const listAdjustments = vi.fn();
+    await TestBed.configureTestingModule({
+      imports: [DocumentoDetail],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { isAdmin: () => false } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: '4' })) } },
+        {
+          provide: DocumentosService,
+          useValue: {
+            get: vi.fn().mockResolvedValue(adjustment),
+            list: vi.fn().mockResolvedValue([adjustment]),
+          },
+        },
+        { provide: EntradasService, useValue: { list: vi.fn() } },
+        { provide: SalidasService, useValue: { list: vi.fn() } },
+        { provide: AjustesService, useValue: { list: listAdjustments } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(DocumentoDetail);
+    await fixture.componentInstance.load();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Documento N.° 4');
+    expect(fixture.componentInstance.operationError()).toBe('');
+    expect(listAdjustments).not.toHaveBeenCalled();
   });
 });

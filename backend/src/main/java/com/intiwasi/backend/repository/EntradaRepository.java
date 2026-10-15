@@ -15,11 +15,11 @@ public interface EntradaRepository extends JpaRepository<Entrada, Integer> {
     @Query(value = "SELECT COALESCE((SELECT CantidadRecibida FROM VW_RecepcionesPorProducto WHERE IdOrden = :idOrden AND IdProducto = :idProducto), 0)", nativeQuery = true)
     Integer cantidadRecibida(@Param("idOrden") Integer idOrden, @Param("idProducto") Integer idProducto);
 
-    @EntityGraph(attributePaths = {"documento", "documento.usuario", "ordenCompra"})
+    @EntityGraph(attributePaths = {"documento", "documento.usuario", "ordenCompra", "guia"})
     @Query("select e from Entrada e order by e.idEntrada desc")
     List<Entrada> findAllConRelaciones();
 
-    @EntityGraph(attributePaths = {"documento", "documento.usuario", "ordenCompra"})
+    @EntityGraph(attributePaths = {"documento", "documento.usuario", "ordenCompra", "guia"})
     @Query("select e from Entrada e where e.idEntrada = :id")
     Optional<Entrada> findByIdConRelaciones(@Param("id") Integer id);
 }

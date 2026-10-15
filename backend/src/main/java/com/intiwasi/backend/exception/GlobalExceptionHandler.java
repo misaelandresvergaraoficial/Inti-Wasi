@@ -92,6 +92,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleIntegridadDatos(DataIntegrityViolationException ex) {
         if (ex.getMostSpecificCause().getMessage() != null
+                && ex.getMostSpecificCause().getMessage().contains("UQ_Guias_ProveedorNumero")) {
+            return crearRespuesta(HttpStatus.CONFLICT,
+                    "La guía de remisión ya está registrada para este proveedor");
+        }
+        if (ex.getMostSpecificCause().getMessage() != null
                 && ex.getMostSpecificCause().getMessage().contains("UQ_Usuarios_Telefono")) {
             return crearRespuesta(HttpStatus.CONFLICT, "telefono: El teléfono ya se encuentra registrado por otro usuario");
         }

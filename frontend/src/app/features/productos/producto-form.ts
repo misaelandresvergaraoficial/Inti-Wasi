@@ -156,7 +156,7 @@ export class ProductoForm implements PendingChanges {
         this.productId,
       );
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `${product.nomProducto}: ${this.isEdit() ? 'cambios guardados' : 'producto creado correctamente'}.`,
       );
       await this.router.navigate(['/productos']);

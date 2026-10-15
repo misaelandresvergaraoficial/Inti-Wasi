@@ -277,7 +277,7 @@ export class OrderForm implements PendingChanges {
         this.id,
       );
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `Orden N.° ${saved.idOrden} ${this.id ? 'actualizada' : 'creada'} correctamente.`,
       );
       await this.router.navigate(['/ordenes-compra', saved.idOrden]);

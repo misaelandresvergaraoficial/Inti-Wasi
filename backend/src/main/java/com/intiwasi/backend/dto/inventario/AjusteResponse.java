@@ -21,6 +21,7 @@ public class AjusteResponse {
     private TipoAjuste tipoAjuste;
     private String motivo;
     private String observaciones;
+    private String motivoCorreccion;
     private LocalDateTime fechaEmision;
     private Integer idUsuario;
     private String usuarioResponsable;

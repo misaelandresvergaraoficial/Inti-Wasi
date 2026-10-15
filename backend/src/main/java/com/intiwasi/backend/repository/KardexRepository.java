@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface KardexRepository extends Repository<KardexMovimiento, Integer> {
+    @Query("select distinct k.idUsuario, k.usuarioResponsable from KardexMovimiento k order by k.usuarioResponsable")
+    java.util.List<Object[]> listarResponsables();
+
+    @Query("select distinct k.idProducto, k.sku, k.nomProducto from KardexMovimiento k order by k.sku")
+    java.util.List<Object[]> listarProductos();
     Optional<KardexMovimiento> findById(Integer id);
 
     @Query("""

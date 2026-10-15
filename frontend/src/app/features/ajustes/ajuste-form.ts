@@ -216,7 +216,7 @@ export class AjusteForm implements PendingChanges {
     try {
       const saved = await this.ajustes.save(request, this.id);
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `Ajuste N.° ${saved.idAjuste} ${this.id === undefined ? 'registrado' : 'creado como rectificación'} correctamente.`,
       );
       await this.router.navigate(['/ajustes', saved.idAjuste]);

@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AjustesService } from '../../core/ajustes.service';
+import { AuthService } from '../../core/auth.service';
 import {
   DocumentoResponse,
   TipoDocumento,
@@ -28,6 +29,7 @@ export class DocumentoDetail {
   private readonly entradas = inject(EntradasService);
   private readonly salidas = inject(SalidasService);
   private readonly ajustes = inject(AjustesService);
+  private readonly auth = inject(AuthService);
   readonly id = signal(0);
   readonly record = signal<DocumentoResponse | null>(null);
   readonly related = signal<DocumentoResponse[]>([]);
@@ -115,6 +117,7 @@ export class DocumentoDetail {
         : null;
     }
     if (tipo === 'Ajuste') {
+      if (!this.auth.isAdmin()) return null;
       const item = (await this.ajustes.list()).find(
         (adjustment) => adjustment.idDocumento === idDocumento,
       );

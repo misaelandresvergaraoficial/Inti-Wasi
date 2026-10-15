@@ -62,9 +62,12 @@ export class UserForm implements PendingChanges {
   readonly loadError = signal(this.invalidId ? 'El identificador del usuario no es válido.' : '');
   readonly showPassword = signal(false);
   readonly errorText = (control: AbstractControl, label: string): string => {
-    if (control.hasError('institutional')) return 'Usa admin.nombre u operador.nombre, solo con letras minúsculas.';
-    if (control.hasError('roleEmail')) return 'El correo no coincide con el rol seleccionado. Revisa el prefijo admin u operador.';
-    if (control === this.form.controls.telefono && control.hasError('pattern')) return 'Ingresa solo números; el teléfono debe ser mayor que cero.';
+    if (control.hasError('institutional'))
+      return 'Usa admin.nombre u operador.nombre, solo con letras minúsculas.';
+    if (control.hasError('roleEmail'))
+      return 'El correo no coincide con el rol seleccionado. Revisa el prefijo admin u operador.';
+    if (control === this.form.controls.telefono && control.hasError('pattern'))
+      return 'Ingresa solo números; el teléfono debe ser mayor que cero.';
     return fieldError(control, label);
   };
   onlyPhoneDigits(event: Event): void {
@@ -80,7 +83,8 @@ export class UserForm implements PendingChanges {
       this.form.controls.correo.updateValueAndValidity();
       this.form.controls.correo.markAsTouched();
     });
-    if (this.rawId === null) this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
+    if (this.rawId === null)
+      this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
     else if (!this.invalidId) void this.load();
   }
   async load(): Promise<void> {
@@ -89,7 +93,12 @@ export class UserForm implements PendingChanges {
     this.loadError.set('');
     try {
       const user = await this.users.get(this.id!);
-      this.form.patchValue({ ...user, correo: user.correo.replace(/@intiwasi\.pe$/, ''), telefono: user.telefono ?? '', contrasena: '' });
+      this.form.patchValue({
+        ...user,
+        correo: user.correo.replace(/@intiwasi\.pe$/, ''),
+        telefono: user.telefono ?? '',
+        contrasena: '',
+      });
       this.form.controls.correo.updateValueAndValidity();
       this.form.markAsPristine();
     } catch (error) {
@@ -110,7 +119,12 @@ export class UserForm implements PendingChanges {
     try {
       const value = this.form.getRawValue();
       const user = await this.users.save(
-        { ...value, correo: `${value.correo}@intiwasi.pe`, telefono: value.telefono.trim() || null, contrasena: value.contrasena || undefined },
+        {
+          ...value,
+          correo: `${value.correo}@intiwasi.pe`,
+          telefono: value.telefono.trim() || null,
+          contrasena: value.contrasena || undefined,
+        },
         this.id,
       );
       this.form.markAsPristine();
@@ -123,16 +137,12 @@ export class UserForm implements PendingChanges {
         return;
       }
       this.auth.refreshUser(user);
-      this.notice.show(
+      this.notice.showNext(
         `${user.nomUsuario}: ${this.id ? 'cambios guardados' : 'usuario creado correctamente'}.`,
       );
       await this.router.navigate([this.auth.landingRoute()]);
     } catch (error) {
-      if (
-        error instanceof ApiRequestError &&
-        error.field &&
-        error.field in this.form.controls
-      ) {
+      if (error instanceof ApiRequestError && error.field && error.field in this.form.controls) {
         this.form.controls[error.field as keyof typeof this.form.controls].setErrors({
           server: error.message,
         });

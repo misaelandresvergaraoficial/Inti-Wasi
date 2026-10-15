@@ -28,6 +28,17 @@ export interface FiltrosMovimiento {
   idUsuario?: number;
 }
 
+export interface OpcionProductoMovimiento {
+  idProducto: number;
+  sku: string;
+  nomProducto: string;
+}
+
+export interface OpcionResponsableMovimiento {
+  idUsuario: number;
+  nomUsuario: string;
+}
+
 export interface PaginaMovimientos {
   content: MovimientoConsultaResponse[];
   totalElements: number;

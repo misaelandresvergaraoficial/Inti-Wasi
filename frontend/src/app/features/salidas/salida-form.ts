@@ -50,6 +50,14 @@ export class SalidaForm implements PendingChanges {
   readonly submitted = signal(false);
 
   constructor() {
+    this.form.controls.motivo.valueChanges.subscribe((motivo) => {
+      this.form.controls.observaciones.setValidators(
+        motivo === 'Otro'
+          ? [Validators.required, Validators.maxLength(255)]
+          : [Validators.maxLength(255)],
+      );
+      this.form.controls.observaciones.updateValueAndValidity();
+    });
     void this.load();
   }
 
@@ -90,8 +98,11 @@ export class SalidaForm implements PendingChanges {
           observaciones: original.observaciones ?? '',
         });
         this.lines.clear();
-        for (const item of original.movimientos)
-          this.lines.push(this.newLine(item.idProducto, item.cantidad));
+        for (const item of original.movimientos) {
+          const line = this.newLine(item.idProducto, item.cantidad);
+          line.controls.idProducto.disable();
+          this.lines.push(line);
+        }
       }
       this.form.markAsPristine();
     } catch (error) {
@@ -141,10 +152,12 @@ export class SalidaForm implements PendingChanges {
   }
 
   addLine(): void {
+    if (this.id !== undefined) return;
     this.lines.push(this.newLine());
     this.form.markAsDirty();
   }
   removeLine(index: number): void {
+    if (this.id !== undefined) return;
     if (this.lines.length < 2) return;
     this.lines.removeAt(index);
     this.form.markAsDirty();
@@ -160,6 +173,7 @@ export class SalidaForm implements PendingChanges {
     if (
       this.form.invalid ||
       !motivos.includes(value.motivo as MotivoSalida) ||
+      (value.motivo === 'Otro' && !value.observaciones.trim()) ||
       (this.id !== undefined && !value.motivoCorreccion.trim())
     ) {
       this.error.set('Completa los campos obligatorios y revisa las cantidades.');
@@ -168,6 +182,18 @@ export class SalidaForm implements PendingChanges {
     }
     if (this.id !== undefined && this.original()?.estadoDocumento !== 1) {
       this.error.set('Solo se puede rectificar una salida vigente. Actualiza la página.');
+      return;
+    }
+    if (
+      this.id !== undefined &&
+      this.original() &&
+      (value.movimientos.length !== this.original()!.movimientos.length ||
+        value.movimientos.some(
+          (line) =>
+            !this.original()!.movimientos.some((item) => item.idProducto === line.idProducto),
+        ))
+    ) {
+      this.error.set('La rectificación debe conservar los mismos productos de la salida original.');
       return;
     }
     if (
@@ -199,7 +225,7 @@ export class SalidaForm implements PendingChanges {
     try {
       const saved = await this.salidas.save(request, this.id);
       this.form.markAsPristine();
-      this.notice.show(
+      this.notice.showNext(
         `Salida N.° ${saved.idSalida} ${this.id === undefined ? 'registrada' : 'creada como rectificación'} correctamente.`,
       );
       await this.router.navigate(['/salidas', saved.idSalida]);

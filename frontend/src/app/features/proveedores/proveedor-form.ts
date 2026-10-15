@@ -64,9 +64,7 @@ export class ProveedorForm implements PendingChanges {
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal(
-    this.invalidId ? 'El identificador del proveedor no es válido.' : '',
-  );
+  readonly loadError = signal(this.invalidId ? 'El identificador del proveedor no es válido.' : '');
   readonly errorText = fieldError;
 
   constructor() {
@@ -131,7 +129,7 @@ export class ProveedorForm implements PendingChanges {
 
       this.form.markAsPristine();
 
-      this.notice.show(
+      this.notice.showNext(
         `${supplier.nomProveedor}: ${
           this.id ? 'cambios guardados' : 'proveedor creado correctamente'
         }.`,
@@ -152,9 +150,7 @@ export class ProveedorForm implements PendingChanges {
         }
       }
 
-      this.error.set(
-        error instanceof Error ? error.message : 'No se pudo guardar el proveedor.',
-      );
+      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar el proveedor.');
     } finally {
       this.busy.set(false);
     }

@@ -59,10 +59,38 @@
         <option value="0">Anulado</option>
       </select>
     </div>
-    @if (query() || status()) {
-      <button mat-button (click)="search(''); filterStatus('')">Limpiar filtros</button>
+    <div class="status-filter">
+      <label for="ajuste-desde">Desde</label
+      ><input
+        id="ajuste-desde"
+        type="date"
+        [value]="desde()"
+        (change)="changeDate('desde', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="ajuste-hasta">Hasta</label
+      ><input
+        id="ajuste-hasta"
+        type="date"
+        [value]="hasta()"
+        (change)="changeDate('hasta', $any($event.target).value)"
+      />
+    </div>
+    <div class="status-filter">
+      <label for="ajuste-orden">Orden de emisión</label
+      ><select id="ajuste-orden" [value]="sort()" (change)="changeSort($any($event.target).value)">
+        <option value="desc">Más recientes primero</option>
+        <option value="asc">Más antiguos primero</option>
+      </select>
+    </div>
+    @if (query() || status() || desde() || hasta() || sort() !== 'desc') {
+      <button mat-button (click)="clearFilters()">Limpiar filtros</button>
     }
   </div>
+  @if (dateError()) {
+    <div class="notice error" role="alert">{{ dateError() }}</div>
+  }
   @if (loading()) {
     <div class="empty-state" role="status">
       <span class="loading-line"></span>
@@ -70,6 +98,8 @@
     </div>
   } @else if (error()) {
     <div class="empty-state"><p>No se pudo cargar el listado.</p></div>
+  } @else if (dateError()) {
+    <div class="empty-state"><p>Corrige el rango de fechas para consultar los ajustes.</p></div>
   } @else if (!filtered().length) {
     <div class="empty-state">
       <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay ajustes' }}</h3>
