@@ -11,8 +11,8 @@ import com.intiwasi.backend.entity.Proveedor;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 import com.intiwasi.backend.exception.ReglaNegocioException;
-import com.intiwasi.backend.repository.OrdenCompraRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
+import com.intiwasi.backend.repository.OrdenCompraRepository;
 import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.ProveedorRepository;
 import com.intiwasi.backend.repository.UsuarioRepository;
@@ -67,7 +67,10 @@ public class OrdenCompraService {
 
         Proveedor proveedor = buscarProveedorActivo(request.getIdProveedor());
         Usuario usuario = buscarUsuarioAutenticado();
-        List<DetalleOrdenCompra> detalles = construirDetalles(request.getDetalles(), proveedor);
+
+        List<DetalleOrdenCompra> detalles = construirDetalles(
+                request.getDetalles(), proveedor
+        );
 
         OrdenCompra orden = new OrdenCompra();
         orden.setProveedor(proveedor);
@@ -83,15 +86,26 @@ public class OrdenCompraService {
     @Transactional
     public OrdenCompraResponse actualizar(Integer id, OrdenCompraRequest request) {
         OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada con ID: " + id));
-        if (!ESTADO_PENDIENTE.equals(orden.getEstado()) || entradaRepository.existsByOrdenCompra_IdOrden(id)) {
-            throw new ReglaNegocioException("Solo se puede editar una orden pendiente sin entradas registradas");
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Orden de compra no encontrada con ID: " + id
+                ));
+
+        if (!ESTADO_PENDIENTE.equals(orden.getEstado())
+                || entradaRepository.existsByOrdenCompra_IdOrden(id)) {
+            throw new ReglaNegocioException(
+                    "Solo se puede editar una orden pendiente sin entradas registradas"
+            );
         }
 
-        validarFechaEstimada(request.getFechaEstimadaEntrega(), orden.getFechaEmision());
+        validarFechaEstimada(
+                request.getFechaEstimadaEntrega(), orden.getFechaEmision()
+        );
         validarDetalles(request.getDetalles());
+
         Proveedor proveedor = buscarProveedorActivo(request.getIdProveedor());
-        List<DetalleOrdenCompra> detallesNuevos = construirDetalles(request.getDetalles(), proveedor);
+        List<DetalleOrdenCompra> detallesNuevos = construirDetalles(
+                request.getDetalles(), proveedor
+        );
 
         orden.setProveedor(proveedor);
         orden.setFechaEstimadaEntrega(request.getFechaEstimadaEntrega());
@@ -103,10 +117,17 @@ public class OrdenCompraService {
     @Transactional
     public void cancelar(Integer id) {
         OrdenCompra orden = ordenCompraRepository.findByIdConDetallesForUpdate(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Orden de compra no encontrada con ID: " + id));
-        if (ESTADO_RECIBIDA.equals(orden.getEstado()) || ESTADO_CANCELADA.equals(orden.getEstado())) {
-            throw new ReglaNegocioException("Solo se puede cancelar una orden pendiente o parcial");
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Orden de compra no encontrada con ID: " + id
+                ));
+
+        if (ESTADO_RECIBIDA.equals(orden.getEstado())
+                || ESTADO_CANCELADA.equals(orden.getEstado())) {
+            throw new ReglaNegocioException(
+                    "Solo se puede cancelar una orden pendiente o parcial"
+            );
         }
+
         orden.setEstado(ESTADO_CANCELADA);
         ordenCompraRepository.saveAndFlush(orden);
     }
@@ -120,33 +141,49 @@ public class OrdenCompraService {
 
     private Proveedor buscarProveedorActivo(Integer idProveedor) {
         if (idProveedor == null) {
-            throw new IllegalArgumentException("El proveedor no existe o está inactivo");
+            throw new IllegalArgumentException(
+                    "El proveedor no existe o está inactivo"
+            );
         }
 
         Proveedor proveedor = proveedorRepository.findById(idProveedor)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "El proveedor no existe o está inactivo"
                 ));
+
         if (!Byte.valueOf((byte) 1).equals(proveedor.getEstado())) {
-            throw new ReglaNegocioException("El proveedor no existe o está inactivo");
+            throw new ReglaNegocioException(
+                    "El proveedor no existe o está inactivo"
+            );
         }
+
         return proveedor;
     }
 
     private Usuario buscarUsuarioAutenticado() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getName())) {
-            throw new AuthenticationCredentialsNotFoundException("Usuario autenticado no encontrado");
+            throw new AuthenticationCredentialsNotFoundException(
+                    "Usuario autenticado no encontrado"
+            );
         }
 
-        return usuarioRepository.findByCorreoAndEstado(authentication.getName(), 1)
+        return usuarioRepository.findByCorreoAndEstado(
+                        authentication.getName(), 1
+                )
                 .orElseThrow(() -> new AuthenticationCredentialsNotFoundException(
                         "Usuario autenticado no encontrado"
                 ));
     }
 
-    private List<DetalleOrdenCompra> construirDetalles(List<DetalleOrdenCompraRequest> requests, Proveedor proveedor) {
+    private List<DetalleOrdenCompra> construirDetalles(
+            List<DetalleOrdenCompraRequest> requests,
+            Proveedor proveedor
+    ) {
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
 
         for (DetalleOrdenCompraRequest request : requests) {
@@ -154,13 +191,20 @@ public class OrdenCompraService {
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "El producto no existe o está inactivo"
                     ));
+
             if (!Byte.valueOf((byte) 1).equals(producto.getEstado())) {
-                throw new ReglaNegocioException("El producto no existe o está inactivo");
-            }
-            if (producto.getProveedor() == null
-                    || !proveedor.getIdProveedor().equals(producto.getProveedor().getIdProveedor())) {
                 throw new ReglaNegocioException(
-                        "El producto " + producto.getSku() + " no está asignado al proveedor de la orden"
+                        "El producto no existe o está inactivo"
+                );
+            }
+
+            if (producto.getProveedor() == null
+                    || !proveedor.getIdProveedor().equals(
+                            producto.getProveedor().getIdProveedor()
+                    )) {
+                throw new ReglaNegocioException(
+                        "El producto " + producto.getSku()
+                                + " no está asignado al proveedor de la orden"
                 );
             }
 
@@ -174,24 +218,31 @@ public class OrdenCompraService {
         return detalles;
     }
 
-    private void reemplazarDetalles(OrdenCompra orden, List<DetalleOrdenCompra> detallesNuevos) {
-        Map<Integer, DetalleOrdenCompra> existentesPorProducto = orden.getDetalles().stream()
-                .collect(Collectors.toMap(
-                        detalle -> detalle.getProducto().getIdProducto(),
-                        Function.identity()
-                ));
+    private void reemplazarDetalles(
+            OrdenCompra orden,
+            List<DetalleOrdenCompra> detallesNuevos
+    ) {
+        Map<Integer, DetalleOrdenCompra> existentesPorProducto =
+                orden.getDetalles().stream()
+                        .collect(Collectors.toMap(
+                                detalle -> detalle.getProducto().getIdProducto(),
+                                Function.identity()
+                        ));
 
         Set<Integer> productosSolicitados = detallesNuevos.stream()
                 .map(detalle -> detalle.getProducto().getIdProducto())
                 .collect(Collectors.toSet());
 
         orden.getDetalles().removeIf(
-                detalle -> !productosSolicitados.contains(detalle.getProducto().getIdProducto())
+                detalle -> !productosSolicitados.contains(
+                        detalle.getProducto().getIdProducto()
+                )
         );
 
         for (DetalleOrdenCompra detalleNuevo : detallesNuevos) {
             Integer idProducto = detalleNuevo.getProducto().getIdProducto();
-            DetalleOrdenCompra detalleExistente = existentesPorProducto.get(idProducto);
+            DetalleOrdenCompra detalleExistente =
+                    existentesPorProducto.get(idProducto);
 
             if (detalleExistente != null) {
                 detalleExistente.setProducto(detalleNuevo.getProducto());
@@ -205,31 +256,49 @@ public class OrdenCompraService {
 
     private void validarDetalles(List<DetalleOrdenCompraRequest> requests) {
         if (requests == null || requests.isEmpty()) {
-            throw new ReglaNegocioException("La orden debe contener al menos un producto");
+            throw new ReglaNegocioException(
+                    "La orden debe contener al menos un producto"
+            );
         }
 
         Set<Integer> productosIncluidos = new HashSet<>();
 
         for (DetalleOrdenCompraRequest request : requests) {
             if (request == null || request.getIdProducto() == null) {
-                throw new IllegalArgumentException("El producto no existe o está inactivo");
+                throw new IllegalArgumentException(
+                        "El producto no existe o está inactivo"
+                );
             }
+
             if (!productosIncluidos.add(request.getIdProducto())) {
-                throw new ReglaNegocioException("El producto no puede repetirse dentro de la orden");
+                throw new ReglaNegocioException(
+                        "El producto no puede repetirse dentro de la orden"
+                );
             }
+
             if (request.getCantidad() == null || request.getCantidad() <= 0) {
-                throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
+                throw new IllegalArgumentException(
+                        "La cantidad debe ser mayor que cero"
+                );
             }
-            if (request.getPrecioUnitario() == null || request.getPrecioUnitario().signum() < 0) {
-                throw new IllegalArgumentException("El precio unitario no puede ser negativo");
+
+            if (request.getPrecioUnitario() == null
+                    || request.getPrecioUnitario().signum() < 0) {
+                throw new IllegalArgumentException(
+                        "El precio unitario no puede ser negativo"
+                );
             }
         }
     }
 
-    private void validarFechaEstimada(LocalDate fechaEstimada, LocalDate fechaEmision) {
+    private void validarFechaEstimada(
+            LocalDate fechaEstimada,
+            LocalDate fechaEmision
+    ) {
         if (fechaEstimada != null && fechaEstimada.isBefore(fechaEmision)) {
             throw new ReglaNegocioException(
-                    "La fecha estimada de entrega no puede ser menor que la fecha de emisión"
+                    "La fecha estimada de entrega no puede ser menor "
+                            + "que la fecha de emisión"
             );
         }
     }
@@ -240,6 +309,7 @@ public class OrdenCompraService {
                 .toList();
 
         BigDecimal total = BigDecimal.ZERO;
+
         for (DetalleOrdenCompraResponse detalle : detalles) {
             total = total.add(detalle.getSubtotal());
         }
@@ -248,6 +318,7 @@ public class OrdenCompraService {
                 .idOrden(orden.getIdOrden())
                 .idProveedor(orden.getProveedor().getIdProveedor())
                 .nomProveedor(orden.getProveedor().getNomProveedor())
+                .prefijoGuia(orden.getProveedor().getPrefijoGuia())
                 .idUsuario(orden.getUsuario().getIdUsuario())
                 .nomUsuario(orden.getUsuario().getNomUsuario())
                 .fechaEmision(orden.getFechaEmision())
@@ -258,11 +329,21 @@ public class OrdenCompraService {
                 .build();
     }
 
-    private DetalleOrdenCompraResponse convertirDetalleAResponse(OrdenCompra orden, DetalleOrdenCompra detalle) {
+    private DetalleOrdenCompraResponse convertirDetalleAResponse(
+            OrdenCompra orden,
+            DetalleOrdenCompra detalle
+    ) {
         BigDecimal subtotal = detalle.getPrecioUnitario()
                 .multiply(BigDecimal.valueOf(detalle.getCantidad()));
-        Integer recibida = entradaRepository.cantidadRecibida(orden.getIdOrden(), detalle.getProducto().getIdProducto());
-        if (recibida == null) recibida = 0;
+
+        Integer recibida = entradaRepository.cantidadRecibida(
+                orden.getIdOrden(),
+                detalle.getProducto().getIdProducto()
+        );
+
+        if (recibida == null) {
+            recibida = 0;
+        }
 
         return DetalleOrdenCompraResponse.builder()
                 .idDetalle(detalle.getIdDetalle())
@@ -271,7 +352,11 @@ public class OrdenCompraService {
                 .nomProducto(detalle.getProducto().getNomProducto())
                 .cantidad(detalle.getCantidad())
                 .cantidadRecibida(recibida)
-                .cantidadPorRecibir(ESTADO_CANCELADA.equals(orden.getEstado()) ? 0 : detalle.getCantidad() - recibida)
+                .cantidadPorRecibir(
+                        ESTADO_CANCELADA.equals(orden.getEstado())
+                                ? 0
+                                : detalle.getCantidad() - recibida
+                )
                 .precioUnitario(detalle.getPrecioUnitario())
                 .subtotal(subtotal)
                 .build();

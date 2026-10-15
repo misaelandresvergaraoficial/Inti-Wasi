@@ -12,6 +12,7 @@ import lombok.Data;
 @Entity
 @Table(name = "Proveedores")
 public class Proveedor {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "IdProveedor")
@@ -19,6 +20,9 @@ public class Proveedor {
 
     @Column(name = "NomProveedor", length = 100, nullable = false)
     private String nomProveedor;
+
+    @Column(name = "PrefijoGuia", length = 30, unique = true)
+    private String prefijoGuia;
 
     @Column(name = "RUC", length = 11, nullable = false, unique = true)
     private String ruc;

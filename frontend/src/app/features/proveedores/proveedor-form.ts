@@ -1,5 +1,10 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,7 +21,9 @@ import { fieldError, focusFirstInvalid } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
 const notBlank = (control: AbstractControl) =>
-  typeof control.value === 'string' && !control.value.trim() ? { blank: true } : null;
+  typeof control.value === 'string' && !control.value.trim()
+    ? { blank: true }
+    : null;
 
 @Component({
   selector: 'iw-proveedor-form',
@@ -36,18 +43,31 @@ export class ProveedorForm implements PendingChanges {
   private readonly notice = inject(NoticeService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
-  private readonly element = viewChild<ElementRef<HTMLFormElement>>('supplierForm');
+  private readonly element =
+    viewChild<ElementRef<HTMLFormElement>>('supplierForm');
   private readonly fb = inject(FormBuilder);
   private readonly rawId = inject(ActivatedRoute).snapshot.paramMap.get('id');
 
   readonly id = this.rawId === null ? undefined : Number(this.rawId);
 
   readonly invalidId =
-    this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
+    this.rawId !== null &&
+    (!Number.isInteger(this.id) || (this.id as number) <= 0);
 
   readonly form = this.fb.nonNullable.group({
-    nomProveedor: ['', [Validators.required, notBlank, Validators.maxLength(100)]],
+    nomProveedor: [
+      '',
+      [Validators.required, notBlank, Validators.maxLength(100)],
+    ],
     ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
+    prefijoGuia: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(30),
+        Validators.pattern(/^GUIA-[A-Z][A-Z0-9]{0,23}-$/),
+      ],
+    ],
     contacto: ['', [Validators.maxLength(100)]],
     telefono: [
       '',
@@ -61,10 +81,13 @@ export class ProveedorForm implements PendingChanges {
     direccion: ['', [Validators.maxLength(150)]],
   });
 
+  readonly prefijoGuiaBloqueado = signal(false);
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal(this.invalidId ? 'El identificador del proveedor no es válido.' : '');
+  readonly loadError = signal(
+    this.invalidId ? 'El identificador del proveedor no es válido.' : '',
+  );
   readonly errorText = fieldError;
 
   constructor() {
@@ -80,9 +103,11 @@ export class ProveedorForm implements PendingChanges {
     try {
       const supplier = await this.suppliers.get(this.id);
 
+      this.prefijoGuiaBloqueado.set(supplier.prefijoGuiaBloqueado);
       this.form.patchValue({
         nomProveedor: supplier.nomProveedor,
         ruc: supplier.ruc,
+        prefijoGuia: supplier.prefijoGuia ?? '',
         contacto: supplier.contacto ?? '',
         telefono: supplier.telefono,
         direccion: supplier.direccion ?? '',
@@ -91,7 +116,9 @@ export class ProveedorForm implements PendingChanges {
       this.form.markAsPristine();
     } catch (error) {
       this.loadError.set(
-        error instanceof Error ? error.message : 'No se pudo cargar la información del proveedor.',
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la información del proveedor.',
       );
     } finally {
       this.loading.set(false);
@@ -120,6 +147,7 @@ export class ProveedorForm implements PendingChanges {
         {
           nomProveedor: value.nomProveedor.trim(),
           ruc: value.ruc.trim(),
+          prefijoGuia: value.prefijoGuia,
           contacto: value.contacto.trim() || null,
           telefono: value.telefono.trim(),
           direccion: value.direccion.trim() || null,
@@ -137,8 +165,13 @@ export class ProveedorForm implements PendingChanges {
 
       await this.router.navigate(['/proveedores']);
     } catch (error) {
-      if (error instanceof ApiRequestError && error.field && error.field in this.form.controls) {
-        const control = this.form.controls[error.field as keyof typeof this.form.controls];
+      if (
+        error instanceof ApiRequestError &&
+        error.field &&
+        error.field in this.form.controls
+      ) {
+        const control =
+          this.form.controls[error.field as keyof typeof this.form.controls];
 
         control.setErrors({
           ...control.errors,
@@ -150,7 +183,11 @@ export class ProveedorForm implements PendingChanges {
         }
       }
 
-      this.error.set(error instanceof Error ? error.message : 'No se pudo guardar el proveedor.');
+      this.error.set(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo guardar el proveedor.',
+      );
     } finally {
       this.busy.set(false);
     }

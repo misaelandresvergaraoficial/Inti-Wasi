@@ -14,9 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrdenCompraResponse {
+
     private Integer idOrden;
     private Integer idProveedor;
     private String nomProveedor;
+    private String prefijoGuia;
     private Integer idUsuario;
     private String nomUsuario;
     private LocalDate fechaEmision;

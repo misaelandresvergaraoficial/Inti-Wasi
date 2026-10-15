@@ -16,6 +16,7 @@ export interface OrdenResponse {
   idOrden: number;
   idProveedor: number;
   nomProveedor: string;
+  prefijoGuia: string | null;
   idUsuario: number;
   nomUsuario: string;
   fechaEmision: string;
@@ -28,7 +29,11 @@ export interface OrdenResponse {
 export interface OrdenRequest {
   idProveedor: number;
   fechaEstimadaEntrega: string | null;
-  detalles: { idProducto: number; cantidad: number; precioUnitario: number }[];
+  detalles: {
+    idProducto: number;
+    cantidad: number;
+    precioUnitario: number;
+  }[];
 }
 
 export interface ProveedorOpcion {
@@ -47,9 +52,9 @@ export interface ProductoOpcion {
 }
 
 export function puedeEditarOrden(order: OrdenResponse): boolean {
-  // El servidor comprueba además si hubo entradas posteriormente anuladas.
   return (
-    order.estado === 'Pendiente' && order.detalles.every((item) => item.cantidadRecibida === 0)
+    order.estado === 'Pendiente' &&
+    order.detalles.every((item) => item.cantidadRecibida === 0)
   );
 }
 
