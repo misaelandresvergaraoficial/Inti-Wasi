@@ -15,17 +15,27 @@ import { PendingChanges } from '../../core/guards';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { fieldError, focusFirstInvalid } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
+
 const notBlank = (control: AbstractControl) =>
-  typeof control.value === 'string' && !control.value.trim() ? { blank: true } : null;
+  typeof control.value === 'string' && !control.value.trim()
+    ? { blank: true }
+    : null;
+
 export function institutionalEmail(control: AbstractControl) {
   if (!control.value) return null;
+
   if (!/^(admin|operador)\.[a-z]+$/.test(control.value)) {
     return { institutional: true };
   }
+
   const role = control.parent?.get('rol')?.value;
   const prefix = role === 'Administrador' ? 'admin.' : 'operador.';
-  return role && !control.value.startsWith(prefix) ? { roleEmail: true } : null;
+
+  return role && !control.value.startsWith(prefix)
+    ? { roleEmail: true }
+    : null;
 }
+
 @Component({
   selector: 'iw-user-form',
   imports: [
@@ -44,80 +54,146 @@ export class UserForm implements PendingChanges {
   private readonly notice = inject(NoticeService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
-  private readonly element = viewChild<ElementRef<HTMLFormElement>>('userForm');
+  private readonly element =
+    viewChild<ElementRef<HTMLFormElement>>('userForm');
+
   readonly rawId = inject(ActivatedRoute).snapshot.paramMap.get('id');
   readonly id = this.rawId === null ? undefined : Number(this.rawId);
+
   readonly invalidId =
-    this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
+    this.rawId !== null &&
+    (!Number.isInteger(this.id) || (this.id as number) <= 0);
+
   readonly form = inject(FormBuilder).nonNullable.group({
-    nomUsuario: ['', [Validators.required, notBlank, Validators.maxLength(50)]],
-    correo: ['', [Validators.required, institutionalEmail, Validators.maxLength(88)]],
-    contrasena: ['', [Validators.minLength(6), Validators.maxLength(20)]],
+    nomUsuario: [
+      '',
+      [Validators.required, notBlank, Validators.maxLength(50)],
+    ],
+    correo: [
+      '',
+      [
+        Validators.required,
+        institutionalEmail,
+        Validators.maxLength(88),
+      ],
+    ],
+    contrasena: [
+      '',
+      [Validators.minLength(6), Validators.maxLength(20)],
+    ],
     rol: ['Operador de Almacén' as Rol, Validators.required],
-    telefono: ['', [Validators.maxLength(15), Validators.pattern(/^[0-9]*[1-9][0-9]*$/)]],
+    telefono: [
+      '',
+      [
+        Validators.maxLength(15),
+        Validators.pattern(/^[0-9]*[1-9][0-9]*$/),
+      ],
+    ],
   });
+
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal(this.invalidId ? 'El identificador del usuario no es válido.' : '');
+  readonly loadError = signal(
+    this.invalidId ? 'El identificador del usuario no es válido.' : '',
+  );
   readonly showPassword = signal(false);
-  readonly errorText = (control: AbstractControl, label: string): string => {
-    if (control.hasError('institutional'))
+
+  readonly errorText = (
+    control: AbstractControl,
+    label: string,
+  ): string => {
+    if (control.hasError('institutional')) {
       return 'Usa admin.nombre u operador.nombre, solo con letras minúsculas.';
-    if (control.hasError('roleEmail'))
+    }
+
+    if (control.hasError('roleEmail')) {
       return 'El correo no coincide con el rol seleccionado. Revisa el prefijo admin u operador.';
-    if (control === this.form.controls.telefono && control.hasError('pattern'))
+    }
+
+    if (
+      control === this.form.controls.telefono &&
+      control.hasError('pattern')
+    ) {
       return 'Ingresa solo números; el teléfono debe ser mayor que cero.';
+    }
+
     return fieldError(control, label);
   };
+
   onlyPhoneDigits(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/[^0-9]/g, '');
+
     if (input.value !== digits) {
       input.value = digits;
       this.form.controls.telefono.setValue(digits);
     }
   }
+
   constructor() {
-    this.form.controls.rol.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.form.controls.correo.updateValueAndValidity();
-      this.form.controls.correo.markAsTouched();
-    });
-    if (this.rawId === null)
-      this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
-    else if (!this.invalidId) void this.load();
+    this.form.controls.rol.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.form.controls.correo.updateValueAndValidity();
+        this.form.controls.correo.markAsTouched();
+      });
+
+    if (this.rawId === null) {
+      this.form.controls.contrasena.addValidators([
+        Validators.required,
+        notBlank,
+      ]);
+    } else if (!this.invalidId) {
+      void this.load();
+    }
   }
+
   async load(): Promise<void> {
     if (this.invalidId) return;
+
     this.loading.set(true);
     this.loadError.set('');
+
     try {
       const user = await this.users.get(this.id!);
+
       this.form.patchValue({
         ...user,
         correo: user.correo.replace(/@intiwasi\.pe$/, ''),
         telefono: user.telefono ?? '',
         contrasena: '',
       });
+
       this.form.controls.correo.updateValueAndValidity();
       this.form.markAsPristine();
     } catch (error) {
-      this.loadError.set(error instanceof Error ? error.message : 'No se pudo cargar el usuario.');
+      this.loadError.set(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar el usuario.',
+      );
     } finally {
       this.loading.set(false);
     }
   }
+
   async submit(): Promise<void> {
     if (this.busy() || this.loading() || this.loadError()) return;
+
     this.error.set('');
     this.form.markAllAsTouched();
+
     if (this.form.invalid) {
       focusFirstInvalid(this.element()!.nativeElement);
       return;
     }
+
     this.busy.set(true);
+
     try {
       const value = this.form.getRawValue();
+
       const user = await this.users.save(
         {
           ...value,
@@ -127,8 +203,11 @@ export class UserForm implements PendingChanges {
         },
         this.id,
       );
+
       this.form.markAsPristine();
+
       const current = this.auth.session();
+
       if (
         current?.idUsuario === user.idUsuario &&
         (current.correo !== user.correo || !!value.contrasena)
@@ -136,28 +215,50 @@ export class UserForm implements PendingChanges {
         this.auth.logout(false, true);
         return;
       }
+
       this.auth.refreshUser(user);
+
       this.notice.showNext(
-        `${user.nomUsuario}: ${this.id ? 'cambios guardados' : 'usuario creado correctamente'}.`,
+        `${user.nomUsuario}: ${
+          this.id ? 'cambios guardados' : 'usuario creado correctamente'
+        }.`,
       );
-      await this.router.navigate([this.auth.landingRoute()]);
+
+      // Al crear un usuario, regresar al listado de Usuarios.
+      // Al editar, conservar el destino inicial del rol actualizado.
+      const destination =
+        this.rawId === null ? '/usuarios' : this.auth.landingRoute();
+
+      await this.router.navigate([destination]);
     } catch (error) {
-      if (error instanceof ApiRequestError && error.field && error.field in this.form.controls) {
-        this.form.controls[error.field as keyof typeof this.form.controls].setErrors({
+      if (
+        error instanceof ApiRequestError &&
+        error.field &&
+        error.field in this.form.controls
+      ) {
+        this.form.controls[
+          error.field as keyof typeof this.form.controls
+        ].setErrors({
           server: error.message,
         });
+
         focusFirstInvalid(this.element()!.nativeElement);
       }
+
       this.error.set(
-        error instanceof Error ? error.message : 'No se pudo guardar. Inténtalo de nuevo.',
+        error instanceof Error
+          ? error.message
+          : 'No se pudo guardar. Inténtalo de nuevo.',
       );
     } finally {
       this.busy.set(false);
     }
   }
+
   async canLeave(): Promise<boolean> {
     if (!this.auth.valid() || !this.form.dirty) return true;
     if (this.busy()) return false;
+
     return !!(await firstValueFrom(
       this.dialog
         .open(ConfirmDialog, {
@@ -165,7 +266,8 @@ export class UserForm implements PendingChanges {
           maxWidth: 'calc(100vw - 32px)',
           data: {
             title: '¿Salir sin guardar?',
-            message: 'Los cambios que realizaste en este formulario se perderán.',
+            message:
+              'Los cambios que realizaste en este formulario se perderán.',
             action: 'Salir sin guardar',
           },
         })
