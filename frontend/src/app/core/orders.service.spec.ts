@@ -13,6 +13,7 @@ const order: OrdenResponse = {
   idOrden: 12,
   idProveedor: 3,
   nomProveedor: 'Proveedor Norte',
+  prefijoGuia: 'GUIA-NORTE-',
   idUsuario: 1,
   nomUsuario: 'Valeria Torres',
   fechaEmision: '2026-09-29',

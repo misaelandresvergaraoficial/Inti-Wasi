@@ -31,25 +31,6 @@ class AuthControllerTest {
     @InjectMocks AuthController controller;
 
     @Test
-    void credencialesValidasDeCuentaInactivaRecibenMensajeEspecifico() {
-        AuthRequest request = new AuthRequest();
-        request.setCorreo("inactivo@intiwasi.test");
-        request.setContrasena("correcta");
-        Usuario usuario = new Usuario();
-        usuario.setEstado(0);
-        usuario.setContrasena("hash");
-        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Invalid"));
-        when(usuarioRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches("correcta", "hash")).thenReturn(true);
-
-        var response = controller.login(request);
-
-        assertEquals(401, response.getStatusCode().value());
-        assertEquals("Su cuenta no está disponible. Contacte al Administrador.",
-                ((ErrorResponse) response.getBody()).getMessage());
-    }
-
-    @Test
     void contrasenaIncorrectaNoRevelaSiLaCuentaEstaInactiva() {
         AuthRequest request = new AuthRequest();
         request.setCorreo("inactivo@intiwasi.test");

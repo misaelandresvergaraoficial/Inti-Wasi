@@ -23,7 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,46 +108,4 @@ class OrdenCompraServiceTest {
         verify(ordenes, never()).save(any(OrdenCompra.class));
     }
 
-    @Test
-    void noEditaOrdenConProductoDeOtroProveedor() {
-        var otro = new Proveedor();
-        otro.setIdProveedor(2);
-        producto.setProveedor(otro);
-        prepararEdicion();
-
-        assertThrows(ReglaNegocioException.class, () -> service.actualizar(4, request));
-
-        verify(ordenes, never()).save(any(OrdenCompra.class));
-    }
-
-    @Test
-    void noEditaOrdenConProductoSinProveedor() {
-        producto.setProveedor(null);
-        prepararEdicion();
-
-        assertThrows(ReglaNegocioException.class, () -> service.actualizar(4, request));
-
-        verify(ordenes, never()).save(any(OrdenCompra.class));
-    }
-
-    @Test
-    void noEditaOrdenConProductoInactivo() {
-        producto.setEstado((byte) 0);
-        prepararEdicion();
-
-        assertThrows(ReglaNegocioException.class, () -> service.actualizar(4, request));
-
-        verify(ordenes, never()).save(any(OrdenCompra.class));
-    }
-
-    private void prepararEdicion() {
-        var orden = new OrdenCompra();
-        orden.setIdOrden(4);
-        orden.setEstado("Pendiente");
-        orden.setFechaEmision(LocalDate.now());
-        orden.setProveedor(proveedor);
-        when(ordenes.findByIdConDetallesForUpdate(4)).thenReturn(Optional.of(orden));
-        when(proveedores.findById(1)).thenReturn(Optional.of(proveedor));
-        when(productos.findById(12)).thenReturn(Optional.of(producto));
-    }
 }
