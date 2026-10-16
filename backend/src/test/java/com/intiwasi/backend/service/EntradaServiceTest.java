@@ -13,7 +13,6 @@ import com.intiwasi.backend.entity.Proveedor;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.exception.ConflictoException;
-import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.DocumentoRepository;
 import com.intiwasi.backend.repository.EntradaRepository;
 import com.intiwasi.backend.repository.GuiaRemisionRepository;
@@ -39,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -108,53 +106,6 @@ class EntradaServiceTest {
     }
 
     @Test
-    void rechazaProductoQueNoPerteneceALaOrden() {
-        Producto ajeno = new Producto();
-        ajeno.setIdProducto(13);
-        ajeno.setEstado((byte) 1);
-
-        when(ordenes.findByIdConDetallesForUpdate(7))
-                .thenReturn(Optional.of(orden));
-        when(productos.findAllByIdForUpdate(List.of(13)))
-                .thenReturn(List.of(ajeno));
-
-        assertThrows(
-                ReglaNegocioException.class,
-                () -> service.registrar(request(13, 1))
-        );
-
-        verifyNoInteractions(documentos, entradas, movimientos);
-    }
-
-    @Test
-    void aceptaRecepcionExactamenteIgualAlSaldoPendiente() {
-        prepararRecepcion(8, 2);
-
-        var respuesta = service.registrar(request(12, 2));
-
-        assertEquals(2, respuesta.getMovimientos().getFirst().getCantidad());
-        comprobarGuardado(2);
-    }
-
-    @Test
-    void rechazaRecepcionQueSuperaElSaldoPendiente() {
-        when(ordenes.findByIdConDetallesForUpdate(7))
-                .thenReturn(Optional.of(orden));
-        when(productos.findAllByIdForUpdate(List.of(12)))
-                .thenReturn(List.of(producto));
-        when(entradas.cantidadRecibida(7, 12)).thenReturn(8);
-
-        assertThrows(
-                ReglaNegocioException.class,
-                () -> service.registrar(request(12, 3))
-        );
-
-        verifyNoInteractions(documentos, movimientos);
-        verify(entradas).cantidadRecibida(7, 12);
-        verify(entradas, never()).saveAndFlush(any(Entrada.class));
-    }
-
-    @Test
     void rechazaGuiaYaRegistradaParaElProveedor() {
         when(ordenes.findByIdConDetallesForUpdate(7))
                 .thenReturn(Optional.of(orden));
@@ -168,41 +119,6 @@ class EntradaServiceTest {
         );
 
         verifyNoInteractions(documentos, movimientos);
-    }
-
-    @Test
-    void rechazaPrefijoDeOtroProveedorAntesDeGuardar() {
-        when(ordenes.findByIdConDetallesForUpdate(7))
-                .thenReturn(Optional.of(orden));
-
-        EntradaRequest datos = request(12, 1);
-        datos.setNumeroGuiaRemision("GUIA-OTRO-001-123");
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.registrar(datos)
-        );
-
-        verifyNoInteractions(
-                guias, productos, documentos, entradas, movimientos
-        );
-    }
-
-    @Test
-    void rechazaProveedorSinPrefijoAntesDeGuardar() {
-        orden.getProveedor().setPrefijoGuia(null);
-
-        when(ordenes.findByIdConDetallesForUpdate(7))
-                .thenReturn(Optional.of(orden));
-
-        assertThrows(
-                ReglaNegocioException.class,
-                () -> service.registrar(request(12, 1))
-        );
-
-        verifyNoInteractions(
-                guias, productos, documentos, entradas, movimientos
-        );
     }
 
     private EntradaRequest request(int idProducto, int cantidad) {

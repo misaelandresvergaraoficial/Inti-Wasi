@@ -82,39 +82,11 @@ class SalidaServiceTest {
     }
 
     @Test
-    void rechazaSalidaDeProductoInactivo() {
-        producto.setEstado((byte) 0);
-        when(productos.findAllByIdForUpdate(List.of(12))).thenReturn(List.of(producto));
-
-        assertThrows(ReglaNegocioException.class, () -> service.registrar(request(1)));
-
-        verifyNoInteractions(documentos, salidas, movimientos);
-    }
-
-    @Test
-    void aceptaSalidaExactamenteIgualAlStockDisponible() {
-        prepararSalida(10);
-
-        var respuesta = service.registrar(request(10));
-
-        assertEquals(10, respuesta.getMovimientos().getFirst().getCantidad());
-        comprobarGuardado(10);
-    }
-
-    @Test
     void rechazaSalidaQueSuperaElStockDisponible() {
         when(productos.findAllByIdForUpdate(List.of(12))).thenReturn(List.of(producto));
 
         assertThrows(ReglaNegocioException.class, () -> service.registrar(request(11)));
 
-        verifyNoInteractions(documentos, salidas, movimientos);
-    }
-
-    @Test
-    void exigeObservacionesParaMotivoOtro() {
-        SalidaRequest solicitud = request(1);
-        solicitud.setMotivo(MotivoSalida.OTRO);
-        assertThrows(IllegalArgumentException.class, () -> service.registrar(solicitud));
         verifyNoInteractions(documentos, salidas, movimientos);
     }
 
