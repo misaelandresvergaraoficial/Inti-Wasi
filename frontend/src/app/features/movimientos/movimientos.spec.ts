@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { MovimientosService } from '../../core/movimientos.service';
@@ -52,13 +53,13 @@ describe('Pantallas de Movimientos', () => {
     await fixture.componentInstance.load();
     fixture.detectChanges();
     expect(fixture.componentInstance.result()?.content[0].cantidadConSigno).toBe(-5);
-    fixture.componentInstance.go(1);
+    fixture.componentInstance.onPage({ pageIndex: 1, pageSize: 20, length: 21 } as PageEvent);
     await fixture.componentInstance.load();
-    expect(list).toHaveBeenLastCalledWith({}, 1, 'desc');
+    expect(list).toHaveBeenLastCalledWith({}, 1, 'desc', 20);
 
     fixture.componentInstance.changeSort('asc');
     await fixture.componentInstance.load();
-    expect(list).toHaveBeenLastCalledWith({}, 0, 'asc');
+    expect(list).toHaveBeenLastCalledWith({}, 0, 'asc', 20);
 
     fixture.componentInstance.changeFilter('fechaInicial', '2026-10-14');
     fixture.componentInstance.changeFilter('fechaFinal', '2026-10-13');

@@ -174,30 +174,16 @@
           </tbody>
         </table>
       </div>
-      <div class="pagination">
-        <p role="status">
-          Página {{ data.number + 1 }} de {{ data.totalPages }} ·
-          {{ data.totalElements }} movimientos
-        </p>
-        <div class="flex items-center gap-2">
-          <button
-            mat-icon-button
-            aria-label="Página anterior"
-            [disabled]="data.number === 0 || loading()"
-            (click)="go(data.number - 1)"
-          >
-            <iw-icon name="arrow" />
-          </button>
-          <button
-            mat-icon-button
-            aria-label="Página siguiente"
-            [disabled]="data.number + 1 >= data.totalPages || loading()"
-            (click)="go(data.number + 1)"
-          >
-            <iw-icon name="next" />
-          </button>
-        </div>
-      </div>
+      <mat-paginator
+        aria-label="Paginación de movimientos"
+        [length]="data.totalElements"
+        [pageIndex]="data.number"
+        [pageSize]="size()"
+        [pageSizeOptions]="pageSizeOptions"
+        [showFirstLastButtons]="true"
+        [disabled]="loading()"
+        (page)="onPage($event)"
+      />
     }
   } @else if (!error() && !filterError()) {
     <div class="empty-state"><p>Aplica los filtros para consultar movimientos.</p></div>

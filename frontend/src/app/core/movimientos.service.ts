@@ -22,10 +22,11 @@ export class MovimientosService {
     filtros: FiltrosMovimiento,
     page: number,
     orden: 'asc' | 'desc' = 'desc',
+    size = 20,
   ): Promise<PaginaMovimientos> {
     let params = new HttpParams()
       .set('page', page)
-      .set('size', 20)
+      .set('size', size)
       .append('sort', `fechaEmision,${orden}`)
       .append('sort', `idMovimiento,${orden}`);
     for (const [key, value] of Object.entries(filtros)) {
