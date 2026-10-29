@@ -7,10 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 
@@ -93,6 +95,26 @@ public class GlobalExceptionHandler {
             RecursoNoEncontradoException ex
     ) {
         return crearRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRutaNoEncontrada(
+            NoResourceFoundException ex
+    ) {
+        return crearRespuesta(
+                HttpStatus.NOT_FOUND,
+                "El recurso solicitado no existe"
+        );
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMetodoNoSoportado(
+            HttpRequestMethodNotSupportedException ex
+    ) {
+        return crearRespuesta(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "El método HTTP no está permitido para este recurso"
+        );
     }
 
     @ExceptionHandler(ConflictoException.class)

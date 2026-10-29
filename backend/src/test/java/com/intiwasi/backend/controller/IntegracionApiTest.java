@@ -69,4 +69,11 @@ class IntegracionApiTest {
                 .andExpect(jsonPath("$.info.title").exists())
                 .andExpect(jsonPath("$.paths").exists());
     }
+
+    @Test
+    @WithMockUser(roles = "Administrador")
+    void rutaInexistenteDevuelve404() throws Exception {
+        mvc.perform(get("/api/ruta-inexistente"))
+                .andExpect(status().isNotFound());
+    }
 }
