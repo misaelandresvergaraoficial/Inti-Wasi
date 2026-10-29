@@ -14,6 +14,7 @@ import { ProductosService } from '../../core/productos.service';
 import { MotivoSalida, SalidaRequest, SalidaResponse } from '../../core/salida-models';
 import { SalidasService } from '../../core/salidas.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { sinEmojis } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
 const motivos: MotivoSalida[] = ['Despacho/Venta', 'Merma', 'Otro'];
@@ -36,8 +37,8 @@ export class SalidaForm implements PendingChanges {
   readonly id = this.routeId === null ? undefined : Number(this.routeId);
   readonly form = this.fb.group({
     motivo: ['', Validators.required],
-    observaciones: ['', Validators.maxLength(255)],
-    motivoCorreccion: ['', Validators.maxLength(255)],
+    observaciones: ['', [Validators.maxLength(255), sinEmojis]],
+    motivoCorreccion: ['', [Validators.maxLength(255), sinEmojis]],
     movimientos: this.fb.array([this.newLine()]),
   });
   readonly products = signal<ProductoResponse[]>([]);

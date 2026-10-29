@@ -1,0 +1,218 @@
+[
+  {
+    "id": "CP-24",
+    "rf": "RNF08",
+    "titulo": "Accesibilidad del login",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RNF08_CP-24_accesibilidad-del-login.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-25",
+    "rf": "RNF08",
+    "titulo": "Accesibilidad del dashboard",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RNF08_CP-25_accesibilidad-del-dashboard.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-26",
+    "rf": "RNF08",
+    "titulo": "Accesibilidad de productos",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RNF08_CP-26_accesibilidad-de-productos.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-27",
+    "rf": "RNF08",
+    "titulo": "Accesibilidad de movimientos",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RNF08_CP-27_accesibilidad-de-movimientos.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-01",
+    "rf": "RF01",
+    "titulo": "Inicio de sesión válido",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF01_CP-01_inicio-de-sesion-valido.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-02",
+    "rf": "RF01",
+    "titulo": "Contraseña incorrecta rechazada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF01_CP-02_contrasena-incorrecta-rechazada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-04",
+    "rf": "RF02",
+    "titulo": "Acceso sin sesión redirigido al login",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF02_CP-04_acceso-sin-sesion-redirigido-al-login.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-05",
+    "rf": "RF15",
+    "titulo": "Cierre de sesión efectivo",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF15_CP-05_cierre-de-sesion-efectivo.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-03",
+    "rf": "RF01",
+    "titulo": "Cuenta inactiva rechazada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF01_CP-03_cuenta-inactiva-rechazada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-11",
+    "rf": "RF04",
+    "titulo": "Categoría creada, editada y desactivada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF04_CP-11_categoria-creada-editada-y-desactivada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-12",
+    "rf": "RF05",
+    "titulo": "Proveedor creado correctamente",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF05_CP-12_proveedor-creado-correctamente.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-13",
+    "rf": "RF06",
+    "titulo": "Producto creado con categoría y proveedor",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF06_CP-13_producto-creado-con-categoria-y-proveedor.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-14",
+    "rf": "RF04",
+    "titulo": "Categoría duplicada rechazada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF04_CP-14_categoria-duplicada-rechazada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-20",
+    "rf": "RF12",
+    "titulo": "Consulta de documentos",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF12_CP-20_consulta-de-documentos.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-21",
+    "rf": "RF12",
+    "titulo": "Movimientos paginados",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF12_CP-21_movimientos-paginados.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-22",
+    "rf": "RF13",
+    "titulo": "Dashboard con indicadores",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF13_CP-22_dashboard-con-indicadores.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-23",
+    "rf": "RF02",
+    "titulo": "Acceso denegado al Operador",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF02_CP-23_acceso-denegado-al-operador.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-15",
+    "rf": "RF07",
+    "titulo": "Orden de compra registrada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF07_CP-15_orden-de-compra-registrada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-16",
+    "rf": "RF08",
+    "titulo": "Entrada parcial registrada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF08_CP-16_entrada-parcial-registrada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-17",
+    "rf": "RF08",
+    "titulo": "Guía de remisión duplicada rechazada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF08_CP-17_guia-de-remision-duplicada-rechazada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-18",
+    "rf": "RF09",
+    "titulo": "Salida de almacén registrada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF09_CP-18_salida-de-almacen-registrada.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-19",
+    "rf": "RF10",
+    "titulo": "Ajuste de inventario registrado",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF10_CP-19_ajuste-de-inventario-registrado.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-06",
+    "rf": "RF03",
+    "titulo": "Nombre con números rechazado",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF03_CP-06_nombre-con-numeros-rechazado.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-07",
+    "rf": "RF03",
+    "titulo": "Nombre con emoji rechazado",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF03_CP-07_nombre-con-emoji-rechazado.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-08",
+    "rf": "RF03",
+    "titulo": "Teléfono de 8 dígitos rechazado",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF03_CP-08_telefono-de-8-digitos-rechazado.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-09",
+    "rf": "RF06",
+    "titulo": "Precio negativo rechazado",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF06_CP-09_precio-negativo-rechazado.png",
+    "fecha": "2026-10-29"
+  },
+  {
+    "id": "CP-10",
+    "rf": "RF08",
+    "titulo": "Guía con prefijo ajeno rechazada",
+    "resultado": "aprobado",
+    "archivo": "2026-10-29/RF08_CP-10_guia-con-prefijo-ajeno-rechazada.png",
+    "fecha": "2026-10-29"
+  }
+]

@@ -130,9 +130,9 @@
                 formControlName="telefono"
                 autocomplete="tel"
                 inputmode="numeric"
-                maxlength="15"
+                maxlength="9"
                 (input)="onlyPhoneDigits($event)"
-              /><mat-hint>Solo números, hasta 15 dígitos. No puede pertenecer a otro usuario.</mat-hint>
+              /><mat-hint>9 dígitos que empiecen con 9 (ej. 979348552). No puede pertenecer a otro usuario.</mat-hint>
               @if (form.controls.telefono.invalid) {
                 <mat-error>{{ errorText(form.controls.telefono, 'el teléfono') }}</mat-error>
               }

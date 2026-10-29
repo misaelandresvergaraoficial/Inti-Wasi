@@ -16,6 +16,7 @@ import { OrdersService } from '../../core/orders.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { sinEmojis } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
 @Component({
@@ -43,8 +44,8 @@ export class EntradaForm implements PendingChanges {
   readonly form = this.fb.group({
     idOrden: [0, [Validators.required, Validators.min(1)]],
     numeroGuiaRemision: ['', [Validators.required, Validators.maxLength(50)]],
-    observaciones: ['', Validators.maxLength(255)],
-    motivoCorreccion: ['', Validators.maxLength(255)],
+    observaciones: ['', [Validators.maxLength(255), sinEmojis]],
+    motivoCorreccion: ['', [Validators.maxLength(255), sinEmojis]],
     movimientos: this.fb.array([this.newLine()]),
   });
 

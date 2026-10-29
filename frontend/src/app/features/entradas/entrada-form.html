@@ -150,7 +150,11 @@
           formControlName="observaciones"
           maxlength="255"
           rows="3"
+          [attr.aria-invalid]="submitted() && form.controls.observaciones.invalid"
         ></textarea>
+        @if (submitted() && form.controls.observaciones.hasError('emoji')) {
+          <p class="order-field-error">No uses emojis en las observaciones.</p>
+        }
       </div>
 
       @if (id !== undefined) {
@@ -162,7 +166,9 @@
             maxlength="255"
             rows="3"
             [attr.aria-invalid]="
-              submitted() && !form.controls.motivoCorreccion.value.trim()
+              submitted() &&
+              (!form.controls.motivoCorreccion.value.trim() ||
+                form.controls.motivoCorreccion.hasError('emoji'))
             "
           ></textarea>
 
@@ -172,6 +178,9 @@
 
           @if (submitted() && !form.controls.motivoCorreccion.value.trim()) {
             <p class="order-field-error">Explica la rectificación.</p>
+          }
+          @if (submitted() && form.controls.motivoCorreccion.hasError('emoji')) {
+            <p class="order-field-error">No uses emojis en el motivo de corrección.</p>
           }
         </div>
       }

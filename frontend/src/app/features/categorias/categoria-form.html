@@ -58,6 +58,9 @@
         @if (form.get('nomCategoria')?.hasError('maxlength')) {
           <mat-error>Máximo 100 caracteres.</mat-error>
         }
+        @if (form.get('nomCategoria')?.hasError('pattern')) {
+          <mat-error>Admite letras, números, espacios y . , &amp; - ( ) /.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
@@ -68,7 +71,8 @@
         </mat-select>
         <mat-hint>
           Al marcar la categoría como Inactivo, los productos activos que la usan también se
-          desactivarán. Reactivarla no reactivará esos productos.
+          desactivarán. Al reactivarla, volverán solo los productos que se desactivaron por
+          esta categoría.
         </mat-hint>
         @if (form.get('estado')?.invalid) {
           <mat-error>Selecciona un estado.</mat-error>

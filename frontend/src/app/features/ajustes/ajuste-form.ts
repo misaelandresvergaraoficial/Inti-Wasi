@@ -14,6 +14,7 @@ import { NoticeService } from '../../core/notice.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { sinEmojis } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
 @Component({
@@ -34,9 +35,9 @@ export class AjusteForm implements PendingChanges {
   readonly id = this.routeId === null ? undefined : Number(this.routeId);
   readonly form = this.fb.group({
     tipoAjuste: ['', Validators.required],
-    motivo: ['', [Validators.required, Validators.maxLength(255)]],
-    observaciones: ['', Validators.maxLength(255)],
-    motivoCorreccion: ['', Validators.maxLength(255)],
+    motivo: ['', [Validators.required, Validators.maxLength(255), sinEmojis]],
+    observaciones: ['', [Validators.maxLength(255), sinEmojis]],
+    motivoCorreccion: ['', [Validators.maxLength(255), sinEmojis]],
     movimientos: this.fb.array([this.newLine()]),
   });
   readonly products = signal<ProductoResponse[]>([]);
@@ -202,6 +203,25 @@ export class AjusteForm implements PendingChanges {
       this.focusInvalid();
       return;
     }
+    const confirmado = await firstValueFrom(
+      this.dialog
+        .open(ConfirmDialog, {
+          width: '460px',
+          maxWidth: 'calc(100vw - 32px)',
+          data: {
+            title:
+              this.id === undefined ? '¿Registrar ajuste?' : '¿Rectificar ajuste?',
+            message:
+              this.id === undefined
+                ? `Se registrará un ajuste de tipo ${value.tipoAjuste} con ${value.movimientos.length} ${value.movimientos.length === 1 ? 'producto' : 'productos'}.`
+                : 'Se registrará la corrección inversa, el original quedará Rectificado y se creará el reemplazo.',
+            action: this.id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste',
+            danger: value.tipoAjuste === 'Decremento',
+          },
+        })
+        .afterClosed(),
+    );
+    if (!confirmado) return;
     const request: AjusteRequest = {
       tipoAjuste: value.tipoAjuste as TipoAjuste,
       motivo: value.motivo.trim(),

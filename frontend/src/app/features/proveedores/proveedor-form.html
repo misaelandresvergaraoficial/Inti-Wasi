@@ -168,12 +168,12 @@
             type="tel"
             inputmode="numeric"
             autocomplete="tel"
-            maxlength="20"
+            maxlength="9"
             aria-describedby="supplier-phone-hint"
           />
 
           <mat-hint id="supplier-phone-hint">
-            Solo dígitos del 0 al 9, hasta 20. Sin letras, signos, espacios ni decimales.
+            9 dígitos: celular (9xxxxxxxx) o fijo nacional (0XXXXXXXX).
           </mat-hint>
 
           @if (form.controls.telefono.hasError('server')) {
@@ -186,10 +186,10 @@
           ) {
             <mat-error>Ingresa el teléfono del proveedor.</mat-error>
           } @else if (form.controls.telefono.hasError('maxlength')) {
-            <mat-error>El teléfono no debe exceder los 20 dígitos.</mat-error>
+            <mat-error>El teléfono debe tener 9 dígitos.</mat-error>
           } @else if (form.controls.telefono.hasError('pattern')) {
             <mat-error>
-              Usa solo dígitos, sin signos, espacios ni decimales. No puede ser solo ceros.
+              Celular de 9 dígitos que empiece con 9, o fijo nacional de 9 dígitos que empiece con 0.
             </mat-error>
           }
         </mat-form-field>

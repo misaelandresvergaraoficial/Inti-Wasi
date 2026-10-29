@@ -1,7 +1,7 @@
 package com.intiwasi.backend.dto.inventario;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
@@ -10,6 +10,6 @@ public class MovimientoRequest {
     private Integer idProducto;
 
     @NotNull(message = "La cantidad es obligatoria")
-    @Min(value = 1, message = "La cantidad debe ser entera y mayor que cero")
+    @Positive(message = "La cantidad debe ser entera y mayor que cero")
     private Integer cantidad;
 }

@@ -57,7 +57,12 @@ export class ProveedorForm implements PendingChanges {
   readonly form = this.fb.nonNullable.group({
     nomProveedor: [
       '',
-      [Validators.required, notBlank, Validators.maxLength(100)],
+      [
+        Validators.required,
+        notBlank,
+        Validators.maxLength(100),
+        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&()\/\\-]{2,100}$/),
+      ],
     ],
     ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     prefijoGuia: [
@@ -68,14 +73,20 @@ export class ProveedorForm implements PendingChanges {
         Validators.pattern(/^GUIA-[A-Z][A-Z0-9]{0,23}-$/),
       ],
     ],
-    contacto: ['', [Validators.maxLength(100)]],
+    contacto: [
+      '',
+      [
+        Validators.maxLength(100),
+        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,100}$/),
+      ],
+    ],
     telefono: [
       '',
       [
         Validators.required,
         notBlank,
-        Validators.maxLength(20),
-        Validators.pattern(/^(?=.*[1-9])[0-9]{1,20}$/),
+        Validators.maxLength(9),
+        Validators.pattern(/^(9\d{8}|0[1-9]\d{7})$/),
       ],
     ],
     direccion: ['', [Validators.maxLength(150)]],
