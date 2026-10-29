@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
+import { of } from 'rxjs';
 import { AjusteResponse } from '../../core/ajuste-models';
 import { AjustesService } from '../../core/ajustes.service';
 import { AuthService } from '../../core/auth.service';
@@ -56,7 +57,10 @@ async function setup(existing?: AjusteResponse, stock = 1) {
       { provide: AjustesService, useValue: ajustes },
       { provide: ProductosService, useValue: productos },
       { provide: AuthService, useValue: { valid: () => true } },
-      { provide: MatDialog, useValue: {} },
+      {
+        provide: MatDialog,
+        useValue: { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) },
+      },
       {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: convertToParamMap(existing ? { id: '3' } : {}) } },
@@ -129,5 +133,16 @@ describe('Formulario de Ajustes', () => {
     await form.submit();
     expect(ajustes.save).not.toHaveBeenCalled();
     expect(form.error()).toContain('Completa el tipo');
+  });
+});
+
+describe('Sanitización de textos libres en ajustes', () => {
+  it('rechaza emojis en motivo y observaciones', async () => {
+    const { form } = await setup();
+    form.form.controls.motivo.setValue('Conteo físico ⭐');
+    form.form.controls.observaciones.setValue('Revisado \u{1F680}');
+
+    expect(form.form.controls.motivo.hasError('emoji')).toBe(true);
+    expect(form.form.controls.observaciones.hasError('emoji')).toBe(true);
   });
 });

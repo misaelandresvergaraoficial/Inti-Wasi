@@ -165,8 +165,10 @@ public class UsuarioService {
         }
         String telefono = request.getTelefono();
         telefono = telefono == null || telefono.isBlank() ? null : telefono.trim();
-        if (telefono != null && !telefono.matches("[0-9]*[1-9][0-9]*")) {
-            throw new IllegalArgumentException("telefono: Ingresa solo números; el teléfono debe ser mayor que cero");
+        if (telefono != null && !telefono.matches("9\\d{8}")) {
+            throw new IllegalArgumentException(
+                    "telefono: Ingresa 9 dígitos que empiecen con 9 (ej. 979348552)"
+            );
         }
         request.setTelefono(telefono);
     }

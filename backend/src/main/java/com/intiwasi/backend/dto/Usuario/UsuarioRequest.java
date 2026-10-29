@@ -11,6 +11,10 @@ public class UsuarioRequest {
 
     @NotBlank(message = "El nombre de usuario es obligatorio")
     @Size(max = 50, message = "El nombre no debe superar los 50 caracteres")
+    @Pattern(
+            regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,50}$",
+            message = "El nombre solo admite letras y espacios; sin números, signos ni emojis"
+    )
     private String nomUsuario;
 
     @NotBlank(message = "El correo es obligatorio")
@@ -28,6 +32,14 @@ public class UsuarioRequest {
     )
     private String rol;
 
-    @Size(max = 15, message = "El teléfono no debe superar los 15 caracteres")
+    @Size(max = 9, message = "El teléfono debe tener exactamente 9 dígitos")
+    @Pattern(
+            regexp = "^9\\d{8}$",
+            message = "El teléfono debe tener 9 dígitos y comenzar con 9 (ej. 979348552)"
+    )
     private String telefono;
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono == null || telefono.isBlank() ? null : telefono;
+    }
 }

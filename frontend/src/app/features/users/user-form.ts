@@ -67,7 +67,12 @@ export class UserForm implements PendingChanges {
   readonly form = inject(FormBuilder).nonNullable.group({
     nomUsuario: [
       '',
-      [Validators.required, notBlank, Validators.maxLength(50)],
+      [
+        Validators.required,
+        notBlank,
+        Validators.maxLength(50),
+        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,50}$/),
+      ],
     ],
     correo: [
       '',
@@ -85,8 +90,8 @@ export class UserForm implements PendingChanges {
     telefono: [
       '',
       [
-        Validators.maxLength(15),
-        Validators.pattern(/^[0-9]*[1-9][0-9]*$/),
+        Validators.maxLength(9),
+        Validators.pattern(/^9\d{8}$/),
       ],
     ],
   });
@@ -115,7 +120,7 @@ export class UserForm implements PendingChanges {
       control === this.form.controls.telefono &&
       control.hasError('pattern')
     ) {
-      return 'Ingresa solo números; el teléfono debe ser mayor que cero.';
+      return 'El teléfono debe tener 9 dígitos y comenzar con 9 (ej. 979348552).';
     }
 
     return fieldError(control, label);
@@ -224,12 +229,8 @@ export class UserForm implements PendingChanges {
         }.`,
       );
 
-      // Al crear un usuario, regresar al listado de Usuarios.
-      // Al editar, conservar el destino inicial del rol actualizado.
-      const destination =
-        this.rawId === null ? '/usuarios' : this.auth.landingRoute();
-
-      await this.router.navigate([destination]);
+      // Tras guardar, regresar siempre al listado de Usuarios (CA02-1).
+      await this.router.navigate(['/usuarios']);
     } catch (error) {
       if (
         error instanceof ApiRequestError &&

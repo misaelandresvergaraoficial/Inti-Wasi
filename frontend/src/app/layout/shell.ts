@@ -16,7 +16,6 @@ import { NoticeService } from '../core/notice.service';
         <a
           [routerLink]="auth.landingRoute()"
           class="brand"
-          aria-label="Inti Wasi, espacio principal"
           ><img src="marca.svg" width="38" height="38" alt="" /><span
             >Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span
           ></a

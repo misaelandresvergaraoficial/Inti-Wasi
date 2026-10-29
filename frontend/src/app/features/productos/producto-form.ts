@@ -54,12 +54,24 @@ export class ProductoForm implements PendingChanges {
 
   readonly form = this.fb.nonNullable.group({
     sku: ['', [Validators.required, notBlank, Validators.maxLength(30)]],
-    nomProducto: ['', [Validators.required, notBlank, Validators.maxLength(150)]],
+    nomProducto: [
+      '',
+      [
+        Validators.required,
+        notBlank,
+        Validators.maxLength(150),
+        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&\+\/\\(\\)\"'\\-]{2,150}$/),
+      ],
+    ],
     idCategoria: [0, [Validators.required, Validators.min(1)]],
     idProveedor: [null as number | null],
     precio: [
       0,
-      [Validators.required, Validators.min(0), Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/)],
+      [
+        Validators.required,
+        Validators.min(0),
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/),
+      ],
     ],
     stockMinimo: [
       0,

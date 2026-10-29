@@ -242,3 +242,20 @@ describe('Formulario de Entradas', () => {
     expect(form.lineErrors()[7]).toContain('máximo disponible ahora es 2');
   });
 });
+describe('Sanitización de textos libres en entradas', () => {
+  it('rechaza emojis en observaciones y motivo de corrección', async () => {
+    const { form } = await setup();
+    form.form.controls.observaciones.setValue('Llegó todo ✅');
+    form.form.controls.motivoCorreccion.setValue('Ajuste \u{1F600}');
+
+    expect(form.form.controls.observaciones.hasError('emoji')).toBe(true);
+    expect(form.form.controls.motivoCorreccion.hasError('emoji')).toBe(true);
+  });
+
+  it('acepta texto normal sin emojis', async () => {
+    const { form } = await setup();
+    form.form.controls.observaciones.setValue('Llegó completo; se revisó caja por caja.');
+
+    expect(form.form.controls.observaciones.hasError('emoji')).toBe(false);
+  });
+});

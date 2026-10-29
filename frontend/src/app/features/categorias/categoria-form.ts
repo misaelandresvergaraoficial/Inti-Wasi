@@ -51,7 +51,15 @@ export class CategoriaForm implements PendingChanges {
   private originalEstado?: number;
 
   readonly form = this.fb.nonNullable.group({
-    nomCategoria: ['', [Validators.required, notBlank, Validators.maxLength(100)]],
+    nomCategoria: [
+      '',
+      [
+        Validators.required,
+        notBlank,
+        Validators.maxLength(100),
+        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&()\/\\-]{2,100}$/),
+      ],
+    ],
     estado: [1, Validators.required],
   });
 
