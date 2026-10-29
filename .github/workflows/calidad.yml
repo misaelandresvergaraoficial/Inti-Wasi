@@ -42,16 +42,11 @@ jobs:
           mysql -h 127.0.0.1 -uroot -proot < database/02_Triggers_bd_intiwasi.sql
           mysql -h 127.0.0.1 -uroot -proot < database/03_DML_bd_intiwasi.sql
           mysql -h 127.0.0.1 -uroot -proot < database/04_Vistas_bd_intiwasi.sql
-      - name: Pruebas y cobertura
+      - name: Pruebas backend
         working-directory: backend
         run: |
           chmod +x mvnw
           ./mvnw -B verify
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: jacoco
-          path: backend/target/site/jacoco
 
   frontend:
     runs-on: ubuntu-latest
