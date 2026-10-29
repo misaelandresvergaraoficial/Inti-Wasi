@@ -1,0 +1,77 @@
+name: Calidad
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bd_intiwasi
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1:3306/bd_intiwasi?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      JWT_SECRET: clave-de-prueba-ci-sin-valor-real-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - name: Instalar esquema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mysql-client
+          mysql -h 127.0.0.1 -uroot -proot < database/01_DDL_bd_intiwasi.sql
+          mysql -h 127.0.0.1 -uroot -proot < database/02_Triggers_bd_intiwasi.sql
+          mysql -h 127.0.0.1 -uroot -proot < database/03_DML_bd_intiwasi.sql
+          mysql -h 127.0.0.1 -uroot -proot < database/04_Vistas_bd_intiwasi.sql
+      - name: Pruebas y cobertura
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco
+          path: backend/target/site/jacoco
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Pruebas y cobertura
+        run: npm test -- --watch=false
+      - name: Build
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-frontend
+          path: frontend/coverage
