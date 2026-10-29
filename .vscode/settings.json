@@ -1,5 +1,6 @@
 {
     "java.compile.nullAnalysis.mode": "disabled",
     "java.autobuild.enabled": false,
-    "java.debug.settings.forceBuildBeforeLaunch": false
+    "java.debug.settings.forceBuildBeforeLaunch": false,
+    "postman.settings.dotenv-detection-notification-visibility": false
 }
