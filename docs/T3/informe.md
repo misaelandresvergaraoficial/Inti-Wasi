@@ -108,7 +108,7 @@ La documentaciÃ³n expone 38 rutas agrupadas por controlador y permite ejecutar
 | Conjunto | Herramienta | Resultado |
 |---|---|---|
 | Pruebas unitarias backend | JUnit y Mockito | 16 aprobadas, 0 fallos |
-| Pruebas de integración backend | MockMvc | 6 aprobadas, 0 fallos |
+| Pruebas de integración backend | MockMvc | 7 aprobadas, 0 fallos |
 | Pruebas unitarias frontend | Vitest | 76 aprobadas en 17 archivos |
 | CompilaciÃ³n frontend | Angular CLI | Correcta |
 | VerificaciÃ³n funcional | Playwright y capturas | Login, guard, paginaciÃ³n, CRUD, Swagger y logout |
@@ -127,7 +127,7 @@ Las capturas se generaron sobre la aplicaciÃ³n en ejecuciÃ³n con backend, fr
 2. Los guards de Angular y el interceptor HTTP complementan la seguridad del backend y evitan el acceso a rutas sin sesiÃ³n vÃ¡lida.
 3. La paginaciÃ³n del lado del servidor con `MatPaginator` mejora el rendimiento y la experiencia de consulta en el historial de movimientos.
 4. La incorporaciÃ³n de Swagger/OpenAPI facilita la verificaciÃ³n de contratos y reduce el tiempo de integraciÃ³n con el frontend.
-5. La ejecuciÃ³n conjunta de 22 pruebas backend y 76 frontend, junto con las capturas funcionales, evidencia una integraciÃ³n estable del sistema.
+5. La ejecuciÃ³n conjunta de 23 pruebas backend y 76 frontend, junto con las capturas funcionales, evidencia una integraciÃ³n estable del sistema.
 
 # Referencias
 

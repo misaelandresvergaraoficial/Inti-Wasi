@@ -7,8 +7,8 @@ Fecha: 29/10/2026. Rama: `develop`. Spring Boot 4.1.2 · Angular 22.2.3 · MySQL
 | Métrica | Resultado |
 |---|---|
 | Pruebas unitarias | 16 |
-| Pruebas de integración | 6 |
-| Total | **22 aprobadas, 0 fallos** |
+| Pruebas de integración | 7 |
+| Total | **23 aprobadas, 0 fallos** |
 | Cobertura de líneas | **41,8 %** |
 | Cobertura de ramas | 27,7 % |
 | Herramientas | JUnit 5, Mockito, MockMvc, JaCoCo 0.8.16 |
@@ -27,6 +27,7 @@ Reporte: `backend/target/site/jacoco/index.html` · Datos: `docs/calidad/jacoco.
 | Movimientos paginados | HTTP 200 con `content`, `totalElements`, `totalPages` |
 | Usuarios con Operador | HTTP 403 |
 | OpenAPI | HTTP 200 con `info` y `paths` |
+| Ruta inexistente | HTTP 404 |
 
 ## Frontend
 
@@ -73,6 +74,32 @@ Comando: `k6 run load/movimientos.js` con `K6_EMAIL` y `K6_PASSWORD`.
 
 Antes de la actualización se detectaron 18 vulnerabilidades transitivas (Tomcat 11.0.24 y Jackson 2.21.5/3.1.5). Se actualizó Spring Boot de 4.1.1 a **4.1.2**, que incorpora las versiones corregidas, y el escaneo quedó limpio.
 
+## Análisis dinámico (DAST)
+
+Herramienta: OWASP ZAP 2.17.0.
+
+### Línea base anónima
+
+| Hallazgo | Riesgo | Observación |
+|---|---|---|
+| Content Security Policy ausente | Medio | Aplica a respuestas HTML; se define en el despliegue |
+| Divulgación de marcas de tiempo Unix | Bajo | Corresponden a `iat`/`exp` del JWT |
+| Comentarios sospechosos | Informativo | Documentación de Swagger |
+| Aplicación web moderna | Informativo | Detección de framework |
+
+### Escaneo autenticado (pasivo)
+
+| Métrica | Antes | Después |
+|---|---|---|
+| Alertas | 2 (35 instancias) | **0** |
+| Rutas con HTTP 500 | 35 | 0 |
+
+**Hallazgo corregido:** las rutas no existentes y las rutas con barra final devolvían HTTP 500 con mensaje de error interno. Se agregaron manejadores para `NoResourceFoundException` y `HttpRequestMethodNotSupportedException` en `GlobalExceptionHandler`; ahora responden 404 y 405. Se añadió una prueba de regresión.
+
+El escaneo activo no se ejecutó para no crear ni modificar registros de negocio. Debe realizarse sobre una base desechable.
+
+Reportes: `docs/calidad/zap-report.html` (anónimo) y `docs/calidad/zap-auth-report.html` (autenticado).
+
 ## Umbrales
 
 | Proyecto | Umbral |
@@ -91,5 +118,5 @@ Antes de la actualización se detectaron 18 vulnerabilidades transitivas (Tomcat
 ## Límites
 
 - La cobertura del backend es inicial; los servicios de mayor complejidad aún no están cubiertos.
-- Las pruebas de integración usan datos semilla y no crean registros de negocio.
-- No se ejecutó análisis dinámico (DAST) ni pruebas de estrés sostenido.
+- El escaneo activo de ZAP queda pendiente sobre un entorno desechable.
+- No se ejecutaron pruebas de estrés sostenido.
