@@ -82,23 +82,34 @@ Herramienta: OWASP ZAP 2.17.0.
 
 | Hallazgo | Riesgo | Observación |
 |---|---|---|
-| Content Security Policy ausente | Medio | Aplica a respuestas HTML; se define en el despliegue |
-| Divulgación de marcas de tiempo Unix | Bajo | Corresponden a `iat`/`exp` del JWT |
+| Content Security Policy ausente | Medio | Se define en el despliegue |
+| Divulgación de marcas de tiempo Unix | Bajo | Corresponden a `iat` y `exp` del JWT |
 | Comentarios sospechosos | Informativo | Documentación de Swagger |
 | Aplicación web moderna | Informativo | Detección de framework |
 
-### Escaneo autenticado (pasivo)
+### Escaneo autenticado pasivo
 
 | Métrica | Antes | Después |
 |---|---|---|
 | Alertas | 2 (35 instancias) | **0** |
 | Rutas con HTTP 500 | 35 | 0 |
 
-**Hallazgo corregido:** las rutas no existentes y las rutas con barra final devolvían HTTP 500 con mensaje de error interno. Se agregaron manejadores para `NoResourceFoundException` y `HttpRequestMethodNotSupportedException` en `GlobalExceptionHandler`; ahora responden 404 y 405. Se añadió una prueba de regresión.
+**Hallazgo corregido:** las rutas no existentes y las rutas con barra final devolvían HTTP 500. Se agregaron manejadores para `NoResourceFoundException` y `HttpRequestMethodNotSupportedException`; ahora responden 404 y 405. Se añadió una prueba de regresión.
 
-El escaneo activo no se ejecutó para no crear ni modificar registros de negocio. Debe realizarse sobre una base desechable.
+Reporte: `docs/calidad/zap-auth-report.html`.
 
-Reportes: `docs/calidad/zap-report.html` (anónimo) y `docs/calidad/zap-auth-report.html` (autenticado).
+### Escaneo activo autenticado
+
+| Hallazgo | Riesgo | Estado |
+|---|---|---|
+| Spring Actuator Information Leak (`/actuator/health`) | Medio | Mitigado: requiere rol Administrador y `show-details=never` |
+| User Agent Fuzzer | Informativo | Sin acción |
+
+Tras la mitigación, una solicitud anónima a `/actuator/health` devuelve HTTP 401.
+
+El escaneo se ejecutó sobre datos de prueba con autorización del responsable. Los endpoints con parámetros de ruta se sembraron con identificadores reales. El alcance está limitado por el spider de ZAP sobre respuestas JSON.
+
+Reporte: `docs/calidad/zap-active-report.html`.
 
 ## Umbrales
 
@@ -118,5 +129,5 @@ Reportes: `docs/calidad/zap-report.html` (anónimo) y `docs/calidad/zap-auth-rep
 ## Límites
 
 - La cobertura del backend es inicial; los servicios de mayor complejidad aún no están cubiertos.
-- El escaneo activo de ZAP queda pendiente sobre un entorno desechable.
+- El escaneo activo tiene alcance limitado sobre endpoints con parámetros de ruta.
 - No se ejecutaron pruebas de estrés sostenido.
