@@ -1,7 +1,7 @@
 package com.intiwasi.backend.controller;
 
-import com.intiwasi.backend.dto.AuthRequest;
-import com.intiwasi.backend.dto.ErrorResponse;
+import com.intiwasi.backend.dto.Auth.AuthRequest;
+import com.intiwasi.backend.dto.Comun.ErrorResponse;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import com.intiwasi.backend.security.JwtUtil;

@@ -1,4 +1,4 @@
-package com.intiwasi.backend.dto;
+package com.intiwasi.backend.dto.Usuario;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

@@ -1,6 +1,6 @@
 package com.intiwasi.backend.security;
 
-import com.intiwasi.backend.dto.ErrorResponse;
+import com.intiwasi.backend.dto.Comun.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

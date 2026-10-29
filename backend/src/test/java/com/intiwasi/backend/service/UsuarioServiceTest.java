@@ -1,7 +1,7 @@
 package com.intiwasi.backend.service;
 
 import com.intiwasi.backend.entity.Usuario;
-import com.intiwasi.backend.dto.UsuarioRequest;
+import com.intiwasi.backend.dto.Usuario.UsuarioRequest;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;

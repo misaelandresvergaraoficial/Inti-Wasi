@@ -1,4 +1,4 @@
-package com.intiwasi.backend.dto;
+package com.intiwasi.backend.dto.Comun;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;

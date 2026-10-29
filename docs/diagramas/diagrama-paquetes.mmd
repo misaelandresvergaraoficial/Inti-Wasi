@@ -1,0 +1,82 @@
+---
+config:
+  theme: base
+  fontFamily: Arial
+  themeCSS: ".nodeLabel, .edgeLabel, .cluster-label { font-family: Arial, sans-serif; }"
+  themeVariables:
+    fontFamily: Arial, sans-serif
+    fontSize: 20px
+    primaryTextColor: "#183047"
+    lineColor: "#526578"
+    edgeLabelBackground: "#ffffff"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#a8b4c0"
+  flowchart:
+    htmlLabels: true
+    curve: linear
+    nodeSpacing: 16
+    rankSpacing: 16
+    padding: 12
+    diagramPadding: 12
+    subGraphTitleMargin:
+      top: 8
+      bottom: 24
+---
+flowchart TB
+  %% A4 vertical: cuatro niveles; una fila de cuatro bloques por nivel.
+  %% Agrupaciones funcionales: no se inventan carpetas ni dependencias internas.
+  %% Verificado en develop c22a18f: 13 features; /inicio redirige.
+  %% HTTP :4200 local; HTTPS no configurado.
+  %% 12 tablas, 4 vistas y 26 triggers según los scripts SQL.
+  %% Vistas: VW_Kardex, VW_RecepcionesPorProducto, VW_StockBajo, VW_OrdenesResumen.
+  accTitle: Inti Wasi - Diagrama de paquetes
+  accDescr: Cuatro niveles apilados para A4 vertical. Los paquetes de cada nivel comparten una fila. Solo tres flechas conectan los niveles.
+
+  subgraph U["USUARIO"]
+    actor["Administrador · Operador de Almacén"]
+  end
+
+  subgraph FE["CLIENTE WEB · Angular 22 · features/ y core/"]
+    direction LR
+    acceso["ACCESO Y CORE<br/>auth/ · users/<br/>core/<br/>guards.ts<br/>HttpClient<br/>Bearer<br/>/inicio: redirige"]
+    catalogos["CATÁLOGOS<br/>categorias/<br/>proveedores/<br/>productos/<br/>layout/ · shared/<br/>Angular Material<br/>Signals"]
+    operaciones["OPERACIONES<br/>orders/<br/>entradas/<br/>salidas/<br/>ajustes/<br/>Registro de compras<br/>Control de almacén"]
+    consultas["CONSULTAS<br/>documentos/<br/>movimientos/<br/>dashboard/<br/>reports/<br/>MatPaginator<br/>Signals"]
+    acceso ~~~ catalogos ~~~ operaciones ~~~ consultas
+  end
+
+  subgraph BE["BACKEND · Spring Boot 4.1.2 · Java 25"]
+    direction LR
+    seguridad["SEGURIDAD<br/>security/<br/>config/<br/>JWT stateless<br/>BCrypt · RBAC<br/>OpenApiConfig.java<br/>Configuración API"]
+    api["API REST<br/>controller/<br/>dto/<br/>exception/<br/>13 controladores<br/>springdoc 3.2.0<br/>Contratos y errores"]
+    negocio["NEGOCIO<br/>service/<br/>Reglas de negocio<br/>Validaciones<br/>Transacciones<br/>Compras e inventario<br/>Consultas y reportes"]
+    persistencia["PERSISTENCIA<br/>repository/<br/>entity/<br/>Spring Data JPA<br/>Consultas SQL<br/>Mapeo de entidades<br/>Acceso a datos"]
+    seguridad ~~~ api ~~~ negocio ~~~ persistencia
+  end
+
+  subgraph DB["BASE DE DATOS · MySQL 8 · 12 tablas"]
+    direction LR
+    maestros["CATÁLOGOS<br/>Usuarios<br/>Categorias<br/>Proveedores<br/>Productos<br/>Identidad y acceso<br/>Datos maestros"]
+    compras["COMPRAS<br/>OrdenesCompra<br/>DetalleOrdenCompra<br/>GuiasRemision<br/>Documentos<br/>Órdenes y detalles<br/>Documentación"]
+    inventario["INVENTARIO<br/>Entradas<br/>Salidas<br/>Ajustes<br/>MovimientosInventario<br/>Registro de entradas<br/>Trazabilidad de stock"]
+    automatizacion["CONTROL<br/>4 vistas<br/>26 triggers<br/>Consulta de kardex<br/>Validación<br/>Protección histórica<br/>Control de stock"]
+    maestros ~~~ compras ~~~ inventario ~~~ automatizacion
+  end
+
+  U -->|"HTTP :4200"| FE
+  FE -->|"REST · JSON · Bearer"| BE
+  BE -->|"JPA · SQL"| DB
+
+  classDef usuario fill:#f1f5f9,stroke:#64748b,color:#1e293b,rx:10,ry:10;
+  classDef frontend fill:#eaf2fc,stroke:#4976a8,color:#173b64,rx:10,ry:10;
+  classDef backend fill:#eaf5ee,stroke:#54866a,color:#214b35,rx:10,ry:10;
+  classDef datos fill:#fff4df,stroke:#ac8336,color:#624814,rx:10,ry:10;
+  class actor usuario;
+  class acceso,catalogos,operaciones,consultas frontend;
+  class seguridad,api,negocio,persistencia backend;
+  class maestros,compras,inventario,automatizacion datos;
+  style U fill:#f8fafc,stroke:#94a3b8
+  style FE fill:#f5f9ff,stroke:#4976a8
+  style BE fill:#f5faf6,stroke:#54866a
+  style DB fill:#fffbf2,stroke:#ac8336
+
