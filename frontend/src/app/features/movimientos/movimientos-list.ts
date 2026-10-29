@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TipoDocumento, nombreEstadoDocumento } from '../../core/documento-models';
 import {
   FiltrosMovimiento,
@@ -13,7 +14,7 @@ import { Icon } from '../../shared/icon';
 
 @Component({
   selector: 'iw-movimientos-list',
-  imports: [RouterLink, MatButtonModule, Icon],
+  imports: [RouterLink, MatButtonModule, MatPaginatorModule, Icon],
   templateUrl: './movimientos-list.html',
 })
 export class MovimientosList {
@@ -25,6 +26,8 @@ export class MovimientosList {
   readonly optionsError = signal('');
   readonly result = signal<PaginaMovimientos | null>(null);
   readonly page = signal(0);
+  readonly size = signal(20);
+  readonly pageSizeOptions = [10, 20, 50];
   readonly loading = signal(true);
   readonly error = signal('');
   readonly estado = nombreEstadoDocumento;
@@ -98,7 +101,7 @@ export class MovimientosList {
     this.loading.set(true);
     this.error.set('');
     try {
-      const result = await this.movimientos.list(this.filters(), this.page(), this.sort());
+      const result = await this.movimientos.list(this.filters(), this.page(), this.sort(), this.size());
       if (currentRequest === this.requestId) this.result.set(result);
     } catch (error) {
       if (currentRequest !== this.requestId) return;
@@ -111,11 +114,10 @@ export class MovimientosList {
     }
   }
 
-  go(page: number): void {
-    const result = this.result();
-    if (!result || page < 0 || page >= result.totalPages || this.loading()) return;
-    this.page.set(page);
-    void this.load();
+  async onPage(event: PageEvent): Promise<void> {
+    this.size.set(event.pageSize);
+    this.page.set(event.pageIndex);
+    await this.load();
   }
 
   date(value: string): string {
