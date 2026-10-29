@@ -1,8 +1,8 @@
 package com.intiwasi.backend.controller;
 
-import com.intiwasi.backend.dto.UsuarioRequest;
-import com.intiwasi.backend.dto.UsuarioResponse;
-import com.intiwasi.backend.dto.EstadoUsuarioRequest;
+import com.intiwasi.backend.dto.Usuario.UsuarioRequest;
+import com.intiwasi.backend.dto.Usuario.UsuarioResponse;
+import com.intiwasi.backend.dto.Usuario.EstadoUsuarioRequest;
 import com.intiwasi.backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

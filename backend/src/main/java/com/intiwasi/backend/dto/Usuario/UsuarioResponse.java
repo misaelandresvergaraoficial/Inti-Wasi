@@ -1,4 +1,4 @@
-package com.intiwasi.backend.dto;
+package com.intiwasi.backend.dto.Usuario;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.intiwasi.backend.exception;
 
-import com.intiwasi.backend.dto.ErrorResponse;
+import com.intiwasi.backend.dto.Comun.ErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package com.intiwasi.backend.service;
 
-import com.intiwasi.backend.dto.UsuarioRequest;
-import com.intiwasi.backend.dto.UsuarioResponse;
+import com.intiwasi.backend.dto.Usuario.UsuarioRequest;
+import com.intiwasi.backend.dto.Usuario.UsuarioResponse;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.exception.ConflictoException;
 import com.intiwasi.backend.exception.RecursoNoEncontradoException;
