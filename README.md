@@ -15,6 +15,8 @@ Maven se ejecuta con el wrapper incluido en `backend/`.
 
 ## 1. Preparar la base de datos
 
+Los scripts SQL se entregan por separado y no forman parte del repositorio público. Obtenerlos del responsable del proyecto y copiarlos en `database/` antes de continuar.
+
 **El primer script elimina y reconstruye `bd_intiwasi`. Usar una base de pruebas y respaldar cualquier información que deba conservarse.**
 
 1. Abrir MySQL Workbench y conectarse al servidor local.

@@ -10,3 +10,6 @@
 *.p12
 *.pfx
 *.log
+*.sql
+*.sql.gz
+*.sql.zip
