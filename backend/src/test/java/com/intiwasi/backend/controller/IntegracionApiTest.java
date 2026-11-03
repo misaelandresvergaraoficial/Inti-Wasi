@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import javax.sql.DataSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,7 +37,7 @@ class IntegracionApiTest {
 
     @Test
     void loginConCredencialesInvalidasDevuelve401() throws Exception {
-        mvc.perform(post("/api/auth/login")
+        mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"correo\":\"admin.misael@intiwasi.pe\",\"contrasena\":\"clave-incorrecta\"}"))
                 .andExpect(status().isUnauthorized());

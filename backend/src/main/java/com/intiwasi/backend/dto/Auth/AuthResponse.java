@@ -1,12 +1,5 @@
 package com.intiwasi.backend.dto.Auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.intiwasi.backend.dto.Usuario.UsuarioResponse;
 
-@Data
-@AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private String correo;
-    private String rol;
-}
+public record AuthResponse(UsuarioResponse usuario, long expiresAt) {}

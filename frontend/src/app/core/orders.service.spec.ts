@@ -8,7 +8,6 @@ import { authInterceptor } from './auth.interceptor';
 import { OrdenRequest, OrdenResponse, puedeCancelarOrden, puedeEditarOrden } from './order-models';
 import { OrdersService } from './orders.service';
 
-const token = 'jwt-de-prueba';
 const order: OrdenResponse = {
   idOrden: 12,
   idProveedor: 3,
@@ -46,17 +45,6 @@ describe('Órdenes de compra conectadas al backend', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token,
-        idUsuario: 1,
-        correo: 'admin@intiwasi.test',
-        nombre: 'Valeria Torres',
-        rol: 'Administrador',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -66,6 +54,8 @@ describe('Órdenes de compra conectadas al backend', () => {
     });
     orders = TestBed.inject(OrdersService);
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).session.set({ idUsuario: 1, correo: 'admin@intiwasi.test', nombre: 'Admin', rol: 'Administrador', expiresAt: Date.now() + 3600000 });
+    localStorage.setItem('intiwasi.lastActivity', String(Date.now()));
   });
 
   afterEach(() => {
@@ -73,11 +63,11 @@ describe('Órdenes de compra conectadas al backend', () => {
     sessionStorage.clear();
   });
 
-  it('consulta listado y detalle con JWT', async () => {
+  it('consulta listado y detalle con cookie', async () => {
     const list = orders.list();
     const listing = http.expectOne('/api/ordenes-compra');
     expect(listing.request.method).toBe('GET');
-    expect(listing.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(listing.request.headers.has('Authorization')).toBe(false);
     listing.flush({ content: [order], totalElements: 1, totalPages: 1, number: 0 });
     expect((await list).content[0].idOrden).toBe(12);
 
@@ -178,7 +168,8 @@ describe('Órdenes de compra conectadas al backend', () => {
         { status: 401, statusText: 'Unauthorized' },
       );
     await expect(result).rejects.toMatchObject({ status: 401 });
-    http.expectOne('/api/auth/logout').flush(null);
+    http.expectOne('/api/auth/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+    await Promise.resolve();
     expect(TestBed.inject(AuthService).session()).toBeNull();
   });
 });

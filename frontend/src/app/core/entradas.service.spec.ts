@@ -42,17 +42,6 @@ describe('Contrato HTTP de Entradas', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token: 'jwt-prueba',
-        idUsuario: 2,
-        correo: 'operador@intiwasi.test',
-        nombre: 'Operador',
-        rol: 'Operador de Almacén',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -72,7 +61,7 @@ describe('Contrato HTTP de Entradas', () => {
     const list = service.list();
     const listing = http.expectOne('/api/entradas');
     expect(listing.request.method).toBe('GET');
-    expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
+    expect(listing.request.headers.has('Authorization')).toBe(false);
     listing.flush({ content: [entry], totalElements: 1, totalPages: 1, number: 0 });
     expect((await list).content[0].estadoDocumento).toBe(1);
     const detail = service.get(8);

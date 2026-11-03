@@ -8,6 +8,7 @@ import { toApiError } from './api-error';
 
 const STORAGE_KEY = 'intiwasi.session';
 const ACTIVITY_KEY = 'intiwasi.lastActivity';
+const CHANGE_KEY = 'intiwasi.authChange';
 const IDLE_MS = 15 * 60 * 1000;
 const CONFIRM_MS = 30 * 1000;
 
@@ -16,38 +17,40 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly notice = inject(NoticeService);
-  readonly session = signal<Sesion | null>(this.restore());
+  readonly session = signal<Sesion | null>(null);
   readonly isAdmin = computed(() => this.session()?.rol === 'Administrador');
   readonly idleSecondsRemaining = signal<number | null>(null);
-
-  landingRoute(): string {
-    return this.isAdmin() ? '/dashboard' : '/ordenes-compra';
-  }
   private verified = false;
   private checking?: Promise<boolean>;
+  private closing?: Promise<void>;
+  private generation = 0;
+  private sessionRevision: string | null = null;
   private timer?: ReturnType<typeof setTimeout>;
 
   constructor() {
-    if (this.session() && !sessionStorage.getItem(ACTIVITY_KEY)) this.recordActivity();
-    this.scheduleExpiration();
-    this.checkInactivity();
+    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(ACTIVITY_KEY);
     const idleTimer = setInterval(() => this.checkInactivity(), 1000);
     const activity = () => {
       this.checkInactivity();
-      if (
-        this.session() &&
-        this.idleSecondsRemaining() === null &&
-        Date.now() - this.lastActivity() >= 1000
-      )
+      if (this.session() && this.idleSecondsRemaining() === null && Date.now() - this.lastActivity() >= 1000)
         this.recordActivity(true);
     };
-    const resume = () => this.checkInactivity();
+    const resume = () => {
+      this.checkInactivity();
+      if (this.session()) void this.revalidate();
+    };
+    const storage = (event: StorageEvent) => {
+      if (event.key === CHANGE_KEY) void this.revalidate();
+      if (event.key === ACTIVITY_KEY) this.checkInactivity(false);
+    };
     const events = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
-    for (const event of events)
-      document.addEventListener(event, activity, { passive: true, capture: true });
+    for (const event of events) document.addEventListener(event, activity, { passive: true, capture: true });
     document.addEventListener('visibilitychange', resume);
     window.addEventListener('pageshow', resume);
     window.addEventListener('focus', resume);
+    window.addEventListener('storage', storage);
     inject(DestroyRef).onDestroy(() => {
       clearTimeout(this.timer);
       clearInterval(idleTimer);
@@ -55,154 +58,139 @@ export class AuthService {
       document.removeEventListener('visibilitychange', resume);
       window.removeEventListener('pageshow', resume);
       window.removeEventListener('focus', resume);
+      window.removeEventListener('storage', storage);
     });
+  }
+
+  landingRoute(): string {
+    return this.isAdmin() ? '/dashboard' : '/ordenes-compra';
   }
 
   async login(email: string, password: string): Promise<void> {
     try {
-      const response = await firstValueFrom(
-        this.http.post<AuthResponse>('/api/auth/login', { correo: email, contrasena: password }),
-      );
-      const expiresAt = tokenExpiration(response.token);
-      const user = await firstValueFrom(
-        this.http.get<UsuarioResponse>('/api/auth/me', {
-          headers: { Authorization: `Bearer ${response.token}` },
-        }),
-      );
-      this.setUser(user, response.token, expiresAt);
-      this.verified = true;
+      if (this.closing) await this.closing;
+      await this.withAuthLock(async () => {
+        await firstValueFrom(this.http.get('/api/auth/csrf'));
+        const response = await firstValueFrom(
+          this.http.post<AuthResponse>('/api/auth/login', { correo: email, contrasena: password }),
+        );
+        const revision = this.broadcast();
+        await firstValueFrom(this.http.get('/api/auth/csrf'));
+        this.generation++;
+        this.setUser(response.usuario, response.expiresAt, true);
+        this.verified = true;
+        this.sessionRevision = revision;
+      });
     } catch (error) {
       throw toApiError(error);
     }
   }
 
   async ensure(): Promise<boolean> {
-    if (!this.valid()) return false;
-    if (this.verified) return true;
-    if (!this.checking) this.checking = this.checkCurrent();
-    try {
-      return await this.checking;
-    } finally {
-      this.checking = undefined;
+    if (this.closing) await this.closing;
+    if (this.verified && this.session() && this.valid()) return true;
+    if (!this.checking) {
+      const check = this.checkCurrent();
+      this.checking = check;
+      void check.finally(() => { if (this.checking === check) this.checking = undefined; });
     }
+    return this.checking;
   }
 
   valid(): boolean {
     this.checkInactivity();
-    const current = this.session();
-    if (!current) return false;
-    if (current.expiresAt <= Date.now()) {
-      this.clear();
-      return false;
-    }
-    return true;
-  }
-
-  token(): string | null {
-    return this.valid() ? this.session()!.token : null;
+    return !!this.session();
   }
 
   refreshUser(user: UsuarioResponse): void {
     const current = this.session();
-    if (current?.idUsuario === user.idUsuario) this.setUser(user, current.token, current.expiresAt);
+    if (current?.idUsuario === user.idUsuario) this.setUser(user, current.expiresAt);
   }
 
   logout(expired = false, accountChanged = false, inactive = false): void {
-    const token = this.session()?.token;
+    const hadSession = !!this.session();
+    const revision = this.sessionRevision;
     this.clear();
-    if (token) {
-      this.http
-        .post<void>('/api/auth/logout', null, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000,
-        })
-        .subscribe({
-          error: (error) => {
-            if (error.status !== 401)
-              this.notice.showNext(
-                'Se cerró esta pestaña, pero el servidor no pudo confirmar el cierre. La sesión conserva sus límites de vencimiento.',
-              );
-          },
-        });
+    if (hadSession) {
+      const closing = this.withAuthLock(async () => {
+        if (localStorage.getItem(CHANGE_KEY) !== revision) return;
+        await firstValueFrom(this.http.get('/api/auth/csrf'));
+        await firstValueFrom(this.http.post<void>('/api/auth/logout', null, { timeout: 5000 }));
+        this.broadcast();
+      }).catch((error) => {
+        if (error.status !== 401) this.notice.showNext(
+          'Se cerró esta pestaña, pero el servidor no pudo confirmar el cierre. La sesión conserva sus límites de vencimiento.',
+        );
+      });
+      this.closing = closing;
+      void closing.finally(() => { if (this.closing === closing) this.closing = undefined; });
     }
     void this.router.navigate(['/login'], {
-      queryParams: inactive
-        ? { sesion: 'inactiva' }
-        : expired
-          ? { sesion: 'caducada' }
-          : accountChanged
-            ? { cuenta: 'actualizada' }
-            : {},
+      queryParams: inactive ? { sesion: 'inactiva' } : expired ? { sesion: 'caducada' } : accountChanged ? { cuenta: 'actualizada' } : {},
     });
   }
 
+  async revalidate(expected = this.session()): Promise<void> {
+    if (expected !== this.session()) return;
+    this.verified = false;
+    const valid = await this.ensure();
+    if (!valid && expected && !this.session()) {
+      void this.router.navigate(['/login'], { queryParams: { sesion: 'caducada' } });
+    }
+  }
+
   private async checkCurrent(): Promise<boolean> {
-    const current = this.session();
-    if (!current) return false;
+    const generation = this.generation;
+    const revision = localStorage.getItem(CHANGE_KEY);
     try {
-      const user = await firstValueFrom(this.http.get<UsuarioResponse>('/api/auth/me'));
-      if (this.session()?.token !== current.token || !this.valid()) return false;
-      this.setUser(user, current.token, current.expiresAt);
+      const response = await firstValueFrom(this.http.get<AuthResponse>('/api/auth/me'));
+      if (generation !== this.generation || revision !== localStorage.getItem(CHANGE_KEY)) return false;
+      this.sessionRevision = revision;
+      this.setUser(response.usuario, response.expiresAt, !this.lastActivity());
       this.verified = true;
       return true;
     } catch {
-      if (this.session()?.token === current.token) this.clear();
+      if (generation === this.generation) this.clear();
       return false;
     }
   }
 
-  private setUser(user: UsuarioResponse, token: string, expiresAt: number): void {
-    if (this.session()?.token !== token) this.recordActivity();
-    const current: Sesion = {
-      token,
-      idUsuario: user.idUsuario,
-      correo: user.correo,
-      nombre: user.nomUsuario,
-      rol: user.rol,
-      expiresAt,
-    };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-    this.session.set(current);
+  private setUser(user: UsuarioResponse, expiresAt: number, newSession = false): void {
+    if (!user || !Number.isFinite(expiresAt) || expiresAt <= Date.now() ||
+        !Number.isInteger(user.idUsuario) || !['Administrador', 'Operador de Almacén'].includes(user.rol))
+      throw new Error('La sesión recibida no es válida. Inténtalo de nuevo.');
+    if (newSession) this.recordActivity();
+    this.session.set({ idUsuario: user.idUsuario, correo: user.correo, nombre: user.nomUsuario, rol: user.rol, expiresAt });
     this.scheduleExpiration();
+    this.checkInactivity(false);
   }
 
   private clear(): void {
+    this.generation++;
     clearTimeout(this.timer);
     this.notice.clear();
     sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(ACTIVITY_KEY);
     this.idleSecondsRemaining.set(null);
     this.session.set(null);
+    this.sessionRevision = null;
     this.verified = false;
   }
 
-  private restore(): Sesion | null {
-    try {
-      const current = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null') as Sesion | null;
-      if (
-        !current ||
-        !current.token ||
-        !Number.isFinite(current.expiresAt) ||
-        current.expiresAt <= Date.now() ||
-        !Number.isInteger(current.idUsuario) ||
-        !['Administrador', 'Operador de Almacén'].includes(current.rol)
-      ) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        return null;
-      }
-      return current;
-    } catch {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
+  private broadcast(): string {
+    const revision = `${Date.now()}-${Math.random()}`;
+    localStorage.setItem(CHANGE_KEY, revision);
+    return revision;
+  }
+
+  private withAuthLock<T>(operation: () => Promise<T>): Promise<T> {
+    if (!navigator.locks) return operation();
+    return navigator.locks.request('intiwasi.auth', operation);
   }
 
   private scheduleExpiration(): void {
     clearTimeout(this.timer);
     const current = this.session();
-    if (current) {
-      this.timer = setTimeout(() => this.logout(true), Math.max(0, current.expiresAt - Date.now()));
-    }
+    if (current) this.timer = setTimeout(() => this.logout(true), Math.max(0, current.expiresAt - Date.now()));
   }
 
   continueSession(): void {
@@ -213,48 +201,29 @@ export class AuthService {
   }
 
   private lastActivity(): number {
-    const value = Number(sessionStorage.getItem(ACTIVITY_KEY));
+    const value = Number(localStorage.getItem(ACTIVITY_KEY));
     return Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   private recordActivity(notifyServer = false): void {
-    sessionStorage.setItem(ACTIVITY_KEY, String(Date.now()));
-    const token = this.session()?.token;
-    if (notifyServer && token) {
-      this.http
-        .post<void>('/api/auth/actividad', null, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000,
-        })
-        .subscribe({
-          error: (error) => {
-            if (error.status === 401 && this.session()?.token === token) this.logout(true);
-          },
-        });
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
+    const current = this.session();
+    if (notifyServer && current) {
+      this.http.post<void>('/api/auth/actividad', null, { timeout: 5000 }).subscribe({
+        error: (error) => { if (error.status === 401) void this.revalidate(current); },
+      });
     }
   }
 
-  private checkInactivity(): void {
+  private checkInactivity(allowLogout = true): void {
     const current = this.session();
     if (!current) return;
     if (current.expiresAt <= Date.now()) {
-      this.logout(true);
+      if (allowLogout) this.logout(true);
       return;
     }
     const remaining = this.lastActivity() + IDLE_MS + CONFIRM_MS - Date.now();
-    if (remaining <= 0) {
-      this.logout(false, false, true);
-    } else {
-      this.idleSecondsRemaining.set(remaining <= CONFIRM_MS ? Math.ceil(remaining / 1000) : null);
-    }
+    if (remaining <= 0) { if (allowLogout) this.logout(false, false, true); }
+    else this.idleSecondsRemaining.set(remaining <= CONFIRM_MS ? Math.ceil(remaining / 1000) : null);
   }
-}
-
-function tokenExpiration(token: string): number {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    const expiresAt = Number(payload.exp) * 1000;
-    if (Number.isFinite(expiresAt) && expiresAt > Date.now()) return expiresAt;
-  } catch {}
-  throw new Error('La sesión recibida no es válida. Inténtalo de nuevo.');
 }

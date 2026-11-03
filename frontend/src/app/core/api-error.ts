@@ -22,7 +22,7 @@ export function toApiError(error: unknown): ApiRequestError {
     return new ApiRequestError(
       !error.url?.includes('/api/auth/login')
         ? 'Tu sesión ha caducado. Inicia sesión nuevamente.'
-        : message.includes('cuenta no está disponible')
+        : body?.code === 'ACCOUNT_INACTIVE' || message.includes('cuenta no está disponible')
           ? 'Su cuenta no está disponible. Contacte al Administrador.'
           : 'Correo o contraseña incorrectos. Revisa tus datos e inténtalo de nuevo.',
       401,

@@ -44,6 +44,8 @@ public class JwtUtil {
                 .expiration(Date.from(expiresAt)).signWith(key).compact();
     }
 
+    public long extraerExpiracion(String token) { return claims(token).getExpiration().getTime(); }
+
     public String extraerCorreo(String token) { return claims(token).getSubject(); }
 
     public boolean validarToken(String token, String correo) {

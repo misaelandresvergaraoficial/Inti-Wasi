@@ -1,6 +1,12 @@
 {
   "properties": [
     {
+      "name": "app.auth.cookie-secure",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Activa el atributo Secure de las cookies de sesión y CSRF. Usar false únicamente en desarrollo local con HTTP."
+    },
+    {
       "name": "jwt.secreto",
       "type": "java.lang.String",
       "description": "Clave externa utilizada para firmar y verificar los tokens JWT."

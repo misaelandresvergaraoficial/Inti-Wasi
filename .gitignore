@@ -1,1 +1,12 @@
 /.github/
+/backend/config/
+.env
+.env.*
+!.env.example
+!.env.build
+**/application-local.properties
+**/application-production.properties
+*.key
+*.p12
+*.pfx
+*.log

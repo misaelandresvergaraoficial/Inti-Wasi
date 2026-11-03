@@ -1,6 +1,9 @@
 package com.intiwasi.backend.config;
 
 import com.intiwasi.backend.security.JwtAuthenticationFilter;
+import com.intiwasi.backend.security.ApiRateLimitFilter;
+import java.time.Clock;
+import tools.jackson.databind.ObjectMapper;
 import com.intiwasi.backend.security.RestAccessDeniedHandler;
 import com.intiwasi.backend.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -33,12 +39,21 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
     private final List<String> allowedOrigins;
+    private final boolean cookieSecure;
+    private final ApiRateLimitFilter apiRateLimitFilter;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
             RestAuthenticationEntryPoint authenticationEntryPoint,
             RestAccessDeniedHandler accessDeniedHandler,
-            @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins,
+            @Value("${app.auth.cookie-secure:true}") boolean cookieSecure,
+            Clock clock, ObjectMapper mapper,
+            @Value("${app.api-limit.requests:600}") int requestLimit,
+            @Value("${app.api-limit.window-seconds:60}") long windowSeconds,
+            @Value("${app.api-limit.concurrent-exports:2}") int concurrentExports) {
+        this.apiRateLimitFilter = new ApiRateLimitFilter(clock, mapper, requestLimit, windowSeconds, concurrentExports);
+        this.cookieSecure = cookieSecure;
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
@@ -49,15 +64,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CookieCsrfTokenRepository csrfRepository) throws Exception {
         http
                 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository)
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy()))
                 
                     .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("Administrador")
                         .requestMatchers("/actuator/**").hasRole("Administrador")
                         .requestMatchers("/api/usuarios/**").hasRole("Administrador")
@@ -74,12 +92,20 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(apiRateLimitFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
 
     
+    @Bean
+    public CookieCsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer(cookie -> cookie.secure(cookieSecure).sameSite("Strict").path("/"));
+        return repository;
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -97,7 +123,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "X-XSRF-TOKEN"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

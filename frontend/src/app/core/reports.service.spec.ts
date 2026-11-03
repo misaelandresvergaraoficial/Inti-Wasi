@@ -11,10 +11,6 @@ describe('Reportes y dashboard conectados a la API', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem('intiwasi.session', JSON.stringify({
-      token: 'jwt-prueba', idUsuario: 1, correo: 'admin@intiwasi.pe', nombre: 'Admin',
-      rol: 'Administrador', expiresAt: Date.now() + 3600000,
-    }));
     TestBed.configureTestingModule({ providers: [
       provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting(), provideRouter([]),
     ] });
@@ -24,10 +20,10 @@ describe('Reportes y dashboard conectados a la API', () => {
 
   afterEach(() => { http.verify(); sessionStorage.clear(); });
 
-  it('consulta el resumen protegido con JWT', async () => {
+  it('consulta el resumen protegido con cookie', async () => {
     const result = service.resumen();
     const request = http.expectOne('/api/dashboard/resumen');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
+    expect(request.request.headers.has('Authorization')).toBe(false);
     request.flush({ totalProductosActivos: 5, productosConStockBajo: 2, ordenesPorCompletar: 3,
       entradasDelDia: 1, salidasDelDia: 0, productosPorReponer: [],
       movimientosUltimos30Dias: [{ fecha: '2026-10-09', entradas: 1, salidas: 0 }] });

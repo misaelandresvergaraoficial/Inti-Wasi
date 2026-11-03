@@ -38,17 +38,6 @@ describe('Consulta HTTP de Movimientos', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token: 'jwt-admin',
-        idUsuario: 1,
-        correo: 'admin@intiwasi.test',
-        nombre: 'Administradora',
-        rol: 'Administrador',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -78,7 +67,7 @@ describe('Consulta HTTP de Movimientos', () => {
     );
     const request = http.expectOne((item) => item.url === '/api/movimientos');
     expect(request.request.method).toBe('GET');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer jwt-admin');
+    expect(request.request.headers.has('Authorization')).toBe(false);
     expect(request.request.params.get('fechaFinal')).toBe('2026-10-13');
     expect(request.request.params.get('idProducto')).toBe('3');
     expect(request.request.params.get('tipoDocumento')).toBe('Correccion');

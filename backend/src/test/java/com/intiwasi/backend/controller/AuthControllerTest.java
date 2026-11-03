@@ -5,8 +5,11 @@ import com.intiwasi.backend.dto.Comun.ErrorResponse;
 import com.intiwasi.backend.entity.Usuario;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import com.intiwasi.backend.security.JwtUtil;
+import com.intiwasi.backend.security.SessionCookie;
 import com.intiwasi.backend.security.LoginAttemptLimiter;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import com.intiwasi.backend.service.UsuarioService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +34,8 @@ class AuthControllerTest {
     @Mock UsuarioRepository usuarioRepository;
     @Mock PasswordEncoder passwordEncoder;
     @Mock LoginAttemptLimiter loginAttempts;
+    @Mock SessionCookie sessionCookie;
+    @Mock CsrfTokenRepository csrfTokens;
     @InjectMocks AuthController controller;
 
     @Test
@@ -44,7 +49,7 @@ class AuthControllerTest {
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Invalid"));
         when(usuarioRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuario));
 
-        var response = controller.login(request, new MockHttpServletRequest());
+        var response = controller.login(request, new MockHttpServletRequest(), new MockHttpServletResponse());
 
         assertEquals(401, response.getStatusCode().value());
         assertEquals("El correo o la contraseña son inválidos",

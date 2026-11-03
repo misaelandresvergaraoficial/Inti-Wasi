@@ -41,17 +41,6 @@ describe('Contrato HTTP de Ajustes', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token: 'jwt-admin',
-        idUsuario: 1,
-        correo: 'admin@intiwasi.test',
-        nombre: 'Administradora',
-        rol: 'Administrador',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -70,7 +59,7 @@ describe('Contrato HTTP de Ajustes', () => {
   it('consulta listado y detalle con la sesión del administrador', async () => {
     const list = service.list();
     const listing = http.expectOne((request) => request.url === '/api/ajustes');
-    expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-admin');
+    expect(listing.request.headers.has('Authorization')).toBe(false);
     listing.flush({ content: [ajuste], totalElements: 1, totalPages: 1, number: 0 });
     expect((await list).content[0].idAjuste).toBe(3);
     const detail = service.get(3);

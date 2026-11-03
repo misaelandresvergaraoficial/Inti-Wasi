@@ -10,7 +10,6 @@ import { ProductoRequest, ProductoResponse } from './producto-models';
 import { ProductosService } from './productos.service';
 import { ProductosList } from '../features/productos/productos-list';
 
-const token = 'jwt-de-prueba';
 const product: ProductoResponse = {
   idProducto: 12,
   sku: 'PRO-12',
@@ -37,17 +36,6 @@ describe('Productos conectados al backend', () => {
   let auth: AuthService;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token,
-        idUsuario: 1,
-        correo: 'admin@intiwasi.test',
-        nombre: 'Administrador',
-        rol: 'Administrador',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -58,6 +46,8 @@ describe('Productos conectados al backend', () => {
     });
     service = TestBed.inject(ProductosService);
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).session.set({ idUsuario: 1, correo: 'admin@intiwasi.test', nombre: 'Admin', rol: 'Administrador', expiresAt: Date.now() + 3600000 });
+    localStorage.setItem('intiwasi.lastActivity', String(Date.now()));
     auth = TestBed.inject(AuthService);
   });
 
@@ -70,7 +60,7 @@ describe('Productos conectados al backend', () => {
     auth.session.update((current) => ({ ...current!, rol: 'Operador de Almacén' }));
     const list = TestBed.runInInjectionContext(() => new ProductosList());
     const request = http.expectOne('/api/productos');
-    expect(request.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(request.request.headers.has('Authorization')).toBe(false);
     http.expectNone('/api/categorias');
     request.flush([product]);
     await new Promise((resolve) => setTimeout(resolve, 0));

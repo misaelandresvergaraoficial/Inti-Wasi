@@ -16,12 +16,10 @@ export interface UsuarioRequest {
   telefono: string | null;
 }
 export interface AuthResponse {
-  token: string;
-  correo: string;
-  rol: `ROLE_${Rol}`;
+  usuario: UsuarioResponse;
+  expiresAt: number;
 }
 export interface Sesion {
-  token: string;
   idUsuario: number;
   correo: string;
   nombre: string;

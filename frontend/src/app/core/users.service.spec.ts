@@ -8,7 +8,6 @@ import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
 import { UsuarioRequest, UsuarioResponse } from './models';
 
-const token = 'jwt-de-prueba';
 const user: UsuarioResponse = {
   idUsuario: 6,
   nomUsuario: 'Andrés Vega',
@@ -31,17 +30,6 @@ describe('Usuarios conectados al backend', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token,
-        idUsuario: user.idUsuario,
-        correo: user.correo,
-        nombre: user.nomUsuario,
-        rol: user.rol,
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -51,6 +39,8 @@ describe('Usuarios conectados al backend', () => {
     });
     users = TestBed.inject(UsersService);
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).session.set({ idUsuario: 1, correo: 'admin@intiwasi.test', nombre: 'Admin', rol: 'Administrador', expiresAt: Date.now() + 3600000 });
+    localStorage.setItem('intiwasi.lastActivity', String(Date.now()));
   });
 
   afterEach(() => {
@@ -58,16 +48,16 @@ describe('Usuarios conectados al backend', () => {
     sessionStorage.clear();
   });
 
-  it('consulta todas las cuentas, incluidas las inactivas, con JWT', async () => {
+  it('consulta todas las cuentas, incluidas las inactivas, con cookie', async () => {
     const result = users.list();
     const request = http.expectOne('/api/usuarios/todos');
     expect(request.request.method).toBe('GET');
-    expect(request.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(request.request.headers.has('Authorization')).toBe(false);
     request.flush([user, { ...user, idUsuario: 7, estado: 0 }]);
     expect((await result).map((record) => record.estado)).toEqual([1, 0]);
   });
 
-  it('no envía el JWT al login ni a servicios ajenos a la API', () => {
+  it('no envía credenciales al login ni a servicios ajenos a la API', () => {
     const client = TestBed.inject(HttpClient);
     client.post('/api/auth/login', {}).subscribe();
     const login = http.expectOne('/api/auth/login');
@@ -124,7 +114,8 @@ describe('Usuarios conectados al backend', () => {
     );
 
     await expect(result).rejects.toMatchObject({ status: 401 });
-    http.expectOne('/api/auth/logout').flush(null);
+    http.expectOne('/api/auth/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+    await Promise.resolve();
     expect(TestBed.inject(AuthService).session()).toBeNull();
     expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
   });

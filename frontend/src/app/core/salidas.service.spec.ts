@@ -39,17 +39,6 @@ describe('Contrato HTTP de Salidas', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.setItem(
-      'intiwasi.session',
-      JSON.stringify({
-        token: 'jwt-prueba',
-        idUsuario: 2,
-        correo: 'operador@intiwasi.test',
-        nombre: 'Operador',
-        rol: 'Operador de Almacén',
-        expiresAt: Date.now() + 3600000,
-      }),
-    );
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -65,10 +54,10 @@ describe('Contrato HTTP de Salidas', () => {
     sessionStorage.clear();
   });
 
-  it('consulta listado y detalle con JWT', async () => {
+  it('consulta listado y detalle con cookie', async () => {
     const list = service.list();
     const listing = http.expectOne((request) => request.url === '/api/salidas');
-    expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
+    expect(listing.request.headers.has('Authorization')).toBe(false);
     listing.flush({ content: [salida], totalElements: 1, totalPages: 1, number: 0 });
     expect((await list).content[0].idSalida).toBe(5);
     const detail = service.get(5);

@@ -12,6 +12,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class JwtUtilTest {
     @Test
+    void unaClaveNuevaRechazaLaFirmaAnteriorAunqueLaSesionSigaRegistrada() {
+        byte[] anterior = new byte[64];
+        byte[] nueva = new byte[64];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(anterior);
+        random.nextBytes(nueva);
+        var clock = new SessionRegistryTest.TestClock();
+        var sessions = new SessionRegistry(clock);
+        var oldJwt = new JwtUtil(Base64.getEncoder().encodeToString(anterior), 60000, clock, sessions);
+        var newJwt = new JwtUtil(Base64.getEncoder().encodeToString(nueva), 60000, clock, sessions);
+        String email = "rotacion.prueba@intiwasi.pe";
+        String previous = oldJwt.generarToken(email);
+        assertTrue(oldJwt.validarToken(previous, email));
+        assertThrows(io.jsonwebtoken.security.SignatureException.class, () -> newJwt.extraerCorreo(previous));
+        String current = newJwt.generarToken(email);
+        assertTrue(newJwt.validarToken(current, email));
+        assertThrows(io.jsonwebtoken.security.SignatureException.class, () -> oldJwt.extraerCorreo(current));
+    }
+
+    @Test
     void limitaElJwtAOchoHorasYRechazaFirmasValidasSinSesionRegistrada() {
         byte[] bytes = new byte[64]; new SecureRandom().nextBytes(bytes);
         String secret = Base64.getEncoder().encodeToString(bytes);

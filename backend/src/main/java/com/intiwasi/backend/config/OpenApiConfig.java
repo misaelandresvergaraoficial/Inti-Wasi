@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    private static final String SCHEME = "bearerAuth";
+    private static final String SCHEME = "sessionCookie";
 
     @Bean
     public OpenAPI intiWasiOpenAPI() {
@@ -19,12 +19,12 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Inti Wasi - API de Inventario y Almacen")
                         .version("1.0.0")
-                        .description("Servicios REST para la gestion de inventario, compras y almacen."))
+                        .description("Servicios REST para la gestion de inventario, compras y almacen. Obtenga XSRF-TOKEN en GET /api/auth/csrf y envíelo en X-XSRF-TOKEN para operaciones de escritura."))
                 .addSecurityItem(new SecurityRequirement().addList(SCHEME))
                 .components(new Components().addSecuritySchemes(SCHEME,
                         new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.COOKIE)
+                                .name("intiwasi.session")));
     }
 }
