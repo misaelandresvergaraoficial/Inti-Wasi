@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,5 +19,6 @@ public class OrdenCompraRequest {
 
     @Valid
     @NotEmpty(message = "La orden debe contener al menos un producto")
+    @Size(max = 100, message = "La orden admite hasta 100 productos")
     private List<DetalleOrdenCompraRequest> detalles;
 }

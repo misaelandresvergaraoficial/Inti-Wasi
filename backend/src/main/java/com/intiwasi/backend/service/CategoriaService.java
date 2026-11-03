@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import com.intiwasi.backend.exception.ReglaNegocioException;
 
 @Service
 @RequiredArgsConstructor
@@ -43,24 +46,25 @@ public class CategoriaService {
     @Transactional
     public CategoriaResponse registrar(CategoriaRequest request) {
         if (categoriaRepository.existsByNomCategoria(request.getNomCategoria())) {
-            throw new ConflictoException("Ya existe una categoría con ese nombre.");
+            throw new ConflictoException("nomCategoria: El nombre de la categoría ya está registrado");
         }
 
         Categoria categoria = new Categoria();
         categoria.setNomCategoria(request.getNomCategoria());
-        categoria.setEstado(request.getEstado().byteValue());
+        categoria.setEstado((byte) 1);
 
         return convertirAResponse(categoriaRepository.save(categoria));
     }
 
     @Transactional
     public CategoriaResponse actualizar(Integer idCategoria, CategoriaRequest request) {
-        Categoria categoriaExistente = obtenerEntidadPorId(idCategoria);
+        Categoria categoriaExistente = categoriaRepository.findByIdForUpdate(idCategoria)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Categoría no encontrada con el ID: " + idCategoria));
 
         if (!categoriaExistente.getNomCategoria().equalsIgnoreCase(request.getNomCategoria())
                 && categoriaRepository.existsByNomCategoria(request.getNomCategoria())) {
             throw new ConflictoException(
-                    "El nombre de la categoría ya se encuentra registrado por otra categoría."
+                    "nomCategoria: El nombre de la categoría ya está registrado"
             );
         }
 
@@ -71,7 +75,8 @@ public class CategoriaService {
 
     @Transactional
     public void desactivar(Integer idCategoria) {
-        Categoria categoriaExistente = obtenerEntidadPorId(idCategoria);
+        Categoria categoriaExistente = categoriaRepository.findByIdForUpdate(idCategoria)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Categoría no encontrada con el ID: " + idCategoria));
         aplicarEstado(categoriaExistente, 0);
     }
 
@@ -80,13 +85,28 @@ public class CategoriaService {
         if (estado == null || (estado != 0 && estado != 1)) {
             throw new IllegalArgumentException("El estado de la categoría debe ser 0 o 1");
         }
-        Categoria categoriaExistente = obtenerEntidadPorId(idCategoria);
+        Categoria categoriaExistente = categoriaRepository.findByIdForUpdate(idCategoria)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Categoría no encontrada con el ID: " + idCategoria));
         return convertirAResponse(aplicarEstado(categoriaExistente, estado));
     }
 
     private Categoria aplicarEstado(Categoria categoria, Integer nuevoEstado) {
         boolean seDesactiva = categoria.getEstado() == 1 && nuevoEstado == 0;
         boolean seReactiva = categoria.getEstado() == 0 && nuevoEstado == 1;
+
+        List<Producto> productosAReactivar = seReactiva
+                ? productoRepository.findByCategoria_IdCategoriaAndDesactivadoPorCategoria(categoria.getIdCategoria(), (byte) 1)
+                : List.of();
+        String proveedoresInactivos = productosAReactivar.stream()
+                .map(Producto::getProveedor)
+                .filter(Objects::nonNull)
+                .filter(proveedor -> !Byte.valueOf((byte) 1).equals(proveedor.getEstado()))
+                .map(proveedor -> proveedor.getNomProveedor() + " (RUC " + proveedor.getRuc() + ", ID " + proveedor.getIdProveedor() + ")")
+                .distinct().collect(Collectors.joining(", "));
+        if (!proveedoresInactivos.isEmpty()) {
+            throw new ReglaNegocioException(
+                    "Activa primero los proveedores: " + proveedoresInactivos + ". No se cambió la categoría ni sus productos");
+        }
 
         categoria.setEstado(nuevoEstado.byteValue());
         Categoria guardada = categoriaRepository.save(categoria);
@@ -100,8 +120,7 @@ public class CategoriaService {
             });
             productoRepository.saveAll(productosAfectados);
         } else if (seReactiva) {
-            List<Producto> productosAfectados = productoRepository
-                    .findByCategoria_IdCategoriaAndDesactivadoPorCategoria(guardada.getIdCategoria(), (byte) 1);
+            List<Producto> productosAfectados = productosAReactivar;
             productosAfectados.forEach(producto -> {
                 producto.setEstado((byte) 1);
                 producto.setDesactivadoPorCategoria((byte) 0);

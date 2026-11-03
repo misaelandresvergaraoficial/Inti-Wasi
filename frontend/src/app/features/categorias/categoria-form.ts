@@ -1,3 +1,5 @@
+import { ApiRequestError } from '../../core/models';
+import { normalizarNombre } from '../../shared/form-errors';
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -57,7 +59,7 @@ export class CategoriaForm implements PendingChanges {
         Validators.required,
         notBlank,
         Validators.maxLength(100),
-        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&()\/\\-]{2,100}$/),
+        Validators.pattern(/^[\p{L}\p{M}0-9 .,&()/'’\-]{2,100}$/u),
       ],
     ],
     estado: [1, Validators.required],
@@ -118,6 +120,9 @@ export class CategoriaForm implements PendingChanges {
   }
 
   async save(): Promise<void> {
+    this.form.controls.nomCategoria.setValue(
+      normalizarNombre(this.form.controls.nomCategoria.value),
+    );
     if (this.saving() || this.loading() || this.errorInit()) return;
     this.error.set('');
     this.form.markAllAsTouched();
@@ -143,7 +148,7 @@ export class CategoriaForm implements PendingChanges {
               data: {
                 title: '¿Desactivar la categoría?',
                 message:
-                  'También se desactivarán sus productos activos. Al reactivar la categoría, deberás reactivar cada producto por separado.',
+                  'También se desactivarán sus productos activos. Al reactivarla, se recuperarán solo esos productos si sus proveedores están activos.',
                 action: 'Desactivar categoría y productos',
                 danger: true,
               },
@@ -155,6 +160,7 @@ export class CategoriaForm implements PendingChanges {
       const categoria = await this.srv.save(
         {
           ...value,
+          estado: this.isEdit() ? value.estado : 1,
           nomCategoria: value.nomCategoria.trim(),
         },
         this.categoryId,
@@ -167,6 +173,16 @@ export class CategoriaForm implements PendingChanges {
       );
       await this.router.navigate(['/categorias']);
     } catch (err) {
+      if (err instanceof ApiRequestError && err.field && err.field in this.form.controls) {
+        this.form.controls[err.field as keyof typeof this.form.controls].setErrors({
+          server: err.message,
+        });
+        requestAnimationFrame(() =>
+          this.element()
+            ?.nativeElement.querySelector<HTMLElement>('input.ng-invalid, mat-select.ng-invalid')
+            ?.focus(),
+        );
+      }
       this.error.set(err instanceof Error ? err.message : 'Error de validación o conflicto.');
     } finally {
       this.saving.set(false);

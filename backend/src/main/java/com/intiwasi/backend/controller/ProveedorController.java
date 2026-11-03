@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
+import com.intiwasi.backend.exception.RecursoNoEncontradoException;
 
 @RestController
 @RequestMapping("/api/proveedores")
@@ -41,8 +43,14 @@ public class ProveedorController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
-    public ResponseEntity<ProveedorResponse> obtenerPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(proveedorService.obtenerPorId(id));
+    public ResponseEntity<ProveedorResponse> obtenerPorId(@PathVariable Integer id, Authentication authentication) {
+        ProveedorResponse proveedor = proveedorService.obtenerPorId(id);
+        boolean esAdministrador = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_Administrador".equals(authority.getAuthority()));
+        if (!esAdministrador && proveedor.getEstado() == 0) {
+            throw new RecursoNoEncontradoException("Proveedor activo no encontrado");
+        }
+        return ResponseEntity.ok(proveedor);
     }
 
     @PostMapping

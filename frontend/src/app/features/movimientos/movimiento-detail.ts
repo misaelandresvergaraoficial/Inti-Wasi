@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '../../core/business-time';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -49,8 +50,6 @@ export class MovimientoDetail {
   }
 
   date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(
-      new Date(value),
-    );
+    return formatBusinessDate(value, 'long');
   }
 }

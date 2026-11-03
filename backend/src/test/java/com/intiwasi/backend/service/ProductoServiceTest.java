@@ -50,4 +50,25 @@ class ProductoServiceTest {
         assertEquals(Integer.valueOf(12), service.obtenerPorId(12, false).getIdProducto());
     }
 
+
+    @Test
+    void edicionConservaStockBajoBloqueoYReactivacionValidaRelaciones() {
+        producto.setSku("RAM-12");
+        producto.setStockActual(23);
+        when(productos.findAllByIdForUpdate(java.util.List.of(12))).thenReturn(java.util.List.of(producto));
+        when(categorias.findById(2)).thenReturn(Optional.of(categoria));
+        when(productos.save(producto)).thenReturn(producto);
+        var request = new com.intiwasi.backend.dto.Producto.ProductoRequest();
+        request.setSku("RAM-12");
+        request.setNomProducto("Memoria");
+        request.setIdCategoria(2);
+        request.setPrecio(java.math.BigDecimal.ZERO);
+        request.setStockMinimo(5);
+        assertEquals(23, service.actualizarProducto(12, request).getStockActual());
+        assertEquals((byte) 0, producto.getEstado());
+        categoria.setEstado((byte) 0);
+        assertThrows(com.intiwasi.backend.exception.ReglaNegocioException.class, () -> service.cambiarEstado(12, 1));
+        assertEquals((byte) 0, producto.getEstado());
+        assertEquals(23, producto.getStockActual());
+    }
 }

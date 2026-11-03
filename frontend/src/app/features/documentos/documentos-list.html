@@ -108,7 +108,7 @@
     <div class="empty-state"><p>No se pudo cargar el historial.</p></div>
   } @else if (dateError()) {
     <div class="empty-state"><p>Corrige el rango de fechas para consultar los documentos.</p></div>
-  } @else if (!filtered().length) {
+  } @else if (!total()) {
     <div class="empty-state">
       <h3>{{ records().length ? 'No hay coincidencias' : 'Aún no hay documentos' }}</h3>
       <p>{{ records().length ? 'Prueba otro filtro.' : 'Los documentos aparecerán aquí.' }}</p>
@@ -156,15 +156,13 @@
       </table>
     </div>
     <div class="pagination">
-      <p role="status">
-        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }}
-      </p>
+      <p role="status">Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ total() }}</p>
       <div class="flex items-center gap-2">
         <button
           mat-icon-button
           aria-label="Página anterior"
-          [disabled]="page() === 0"
-          (click)="page.set(page() - 1)"
+          [disabled]="loading() || page() === 0"
+          (click)="go(page() - 1)"
         >
           <iw-icon name="arrow" />
         </button>
@@ -172,8 +170,8 @@
         <button
           mat-icon-button
           aria-label="Página siguiente"
-          [disabled]="page() + 1 >= pages()"
-          (click)="page.set(page() + 1)"
+          [disabled]="loading() || page() + 1 >= pages()"
+          (click)="go(page() + 1)"
         >
           <iw-icon name="next" />
         </button>
@@ -181,3 +179,8 @@
     </div>
   }
 </section>
+
+<p class="report-summary">
+  Los nombres y etiquetas corresponden al catálogo actual; se conservan IDs, cantidades y vínculos
+  del documento original. Fechas de negocio: America/Lima.
+</p>

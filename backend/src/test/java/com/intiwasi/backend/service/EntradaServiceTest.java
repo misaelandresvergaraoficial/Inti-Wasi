@@ -200,4 +200,41 @@ class EntradaServiceTest {
                         && movimiento.getCantidad() == cantidad
         ));
     }
+
+    @Test
+    void historialUsaPaginaServidorSinCargarListaCompleta() {
+        when(entradas.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+        service.consultar(2, 200, "GUIA-TEST", "1", null, null, "desc");
+        org.mockito.Mockito.verify(entradas).findAll(any(org.springframework.data.jpa.domain.Specification.class), org.mockito.ArgumentMatchers.argThat((org.springframework.data.domain.Pageable page) ->
+                page.getOffset() == 400 && page.getPageSize() == 200
+                        && page.getSort().getOrderFor("documento.fechaEmision").isDescending()
+                        && page.getSort().getOrderFor("idEntrada").isDescending()));
+        org.mockito.Mockito.verify(entradas, org.mockito.Mockito.never()).findAllConRelaciones();
+    }
+
+    @Test
+    void historialRechazaMasDeDoscientasFilas() {
+        assertThrows(IllegalArgumentException.class, () -> service.consultar(0, 201, null, null, null, null, "desc"));
+        verifyNoInteractions(entradas);
+    }
+
+    @Test
+    void cienUnaLineasSeRechazanAntesDeConsultarOrden() {
+        var request = request(12, 1);
+        request.setMovimientos(java.util.Collections.nCopies(101, request.getMovimientos().getFirst()));
+        assertThrows(IllegalArgumentException.class, () -> service.registrar(request));
+        verifyNoInteractions(ordenes, documentos, movimientos);
+    }
+
+    @Test
+    void recepcionConProveedorInactivoYProductoReasignadoConservaOrden() {
+        orden.getProveedor().setEstado((byte) 0);
+        var nuevo = new Proveedor(); nuevo.setIdProveedor(99); producto.setProveedor(nuevo);
+        prepararRecepcion(2, 3);
+        var respuesta = service.registrar(request(12, 3));
+        assertEquals(7, respuesta.getIdOrden());
+        assertEquals(2, orden.getProveedor().getIdProveedor());
+        comprobarGuardado(3);
+    }
 }

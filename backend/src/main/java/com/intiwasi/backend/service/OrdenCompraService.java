@@ -17,6 +17,13 @@ import com.intiwasi.backend.repository.ProductoRepository;
 import com.intiwasi.backend.repository.ProveedorRepository;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.time.LocalDate;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,8 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +52,36 @@ public class OrdenCompraService {
     private final UsuarioRepository usuarioRepository;
     private final EntradaRepository entradaRepository;
 
+
+    @Transactional(readOnly = true)
+    public Page<OrdenCompraResponse> consultar(int page, int size, String q, String estado,
+            LocalDate desde, LocalDate hasta, String sort, boolean admisibles) {
+        if (page < 0 || size < 1 || size > 200) throw new IllegalArgumentException("La página debe ser positiva y admitir entre 1 y 200 registros");
+        if (desde != null && hasta != null && desde.isAfter(hasta)) throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final");
+        if (!Set.of("asc", "desc").contains(sort)) throw new IllegalArgumentException("Orden de emisión no válido");
+        String texto = q == null ? "" : q.trim().toLowerCase(java.util.Locale.ROOT);
+        if (texto.length() > 255) throw new IllegalArgumentException("La búsqueda admite hasta 255 caracteres");
+        String patron = "%" + texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        Integer idBuscado;
+        try { idBuscado = Integer.valueOf(texto); } catch (NumberFormatException ex) { idBuscado = -1; }
+        final Integer identidad = idBuscado;
+        Specification<OrdenCompra> filtro = (root, query, cb) -> {
+            List<Predicate> filtros = new ArrayList<>();
+            if (admisibles) filtros.add(root.get("estado").in("Pendiente", "Parcial"));
+            if (!texto.isEmpty()) filtros.add(cb.or(cb.like(cb.lower(root.get("proveedor").get("nomProveedor")), patron, '\\'), cb.equal(root.get("idOrden"), identidad)));
+            if (estado != null && !estado.isBlank()) {
+                if (!Set.of("Pendiente", "Parcial", "Recibida", "Cancelada").contains(estado)) throw new IllegalArgumentException("Estado de orden no válido");
+                filtros.add(cb.equal(root.get("estado"), estado));
+            }
+            if (desde != null) filtros.add(cb.greaterThanOrEqualTo(root.<LocalDate>get("fechaEmision"), desde));
+            if (hasta != null) filtros.add(cb.lessThanOrEqualTo(root.<LocalDate>get("fechaEmision"), hasta));
+            return cb.and(filtros.toArray(Predicate[]::new));
+        };
+        var orden = Sort.by(OrdenCompra::getFechaEmision, OrdenCompra::getIdOrden);
+        return ordenCompraRepository.findAll(filtro, PageRequest.of(page, size,
+                "asc".equals(sort) ? orden.ascending() : orden.descending())).map(this::convertirAResponse);
+    }
+
     @Transactional(readOnly = true)
     public List<OrdenCompraResponse> listarTodas() {
         return ordenCompraRepository.findAllConDetalles().stream()
@@ -61,7 +96,7 @@ public class OrdenCompraService {
 
     @Transactional
     public OrdenCompraResponse crear(OrdenCompraRequest request) {
-        LocalDate fechaEmision = LocalDate.now();
+        LocalDate fechaEmision = LocalDate.now(java.time.ZoneId.of("America/Lima"));
         validarFechaEstimada(request.getFechaEstimadaEntrega(), fechaEmision);
         validarDetalles(request.getDetalles());
 
@@ -255,9 +290,9 @@ public class OrdenCompraService {
     }
 
     private void validarDetalles(List<DetalleOrdenCompraRequest> requests) {
-        if (requests == null || requests.isEmpty()) {
+        if (requests == null || requests.isEmpty() || requests.size() > 100) {
             throw new ReglaNegocioException(
-                    "La orden debe contener al menos un producto"
+                    "La orden debe contener entre 1 y 100 productos"
             );
         }
 
@@ -318,12 +353,16 @@ public class OrdenCompraService {
                 .idOrden(orden.getIdOrden())
                 .idProveedor(orden.getProveedor().getIdProveedor())
                 .nomProveedor(orden.getProveedor().getNomProveedor())
+                .rucProveedor(orden.getProveedor().getRuc())
                 .prefijoGuia(orden.getProveedor().getPrefijoGuia())
                 .idUsuario(orden.getUsuario().getIdUsuario())
                 .nomUsuario(orden.getUsuario().getNomUsuario())
+                .correoUsuario(orden.getUsuario().getCorreo())
                 .fechaEmision(orden.getFechaEmision())
                 .fechaEstimadaEntrega(orden.getFechaEstimadaEntrega())
                 .estado(orden.getEstado())
+                .editable(ESTADO_PENDIENTE.equals(orden.getEstado())
+                        && !entradaRepository.existsByOrdenCompra_IdOrden(orden.getIdOrden()))
                 .detalles(detalles)
                 .totalOrden(total)
                 .build();

@@ -18,6 +18,7 @@ export interface EntradaResponse {
   fechaEmision: string;
   idUsuario: number;
   usuarioResponsable: string;
+  correoResponsable?: string;
   estadoOrden: string;
   movimientos: MovimientoEntrada[];
 }
@@ -33,3 +34,5 @@ export interface EntradaRequest {
 export function estadoDocumento(estado: number): string {
   return estado === 1 ? 'Vigente' : estado === 2 ? 'Rectificado' : 'Anulado';
 }
+
+export { formatBusinessDate as fechaEntrada } from './business-time';

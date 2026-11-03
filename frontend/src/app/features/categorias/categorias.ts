@@ -93,7 +93,7 @@ export class CategoriasList {
           data: {
             title: `¿Desactivar ${c.nomCategoria}?`,
             message:
-              'También se desactivarán sus productos activos. La categoría y el historial se conservarán. Al reactivarla, deberás reactivar cada producto por separado.',
+              'También se desactivarán sus productos activos. La categoría y el historial se conservarán. Al reactivarla, se recuperarán solo esos productos si sus proveedores están activos.',
             action: 'Desactivar categoría',
             danger: true,
           },
@@ -132,7 +132,7 @@ export class CategoriasList {
           data: {
             title: `¿Reactivar ${c.nomCategoria}?`,
             message:
-              'La categoría volverá a estar disponible para asignarse a productos nuevos o existentes.',
+              'Se recuperarán solo los productos desactivados por esta categoría. Si alguno tiene proveedor inactivo, activa primero ese proveedor; no se guardarán cambios parciales.',
             action: 'Reactivar categoría',
           },
         })

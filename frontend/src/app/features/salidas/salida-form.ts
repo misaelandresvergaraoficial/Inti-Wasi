@@ -45,6 +45,7 @@ export class SalidaForm implements PendingChanges {
   readonly original = signal<SalidaResponse | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
+  readonly confirming = signal(false);
   readonly loadError = signal('');
   readonly error = signal('');
   readonly lineErrors = signal<Record<number, string>>({});
@@ -54,8 +55,8 @@ export class SalidaForm implements PendingChanges {
     this.form.controls.motivo.valueChanges.subscribe((motivo) => {
       this.form.controls.observaciones.setValidators(
         motivo === 'Otro'
-          ? [Validators.required, Validators.maxLength(255)]
-          : [Validators.maxLength(255)],
+          ? [Validators.required, Validators.maxLength(255), sinEmojis]
+          : [Validators.maxLength(255), sinEmojis],
       );
       this.form.controls.observaciones.updateValueAndValidity();
     });
@@ -153,6 +154,10 @@ export class SalidaForm implements PendingChanges {
   }
 
   addLine(): void {
+    if (this.lines.length >= 100) {
+      this.error.set('La operación admite hasta 100 productos.');
+      return;
+    }
     if (this.id !== undefined) return;
     this.lines.push(this.newLine());
     this.form.markAsDirty();
@@ -164,8 +169,41 @@ export class SalidaForm implements PendingChanges {
     this.form.markAsDirty();
   }
 
+  inventorySummary(): {
+    producto: string;
+    cantidad: number;
+    stockPrevio: number;
+    cambioNeto: number;
+    stockResultado: number;
+    reversion?: number;
+  }[] {
+    const value = this.form.getRawValue();
+    const ids = new Set([
+      ...value.movimientos.map((item) => item.idProducto),
+      ...(this.original()?.movimientos.map((item) => item.idProducto) ?? []),
+    ]);
+    return [...ids].map((id) => {
+      const cantidad = value.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
+      const anterior = this.original()?.movimientos.find((item) => item.idProducto === id);
+      const stockPrevio = this.currentStock(id);
+      const reversion = anterior?.cantidad ?? 0;
+      const cambioNeto = reversion - cantidad;
+      return {
+        producto:
+          this.products().find((item) => item.idProducto === id)?.nomProducto ??
+          anterior?.nomProducto ??
+          `Producto ${id}`,
+        cantidad,
+        stockPrevio,
+        cambioNeto,
+        stockResultado: stockPrevio + cambioNeto,
+        ...(this.original() ? { reversion } : {}),
+      };
+    });
+  }
+
   async submit(): Promise<void> {
-    if (this.busy()) return;
+    if (this.busy() || this.confirming()) return;
     this.submitted.set(true);
     this.error.set('');
     this.lineErrors.set({});
@@ -213,6 +251,31 @@ export class SalidaForm implements PendingChanges {
       this.focusInvalid();
       return;
     }
+    this.confirming.set(true);
+    let confirmado: boolean;
+    try {
+      confirmado = !!(await firstValueFrom(
+        this.dialog
+          .open(ConfirmDialog, {
+            width: '780px',
+            maxWidth: 'calc(100vw - 32px)',
+            data: {
+              title: this.id === undefined ? '¿Registrar salida?' : '¿Rectificar salida?',
+              message:
+                this.id === undefined
+                  ? 'Se descontarán las cantidades indicadas del inventario.'
+                  : 'La inversa completa y el reemplazo se confirmarán juntos. El original quedará Rectificado y se conservará.',
+              action: this.id === undefined ? 'Registrar salida' : 'Rectificar salida',
+              danger: true,
+              inventory: this.inventorySummary(),
+            },
+          })
+          .afterClosed(),
+      ));
+    } finally {
+      this.confirming.set(false);
+    }
+    if (!confirmado) return;
     const request: SalidaRequest = {
       motivo: value.motivo as MotivoSalida,
       observaciones: value.observaciones.trim() || null,
@@ -280,7 +343,7 @@ export class SalidaForm implements PendingChanges {
 
   async canLeave(): Promise<boolean> {
     if (!this.auth.valid() || !this.form.dirty) return true;
-    if (this.busy()) return false;
+    if (this.busy() || this.confirming()) return false;
     return !!(await firstValueFrom(
       this.dialog
         .open(ConfirmDialog, {

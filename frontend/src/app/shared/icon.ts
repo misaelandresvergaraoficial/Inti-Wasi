@@ -1,5 +1,14 @@
 import { Component, input } from '@angular/core';
 const paths: Record<string, string> = {
+  clock: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M12 6v6l4 2',
+  dashboard: 'M3 3h7v7H3z M14 3h7v11h-7z M3 14h7v7H3z M14 18h7v3h-7z',
+  entrada: 'M12 3v12 m-5-5 5 5 5-5 M4 15v6h16v-6',
+  salida: 'M12 15V3 m-5 5 5-5 5 5 M4 15v6h16v-6',
+  adjust: 'M4 7h16 M4 17h16 M8 4v6 M16 14v6',
+  box: 'm12 3 9 5v9l-9 5-9-5V8z m-9 5 9 5 9-5 M12 13v9 M7 5.8l9 5',
+  document: 'M14 2H5v20h14V7z M14 2v5h5 M8 12h8 M8 16h8',
+  movement: 'M4 7h16 m-4-4 4 4-4 4 M20 17H4 m4-4-4 4 4 4',
+  chart: 'M4 3v18h17 M8 17v-5 M13 17V8 M18 17V5',
   users:
     'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M16 3a4 4 0 0 1 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
   shield: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11 M9 12l2 2 4-4',

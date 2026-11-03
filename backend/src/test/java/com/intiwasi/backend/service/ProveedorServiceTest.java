@@ -62,4 +62,15 @@ class ProveedorServiceTest {
         assertEquals("GUIA-TECHDATA-", proveedor.getPrefijoGuia());
     }
 
+
+    @Test
+    void permiteHomonimoConRucDistintoPeroConservaUnicidadRuc() {
+        when(proveedores.save(any())).thenAnswer(call -> call.getArgument(0));
+        var request = datos("GUIA-NUEVO-");
+        assertEquals("Tech Data", service.registrar(request).getNomProveedor());
+        verify(proveedores, never()).existsByNomProveedor(any());
+        when(proveedores.existsByRuc(request.getRuc())).thenReturn(true);
+        assertThrows(com.intiwasi.backend.exception.ConflictoException.class, () -> service.registrar(request));
+        verify(proveedores, org.mockito.Mockito.times(1)).save(any());
+    }
 }

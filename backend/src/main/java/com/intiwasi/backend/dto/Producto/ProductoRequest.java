@@ -4,15 +4,15 @@ import java.math.BigDecimal;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
+import com.intiwasi.backend.dto.Comun.Patrones;
 
-@Data 
+@Data
 public class ProductoRequest {
     @NotBlank(message = "El SKU es obligatorio")
     @Size(max = 30, message = "El SKU no debe exceder los 30 caracteres")
@@ -21,10 +21,14 @@ public class ProductoRequest {
     @NotBlank(message = "El nombre del producto es obligatorio")
     @Size(max = 150, message = "El nombre no debe exceder los 150 caracteres")
     @Pattern(
-            regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&\\-+/\\(\\)\"']{2,150}$",
+            regexp = "^[\\p{L}\\p{M}0-9 .,&\\-+/()\"’']{2,150}$",
             message = "El nombre admite letras, números, espacios y . , & - + / ( ) \" '; sin emojis"
     )
     private String nomProducto;
+
+    public void setNomProducto(String nomProducto) {
+        this.nomProducto = Patrones.normalizarNombre(nomProducto);
+    }
 
     @NotNull(message = "La categoría es obligatoria")
     private Integer idCategoria;

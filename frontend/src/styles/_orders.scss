@@ -1,12 +1,53 @@
 .orders-panel table {
-  min-width: 910px;
+  min-width: 640px;
 }
 .orders-panel tbody th,
 .orders-panel tbody td {
   vertical-align: middle;
 }
 .orders-panel .row-actions {
-  white-space: nowrap;
+  white-space: normal;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.order-list-panel table {
+  min-width: 1000px;
+}
+.order-list-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(145px, 1fr)) minmax(210px, 1.3fr);
+  align-items: end;
+  gap: 14px;
+}
+.order-list-filters .search-field,
+.order-list-filters .status-filter {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+}
+.order-list-filters input[type='date'],
+.order-list-filters select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+@media (max-width: 1250px) {
+  .order-list-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .order-list-filters .search-field {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 699px) {
+  .order-list-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .order-number,
 .order-product-name {

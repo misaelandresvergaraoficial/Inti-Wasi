@@ -30,7 +30,7 @@
       <p>Las rectificadas y anuladas permanecen en el historial.</p>
     </div>
     <span class="badge neutral">{{
-      error() ? 'Sin datos' : records().length + (records().length === 1 ? ' entrada' : ' entradas')
+      error() ? 'Sin datos' : total() + (total() === 1 ? ' entrada' : ' entradas')
     }}</span>
   </div>
   <div class="filter-bar flex flex-wrap items-end gap-4">
@@ -129,7 +129,10 @@
               <td>N.° {{ record.idOrden }}</td>
               <td>{{ record.numeroGuiaRemision }}</td>
               <td>{{ date(record.fechaEmision) }}</td>
-              <td>{{ record.usuarioResponsable }}</td>
+              <td>
+                {{ record.usuarioResponsable }} · {{ record.correoResponsable }} · ID
+                {{ record.idUsuario }}
+              </td>
               <td>
                 <span class="badge status-badge" [attr.data-state]="record.estadoDocumento">{{
                   estado(record.estadoDocumento)
@@ -142,15 +145,13 @@
       </table>
     </div>
     <div class="pagination">
-      <p role="status">
-        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }}
-      </p>
+      <p role="status">Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ total() }}</p>
       <div class="flex items-center gap-2">
         <button
           mat-icon-button
           aria-label="Página anterior"
           [disabled]="page() === 0"
-          (click)="page.set(page() - 1)"
+          (click)="changePage(page() - 1)"
         >
           <iw-icon name="arrow" /></button
         ><span>Página {{ page() + 1 }} de {{ pages() }}</span
@@ -158,7 +159,7 @@
           mat-icon-button
           aria-label="Página siguiente"
           [disabled]="page() + 1 >= pages()"
-          (click)="page.set(page() + 1)"
+          (click)="changePage(page() + 1)"
         >
           <iw-icon name="next" />
         </button>

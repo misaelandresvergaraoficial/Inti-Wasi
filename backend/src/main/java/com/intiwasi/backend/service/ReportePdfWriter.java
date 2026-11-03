@@ -1,5 +1,7 @@
 package com.intiwasi.backend.service;
 
+import org.apache.fontbox.ttf.TTFParser;
+import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -24,13 +26,13 @@ public class ReportePdfWriter {
     private static final float ALTO_CABECERA = 25;
     private static final float ANCHO_TABLA = PDRectangle.A4.getHeight() - MARGEN * 2;
 
-    public byte[] escribir(String reporte, List<String> encabezados, List<List<String>> filas) {
+    public byte[] escribir(String reporte, List<String> encabezados, List<List<String>> filas, String generado) {
         try (PDDocument documento = new PDDocument();
-             InputStream archivoFuente = getClass().getResourceAsStream("/fonts/NotoSans-Regular.ttf")) {
-            if (archivoFuente == null) throw new IllegalStateException("No se encontró la fuente del reporte");
-            PDFont fuente = PDType0Font.load(documento, archivoFuente);
+             InputStream archivoFuente = getClass().getResourceAsStream("/fonts/NotoSans-Regular.ttf");
+             TrueTypeFont tipografia = cargarTipografia(archivoFuente, encabezados, filas)) {
+            PDFont fuente = PDType0Font.load(documento, tipografia, true);
             float[] anchos = anchos(encabezados);
-            Pagina pagina = nuevaPagina(documento, fuente, titulo(reporte), encabezados, anchos, 1);
+            Pagina pagina = nuevaPagina(documento, fuente, titulo(reporte), encabezados, anchos, 1, generado);
 
             for (List<String> fila : filas) {
                 List<List<String>> celdas = new ArrayList<>();
@@ -44,7 +46,7 @@ public class ReportePdfWriter {
                 if (pagina.y - alto < MARGEN) {
                     pagina.stream.close();
                     pagina = nuevaPagina(documento, fuente, titulo(reporte), encabezados, anchos,
-                            documento.getNumberOfPages() + 1);
+                            documento.getNumberOfPages() + 1, generado);
                 }
                 dibujarFila(pagina, celdas, anchos, alto, fuente);
             }
@@ -58,15 +60,35 @@ public class ReportePdfWriter {
         }
     }
 
+    private TrueTypeFont cargarTipografia(InputStream archivo, List<String> encabezados,
+                                          List<List<String>> filas) throws IOException {
+        if (archivo == null) throw new IllegalStateException("No se encontró la fuente del reporte");
+        TrueTypeFont tipografia = new TTFParser().parseEmbedded(archivo);
+        boolean requiereGsub = encabezados.stream().anyMatch(this::requiereGsub)
+                || filas.stream().flatMap(List::stream).anyMatch(this::requiereGsub);
+        tipografia.setEnableGsub(requiereGsub);
+        return tipografia;
+    }
+
+    private boolean requiereGsub(String texto) {
+        return texto.codePoints().anyMatch(caracter -> {
+            Character.UnicodeScript escritura = Character.UnicodeScript.of(caracter);
+            return escritura != Character.UnicodeScript.LATIN
+                    && escritura != Character.UnicodeScript.COMMON
+                    && escritura != Character.UnicodeScript.INHERITED;
+        });
+    }
+
     private Pagina nuevaPagina(PDDocument documento, PDFont fuente, String titulo,
-                               List<String> encabezados, float[] anchos, int numero) throws IOException {
+                               List<String> encabezados, float[] anchos, int numero, String generado) throws IOException {
         PDPage hoja = new PDPage(new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()));
         documento.addPage(hoja);
         PDPageContentStream stream = new PDPageContentStream(documento, hoja);
         float y = hoja.getMediaBox().getHeight() - MARGEN;
         texto(stream, fuente, 15, MARGEN, y - 15, titulo);
         texto(stream, fuente, 8, MARGEN, MARGEN / 2, "Inti Wasi · Página " + numero);
-        y -= 34;
+        texto(stream, fuente, 8, MARGEN, y - 29, "Generado: " + generado + " · America/Lima");
+        y -= 46;
 
         stream.setNonStrokingColor(new Color(235, 243, 243));
         stream.addRect(MARGEN, y - ALTO_CABECERA, ANCHO_TABLA, ALTO_CABECERA);

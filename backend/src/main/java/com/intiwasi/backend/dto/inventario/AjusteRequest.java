@@ -49,5 +49,6 @@ public class AjusteRequest {
 
     @Valid
     @NotEmpty(message = "El ajuste debe contener al menos un movimiento")
+    @Size(max = 100, message = "El ajuste admite hasta 100 productos")
     private List<MovimientoRequest> movimientos;
 }

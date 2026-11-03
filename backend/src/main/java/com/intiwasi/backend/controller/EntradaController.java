@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/entradas")
@@ -28,7 +31,18 @@ public class EntradaController {
     private final EntradaService entradaService;
 
     @GetMapping
-    public List<EntradaResponse> listar() { return entradaService.listar(); }
+    public Page<EntradaResponse> listar(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) LocalDate desde,
+            @RequestParam(required = false) LocalDate hasta,
+            @RequestParam(defaultValue = "desc") String sort) { return entradaService.consultar(page, size, q, estado, desde, hasta, sort); }
+
+    @GetMapping("/documento/{idDocumento}")
+    public EntradaResponse obtenerPorDocumento(@PathVariable Integer idDocumento) {
+        return entradaService.obtenerPorDocumento(idDocumento);
+    }
 
     @GetMapping("/{id}")
     public EntradaResponse obtener(@PathVariable Integer id) { return entradaService.obtener(id); }

@@ -67,10 +67,10 @@ describe('Contrato HTTP de Salidas', () => {
 
   it('consulta listado y detalle con JWT', async () => {
     const list = service.list();
-    const listing = http.expectOne('/api/salidas');
+    const listing = http.expectOne((request) => request.url === '/api/salidas');
     expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
-    listing.flush([salida]);
-    expect((await list)[0].idSalida).toBe(5);
+    listing.flush({ content: [salida], totalElements: 1, totalPages: 1, number: 0 });
+    expect((await list).content[0].idSalida).toBe(5);
     const detail = service.get(5);
     http.expectOne('/api/salidas/5').flush(salida);
     expect((await detail).movimientos[0].cantidad).toBe(2);

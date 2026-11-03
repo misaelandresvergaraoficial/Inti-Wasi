@@ -32,11 +32,14 @@ export interface OpcionProductoMovimiento {
   idProducto: number;
   sku: string;
   nomProducto: string;
+  estado?: number;
 }
 
 export interface OpcionResponsableMovimiento {
   idUsuario: number;
   nomUsuario: string;
+  correoUsuario: string;
+  estado?: number;
 }
 
 export interface PaginaMovimientos {

@@ -2,9 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { ProductosService } from '../../core/productos.service';
-import { UsersService } from '../../core/users.service';
+import { MovimientosService } from '../../core/movimientos.service';
+import {
+  OpcionProductoMovimiento,
+  OpcionResponsableMovimiento,
+} from '../../core/movimiento-models';
+import { formatBusinessDate } from '../../core/business-time';
 import { ProductoResponse } from '../../core/producto-models';
-import { UsuarioResponse } from '../../core/models';
 import { ReportsService } from '../../core/reports.service';
 import {
   FiltrosReporte,
@@ -25,13 +29,20 @@ import { Icon } from '../../shared/icon';
 export class Reports {
   private readonly reports = inject(ReportsService);
   private readonly productsService = inject(ProductosService);
-  private readonly usersService = inject(UsersService);
+  private readonly movementsService = inject(MovimientosService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly tipo = signal<TipoReporte>(this.initialType());
   readonly filtros = signal<FiltrosReporte>({});
-  readonly products = signal<ProductoResponse[]>([]);
-  readonly users = signal<UsuarioResponse[]>([]);
+  readonly products = signal<
+    (
+      | Pick<ProductoResponse, 'idProducto' | 'sku' | 'nomProducto' | 'estado'>
+      | OpcionProductoMovimiento
+    )[]
+  >([]);
+  readonly users = signal<OpcionResponsableMovimiento[]>([]);
+  private requestId = 0;
+  private optionsRequestId = 0;
   readonly result = signal<Pagina<FilaReporte> | null>(null);
   readonly page = signal(0);
   readonly loading = signal(true);
@@ -64,25 +75,38 @@ export class Reports {
   }
 
   async loadOptions(): Promise<void> {
+    const requestId = ++this.optionsRequestId;
     this.optionsError.set('');
+    this.products.set([]);
+    this.users.set([]);
     try {
-      const [products, users] = await Promise.all([
-        this.productsService.list(),
-        this.usersService.list(),
-      ]);
+      const [products, users] =
+        this.tipo() === 'movimientos'
+          ? await Promise.all([
+              this.movementsService.productos(),
+              this.movementsService.responsables(),
+            ])
+          : [(await this.productsService.list()).filter((product) => product.estado === 1), []];
+      if (requestId !== this.optionsRequestId) return;
       this.products.set(products);
       this.users.set(users);
     } catch (error) {
-      this.optionsError.set(
-        error instanceof Error ? error.message : 'No se pudieron cargar los filtros.',
-      );
+      if (requestId === this.optionsRequestId)
+        this.optionsError.set(
+          error instanceof Error ? error.message : 'No se pudieron cargar los filtros.',
+        );
     }
+  }
+
+  date(value: string): string {
+    return formatBusinessDate(value);
   }
 
   changeType(value: string): void {
     if (value !== 'inventario' && value !== 'movimientos' && value !== 'reposicion') return;
     if (value === this.tipo()) return;
     this.tipo.set(value);
+    void this.loadOptions();
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tipo: value },
@@ -104,6 +128,8 @@ export class Reports {
     this.page.set(0);
     this.result.set(null);
     this.error.set('');
+    ++this.requestId;
+    this.loading.set(false);
   }
 
   clearFilters(): void {
@@ -113,16 +139,22 @@ export class Reports {
   }
 
   async load(): Promise<void> {
-    if (this.filterError()) return;
+    const requestId = ++this.requestId;
+    if (this.filterError()) {
+      this.loading.set(false);
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     try {
-      this.result.set(await this.reports.consultar(this.tipo(), this.filtros(), this.page()));
+      const result = await this.reports.consultar(this.tipo(), this.filtros(), this.page());
+      if (requestId === this.requestId) this.result.set(result);
     } catch (error) {
+      if (requestId !== this.requestId) return;
       this.result.set(null);
       this.error.set(error instanceof Error ? error.message : 'No se pudo cargar el reporte.');
     } finally {
-      this.loading.set(false);
+      if (requestId === this.requestId) this.loading.set(false);
     }
   }
 

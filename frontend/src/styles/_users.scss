@@ -16,7 +16,7 @@
 }
 .stat span {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 .stat strong {
   display: block;
@@ -42,7 +42,7 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -66,7 +66,7 @@
   border: 1px solid var(--notice-error-border);
 }
 .filter-bar {
-  padding: 22px 24px;
+  padding: 16px 20px;
 }
 .search-field {
   flex: 1;
@@ -97,7 +97,7 @@
   min-width: 0;
   border: 0;
   background: transparent;
-  font-size: 14px;
+  font-size: 13px;
   height: 100%;
   color: var(--ink);
 }
@@ -120,7 +120,7 @@
   border-radius: 6px;
   height: 44px;
   padding: 0 12px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--ink);
 }
 .table-scroll {
@@ -130,19 +130,19 @@ table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
 }
 thead th {
   background: var(--table-head);
   border-block: 1px solid var(--line);
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 550;
-  padding: 13px 24px;
+  padding: 10px 20px;
 }
 tbody th,
 tbody td {
-  padding: 17px 24px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--row-border);
   font-weight: 400;
 }
@@ -176,7 +176,7 @@ tbody tr.inactive-row:hover {
   border-radius: 4px;
   background: var(--tag-neutral-bg);
   color: var(--tag-neutral-fg);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 .person-cell {
@@ -186,26 +186,26 @@ tbody tr.inactive-row:hover {
 }
 .person-name {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 550;
   white-space: nowrap;
 }
 .person-email {
   display: block;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 4px;
   overflow-wrap: anywhere;
 }
 .you-label {
   margin-left: 5px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
 }
 .role-tag {
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 13px;
   background: var(--tag-soft-bg);
   color: var(--muted);
   padding: 5px 9px;
@@ -216,7 +216,7 @@ tbody tr.inactive-row:hover {
   color: var(--tag-primary-fg);
 }
 .phone-cell {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -228,7 +228,7 @@ tbody tr.inactive-row:hover {
 }
 .row-actions a,
 .row-actions button {
-  font-size: 14px;
+  font-size: 13px;
 }
 .row-actions iw-icon {
   width: 15px;
@@ -244,7 +244,7 @@ tbody tr.inactive-row:hover {
   gap: 12px;
   padding: 14px 24px;
   border-top: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
 }
 .pagination iw-icon {
@@ -255,7 +255,7 @@ tbody tr.inactive-row:hover {
   gap: 9px;
   align-items: flex-start;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   margin-top: 20px;
 }
 .footnote iw-icon {
@@ -290,13 +290,13 @@ tbody tr.inactive-row:hover {
 }
 .form-aside > p {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.8;
   margin-top: 12px;
 }
 .form-aside dl {
   margin: 24px 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 .form-aside dt {
   margin-top: 24px;
@@ -311,7 +311,7 @@ tbody tr.inactive-row:hover {
   display: flex;
   gap: 10px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   border-top: 1px solid var(--line);
   padding-top: 24px;
 }
@@ -379,4 +379,41 @@ tbody tr.inactive-row:hover {
 .stat > div {
   flex: 1 1 140px;
   overflow-wrap: anywhere;
+}
+
+.catalog-record-link {
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
+.catalog-detail {
+  margin-top: 24px;
+  max-width: 900px;
+}
+.catalog-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 24px;
+}
+.catalog-detail-grid dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.catalog-detail-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.catalog-detail-note {
+  padding: 0 24px 24px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 650px) {
+  .catalog-detail-grid {
+    grid-template-columns: 1fr;
+  }
 }

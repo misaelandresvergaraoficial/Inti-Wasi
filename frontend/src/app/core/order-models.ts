@@ -16,12 +16,15 @@ export interface OrdenResponse {
   idOrden: number;
   idProveedor: number;
   nomProveedor: string;
+  rucProveedor?: string;
   prefijoGuia: string | null;
   idUsuario: number;
   nomUsuario: string;
+  correoUsuario?: string;
   fechaEmision: string;
   fechaEstimadaEntrega: string | null;
   estado: EstadoOrden;
+  editable?: boolean;
   detalles: DetalleOrdenResponse[];
   totalOrden: number;
 }
@@ -37,6 +40,7 @@ export interface OrdenRequest {
 }
 
 export interface ProveedorOpcion {
+  ruc?: string;
   idProveedor: number;
   nomProveedor: string;
   estado: number;
@@ -52,10 +56,7 @@ export interface ProductoOpcion {
 }
 
 export function puedeEditarOrden(order: OrdenResponse): boolean {
-  return (
-    order.estado === 'Pendiente' &&
-    order.detalles.every((item) => item.cantidadRecibida === 0)
-  );
+  return order.estado === 'Pendiente' && order.editable === true;
 }
 
 export function puedeCancelarOrden(order: OrdenResponse): boolean {

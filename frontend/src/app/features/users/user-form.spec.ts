@@ -12,7 +12,15 @@ async function setupUserForm() {
 
 describe('Correo institucional de usuarios', () => {
   it('rechaza dominios escritos en la parte editable y nombres vacíos', () => {
-    for (const value of ['admin.nombre@otrocorreo.pe', 'admin.', 'nombre', 'admin..nombre', 'operador.carlos.mendoza', 'operador.carlos1', 'operador.carlos_m']) {
+    for (const value of [
+      'admin.nombre@otrocorreo.pe',
+      'admin.',
+      'nombre',
+      'admin..nombre',
+      'operador.carlos.mendoza',
+      'operador.carlos1',
+      'operador.carlos_m',
+    ]) {
       expect(new FormControl(value, institutionalEmail).hasError('institutional')).toBe(true);
     }
   });
@@ -44,7 +52,9 @@ describe('Sanitización del formulario de usuarios', () => {
     const form = await setupUserForm();
     for (const value of ['Misael 2026', 'Misael 😀', 'Misael_Vergara']) {
       form.controls.nomUsuario.setValue(value);
-      expect(form.controls.nomUsuario.hasError('pattern')).toBe(true);
+      expect(form.controls.nomUsuario.hasError(value.includes('😀') ? 'emoji' : 'pattern')).toBe(
+        true,
+      );
     }
   });
 

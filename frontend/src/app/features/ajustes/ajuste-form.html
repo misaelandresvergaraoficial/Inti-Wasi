@@ -261,13 +261,18 @@
           </fieldset>
         }
       </div>
-      <button mat-stroked-button type="button" [disabled]="busy()" (click)="addLine()">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="busy() || confirming()"
+        (click)="addLine()"
+      >
         <iw-icon name="plus" />Agregar producto
       </button>
     </section>
     <div class="form-actions">
       <a mat-button routerLink="/ajustes">Cancelar</a
-      ><button mat-flat-button type="submit" [disabled]="busy()">
+      ><button mat-flat-button type="submit" [disabled]="busy() || confirming()">
         {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste' }}
       </button>
     </div>

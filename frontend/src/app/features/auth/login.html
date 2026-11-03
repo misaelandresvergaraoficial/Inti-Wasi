@@ -1,54 +1,39 @@
-<a class="skip-link" href="#login-title">Saltar al formulario</a>
+<a class="skip-link" href="#login-title" (click)="skipToForm($event)">Saltar al formulario</a>
 <div class="login-page">
-  <header class="login-header">
-    <a href="/" class="brand"
-      ><img src="marca.svg" width="40" height="40" alt="" /><span
-        >Inti Wasi<small>DISTRIBUIDORA</small></span
-      ></a
-    ><div class="login-header-actions">
-      <span class="login-header-label">Sistema de inventario y almacén</span>
-      <button
-        mat-button
-        type="button"
-        class="theme-toggle"
-        (click)="theme.toggle()"
-        [attr.aria-pressed]="theme.isDark()"
-        [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+  <section class="login-brand" aria-label="Inti Wasi">
+    <div class="brand">
+      <img src="marca.svg" width="48" height="48" alt="" /><span
+        >Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span
       >
-        <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
-        <span>{{ theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro' }}</span>
-      </button>
     </div>
-  </header>
-  <main id="login-content" class="login-main">
-    <section class="login-intro" aria-labelledby="intro-title">
-      <span class="eyebrow">DISTRIBUIDORA INTI WASI S.A.C.</span>
-      <p id="intro-title" class="intro-title">Un lugar para<br />organizar tu trabajo.</p>
-      <p class="intro-description">
-        Gestiona el inventario y las operaciones de almacén con información clara, en un solo
-        espacio.
+    <div class="login-copy">
+      <p class="intro-title">El almacén en orden.<br />El trabajo, más claro.</p>
+      <p>
+        Compras, existencias y movimientos conectados para acompañar el trabajo de nuestro equipo.
       </p>
-      <div class="intro-separator"></div>
-      <div class="intro-detail">
-        <span class="intro-icon"><iw-icon name="shield" /></span>
-        <div>
-          <strong>Cada persona, el acceso que necesita</strong>
-          <p>Trabaja con las herramientas asignadas a tu rol.</p>
-        </div>
+      <div class="login-diagram" aria-label="Compras, almacén y trazabilidad">
+        <span><iw-icon name="orders" />Compras</span><iw-icon name="next" /><span
+          ><iw-icon name="box" />Almacén</span
+        ><iw-icon name="next" /><span><iw-icon name="document" />Trazabilidad</span>
       </div>
-      <div class="intro-detail">
-        <span class="intro-icon"><iw-icon name="check" /></span>
-        <div>
-          <strong>Operaciones con trazabilidad</strong>
-          <p>Conserva el registro de cada movimiento.</p>
-        </div>
-      </div>
-      <div class="intro-caption">TECNOLOGÍA · INVENTARIO · CONTROL</div>
-    </section>
-    <section class="login-card" aria-labelledby="login-title">
+    </div>
+    <footer>Distribuidora Inti Wasi S.A.C. · Lima, Perú</footer>
+  </section>
+  <main class="login-form-wrap">
+    <button
+      mat-icon-button
+      type="button"
+      class="login-theme"
+      (click)="theme.toggle()"
+      [attr.aria-pressed]="theme.isDark()"
+      [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+    >
+      <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+    </button>
+    <section class="login-form" aria-labelledby="login-title">
       <div class="login-card-heading">
-        <span class="section-icon"><iw-icon name="lock" /></span>
-        <h1 id="login-title" tabindex="-1">Iniciar sesión</h1>
+        <span class="eyebrow">ACCESO DEL EQUIPO</span>
+        <h1 id="login-title" tabindex="-1">Bienvenido a Inti Wasi</h1>
         <p>Ingresa con tu cuenta de trabajo.</p>
       </div>
       @if (inactive) {
@@ -90,6 +75,7 @@
               id="login-email"
               type="email"
               autocomplete="username"
+              maxlength="100"
               formControlName="correo"
               placeholder="rol.nombre@intiwasi.pe"
             />
@@ -106,6 +92,7 @@
               id="login-password"
               [type]="showPassword() ? 'text' : 'password'"
               autocomplete="current-password"
+              maxlength="20"
               formControlName="contrasena"
             /><button
               type="button"
@@ -141,7 +128,4 @@
       </div>
     </section>
   </main>
-  <footer class="login-footer">
-    <span>© 2026 Distribuidora Inti Wasi S.A.C.</span><span>Acceso al sistema de inventario</span>
-  </footer>
 </div>

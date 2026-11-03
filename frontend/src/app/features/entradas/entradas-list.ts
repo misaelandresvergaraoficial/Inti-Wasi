@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { EntradaResponse, estadoDocumento } from '../../core/entrada-models';
-import { enRangoDeEmision, ordenarPorEmision, OrdenEmision } from '../../core/emission-filter';
+import { EntradaResponse, estadoDocumento, fechaEntrada } from '../../core/entrada-models';
+import { OrdenEmision } from '../../core/emission-filter';
 import { EntradasService } from '../../core/entradas.service';
 import { NoticeService } from '../../core/notice.service';
 import { Icon } from '../../shared/icon';
@@ -31,64 +31,78 @@ export class EntradasList {
   readonly page = signal(0);
   readonly pageSize = 8;
   readonly estado = estadoDocumento;
-  readonly filtered = computed(() =>
-    this.dateError()
-      ? []
-      : ordenarPorEmision(
-          this.records().filter(
-            (record) =>
-              (!this.status() || String(record.estadoDocumento) === this.status()) &&
-              enRangoDeEmision(record.fechaEmision, this.desde(), this.hasta()) &&
-              `${record.idEntrada} ${record.idOrden} ${record.numeroGuiaRemision} ${record.usuarioResponsable}`
-                .toLocaleLowerCase()
-                .includes(this.query().trim().toLocaleLowerCase()),
-          ),
-          this.sort(),
-          (record) => record.idEntrada,
-        ),
-  );
-  readonly visible = computed(() =>
-    this.filtered().slice(this.page() * this.pageSize, (this.page() + 1) * this.pageSize),
-  );
-  readonly pages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize)));
-  readonly rangeEnd = computed(() =>
-    Math.min((this.page() + 1) * this.pageSize, this.filtered().length),
-  );
+  readonly total = signal(0);
+  readonly pages = signal(1);
+  readonly filtered = computed(() => this.records());
+  readonly visible = computed(() => this.records());
+  readonly rangeEnd = computed(() => Math.min((this.page() + 1) * this.pageSize, this.total()));
+  private requestId = 0;
+
+  changePage(page: number): void {
+    this.page.set(page);
+    void this.load();
+  }
 
   constructor() {
     void this.load();
   }
 
   async load(): Promise<void> {
+    const requestId = ++this.requestId;
+    if (this.dateError()) {
+      this.records.set([]);
+      this.total.set(0);
+      this.loading.set(false);
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     try {
-      this.records.set(await this.entradas.list());
-      if (this.page() >= this.pages()) this.page.set(this.pages() - 1);
+      const result = await this.entradas.list({
+        page: this.page(),
+        size: this.pageSize,
+        q: this.query(),
+        estado: this.status(),
+        desde: this.desde(),
+        hasta: this.hasta(),
+        sort: this.sort(),
+      });
+      if (requestId !== this.requestId) return;
+      this.records.set(result.content);
+      this.total.set(result.totalElements);
+      this.pages.set(Math.max(1, result.totalPages));
+      if (this.page() >= this.pages()) {
+        this.changePage(this.pages() - 1);
+      }
     } catch (error) {
+      if (requestId !== this.requestId) return;
       this.error.set(
         error instanceof Error ? error.message : 'No se pudieron cargar las entradas.',
       );
     } finally {
-      this.loading.set(false);
+      if (requestId === this.requestId) this.loading.set(false);
     }
   }
 
   search(value: string): void {
     this.query.set(value);
     this.page.set(0);
+    void this.load();
   }
   filterStatus(value: string): void {
     this.status.set(value);
     this.page.set(0);
+    void this.load();
   }
   changeDate(field: 'desde' | 'hasta', value: string): void {
     (field === 'desde' ? this.desde : this.hasta).set(value);
     this.page.set(0);
+    void this.load();
   }
   changeSort(value: OrdenEmision): void {
     this.sort.set(value);
     this.page.set(0);
+    void this.load();
   }
   clearFilters(): void {
     this.query.set('');
@@ -97,10 +111,7 @@ export class EntradasList {
     this.hasta.set('');
     this.sort.set('desc');
     this.page.set(0);
+    void this.load();
   }
-  date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short' }).format(
-      new Date(value),
-    );
-  }
+  readonly date = fechaEntrada;
 }

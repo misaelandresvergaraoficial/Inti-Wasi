@@ -23,11 +23,7 @@
   <div class="notice success" role="status">
     <iw-icon name="check" />
     <p>{{ notice.message() }}</p>
-    <button
-      mat-icon-button
-      aria-label="Cerrar mensaje"
-      (click)="notice.clear()"
-    >
+    <button mat-icon-button aria-label="Cerrar mensaje" (click)="notice.clear()">
       <iw-icon name="close" />
     </button>
   </div>
@@ -42,7 +38,7 @@
 }
 
 <section
-  class="panel orders-panel"
+  class="panel orders-panel order-list-panel"
   aria-labelledby="orders-heading"
   [attr.aria-busy]="loading()"
 >
@@ -53,15 +49,11 @@
     </div>
 
     <span class="badge neutral">
-      {{
-        error()
-          ? 'Sin datos'
-          : records().length + (records().length === 1 ? ' orden' : ' órdenes')
-      }}
+      {{ error() ? 'Sin datos' : total() + (total() === 1 ? ' orden' : ' órdenes') }}
     </span>
   </div>
 
-  <div class="filter-bar flex flex-wrap items-end gap-4">
+  <div class="filter-bar order-list-filters">
     <div class="search-field">
       <label for="order-search">Buscar orden</label>
       <div class="input-with-icon">
@@ -117,11 +109,7 @@
 
     <div class="status-filter">
       <label for="order-sort">Orden de emisión</label>
-      <select
-        id="order-sort"
-        [value]="sort()"
-        (change)="changeSort($any($event.target).value)"
-      >
+      <select id="order-sort" [value]="sort()" (change)="changeSort($any($event.target).value)">
         <option value="desc">Más recientes primero</option>
         <option value="asc">Más antiguas primero</option>
       </select>
@@ -133,8 +121,8 @@
   </div>
 
   <p id="order-date-help" class="sr-only">
-    El rango se aplica a la fecha de emisión e incluye ambos días.
-    Puedes completar solo una de las fechas.
+    El rango se aplica a la fecha de emisión e incluye ambos días. Puedes completar solo una de las
+    fechas.
   </p>
 
   <div id="order-date-error" aria-live="polite">
@@ -166,11 +154,7 @@
       </span>
 
       <h3>
-        {{
-          records().length
-            ? 'No encontramos coincidencias'
-            : 'Aún no hay órdenes de compra'
-        }}
+        {{ records().length ? 'No encontramos coincidencias' : 'Aún no hay órdenes de compra' }}
       </h3>
 
       <p>
@@ -186,12 +170,7 @@
       }
     </div>
   } @else {
-    <div
-      class="table-scroll"
-      role="region"
-      aria-label="Listado de órdenes de compra"
-      tabindex="0"
-    >
+    <div class="table-scroll" role="region" aria-label="Listado de órdenes de compra" tabindex="0">
       <table>
         <caption class="sr-only">
           Órdenes de compra registradas, incluidas las canceladas
@@ -202,9 +181,7 @@
             <th scope="col">Orden</th>
             <th scope="col">Proveedor</th>
             <th scope="col">Emisión</th>
-            <th scope="col">Entrega estimada</th>
             <th scope="col">Estado</th>
-            <th scope="col">Total</th>
             <th scope="col" class="actions-heading">Acciones</th>
           </tr>
         </thead>
@@ -216,15 +193,12 @@
                 <strong class="order-number">N.° {{ order.idOrden }}</strong>
               </th>
 
-              <td>{{ order.nomProveedor }}</td>
-
-              <td class="order-nowrap">
-                {{ fecha(order.fechaEmision) }}
+              <td>
+                {{ order.nomProveedor
+                }}<span class="order-sku">Entrega: {{ fecha(order.fechaEstimadaEntrega) }}</span>
               </td>
 
-              <td class="order-nowrap">
-                {{ fecha(order.fechaEstimadaEntrega) }}
-              </td>
+              <td class="order-nowrap">{{ fechaEmision(order.fechaEmision) }}</td>
 
               <td>
                 <span
@@ -237,34 +211,22 @@
                   {{ order.estado }}
                 </span>
 
-                @if (
-                  order.estado === 'Pendiente' ||
-                  order.estado === 'Parcial'
-                ) {
+                @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
                   <span class="order-sku">
-                    Recibido {{ receivedUnits(order) }} de
-                    {{ requestedUnits(order) }} unidades
+                    Recibido {{ receivedUnits(order) }} de {{ requestedUnits(order) }} unidades
                   </span>
                 }
-              </td>
-
-              <td class="order-amount">
-                {{ importe(order.totalOrden) }}
+                <span class="order-sku order-amount">S/ {{ importe(order.totalOrden) }}</span>
               </td>
 
               <td>
                 <div class="row-actions">
-                  @if (
-                    order.estado === 'Pendiente' ||
-                    order.estado === 'Parcial'
-                  ) {
+                  @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
                     <a
                       mat-button
                       routerLink="/entradas/nueva"
                       [queryParams]="{ orden: order.idOrden }"
-                      [attr.aria-label]="
-                        'Registrar entrada de la orden N.° ' + order.idOrden
-                      "
+                      [attr.aria-label]="'Registrar entrada de la orden N.° ' + order.idOrden"
                     >
                       Registrar entrada
                     </a>
@@ -282,11 +244,7 @@
                   @if (auth.isAdmin() && canEdit(order)) {
                     <a
                       mat-button
-                      [routerLink]="[
-                        '/ordenes-compra',
-                        order.idOrden,
-                        'editar'
-                      ]"
+                      [routerLink]="['/ordenes-compra', order.idOrden, 'editar']"
                       [attr.aria-label]="'Editar orden N.° ' + order.idOrden"
                     >
                       Editar
@@ -301,11 +259,7 @@
                       (click)="cancel(order)"
                       [attr.aria-label]="'Cancelar orden N.° ' + order.idOrden"
                     >
-                      {{
-                        busyId() === order.idOrden
-                          ? 'Cancelando…'
-                          : 'Cancelar'
-                      }}
+                      {{ busyId() === order.idOrden ? 'Cancelando…' : 'Cancelar' }}
                     </button>
                   }
                 </div>
@@ -318,8 +272,7 @@
 
     <div class="pagination">
       <p role="status">
-        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }}
-        de {{ filtered().length }} órdenes
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ total() }} órdenes
       </p>
 
       <div class="flex items-center gap-2">
@@ -327,7 +280,8 @@
           mat-icon-button
           aria-label="Página anterior"
           [disabled]="page() === 0"
-          (click)="page.set(page() - 1)"
+          [attr.disabled]="page() === 0 ? '' : null"
+          (click)="changePage(page() - 1)"
         >
           <iw-icon name="arrow" />
         </button>
@@ -338,7 +292,8 @@
           mat-icon-button
           aria-label="Página siguiente"
           [disabled]="page() + 1 >= pages()"
-          (click)="page.set(page() + 1)"
+          [attr.disabled]="page() + 1 >= pages() ? '' : null"
+          (click)="changePage(page() + 1)"
         >
           <iw-icon name="next" />
         </button>
@@ -349,6 +304,6 @@
 
 <p class="footnote">
   <iw-icon name="info" />
-  La recepción de mercadería actualiza el estado de la orden.
-  La cancelación conserva los productos recibidos.
+  La recepción de mercadería actualiza el estado de la orden. La cancelación conserva los productos
+  recibidos.
 </p>

@@ -1,19 +1,32 @@
-import { HttpClient } from '@angular/common/http';
+import { Pagina } from './pagination';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError } from './models';
 import { OrdenRequest, OrdenResponse, ProductoOpcion, ProveedorOpcion } from './order-models';
 
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/ordenes-compra';
 
-  list(): Promise<OrdenResponse[]> {
-    return this.request(this.http.get<OrdenResponse[]>(this.base));
+  list(
+    filters: {
+      admisibles?: boolean;
+      page?: number;
+      size?: number;
+      q?: string;
+      estado?: string;
+      desde?: string;
+      hasta?: string;
+      sort?: string;
+    } = {},
+  ): Promise<Pagina<OrdenResponse>> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== '') params = params.set(key, String(value));
+    }
+    return this.request(this.http.get<Pagina<OrdenResponse>>(this.base, { params }));
   }
 
   get(id: number): Promise<OrdenResponse> {
@@ -42,12 +55,7 @@ export class OrdersService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Tu sesión ha caducado. Inicia sesión nuevamente.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

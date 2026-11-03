@@ -95,6 +95,7 @@
       <span class="loading-line"></span>
       <p>Cargando usuarios…</p>
     </div>
+  } @else if (error() && !records().length) {
   } @else if (!filtered().length) {
     <div class="empty-state">
       <span class="section-icon"><iw-icon name="search" /></span>
@@ -141,7 +142,7 @@
                       @if (!user.estado) {
                         <span class="status-tag">Inactivo</span>
                       }</span
-                    ><span class="person-email">{{ user.correo }}</span>
+                    ><span class="person-email">{{ user.correo }} · ID {{ user.idUsuario }}</span>
                   </div>
                 </div>
               </th>
@@ -153,6 +154,12 @@
               <td class="phone-cell">{{ user.telefono || 'Sin teléfono' }}</td>
               <td>
                 <div class="row-actions">
+                  <a
+                    mat-button
+                    [routerLink]="['/usuarios', user.idUsuario]"
+                    [attr.aria-label]="'Ver ' + user.nomUsuario + ', ID ' + user.idUsuario"
+                    >Ver</a
+                  >
                   <a
                     mat-button
                     [routerLink]="['/usuarios', user.idUsuario, 'editar']"

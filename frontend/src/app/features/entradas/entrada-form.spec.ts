@@ -1,10 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  ActivatedRoute,
-  convertToParamMap,
-  provideRouter,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of, Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../core/auth.service';
 import { ApiRequestError } from '../../core/models';
@@ -65,10 +62,7 @@ const original: EntradaResponse = {
   ],
 };
 
-async function setup(
-  edit = false,
-  estado: OrdenResponse['estado'] = 'Parcial',
-) {
+async function setup(edit = false, estado: OrdenResponse['estado'] = 'Parcial') {
   const current = { ...order, estado };
 
   const entradas = {
@@ -77,7 +71,9 @@ async function setup(
   };
 
   const orders = {
-    list: vi.fn().mockResolvedValue([current]),
+    list: vi
+      .fn()
+      .mockResolvedValue({ content: [current], totalElements: 1, totalPages: 1, number: 0 }),
     get: vi.fn().mockResolvedValue(current),
   };
 
@@ -87,11 +83,13 @@ async function setup(
         idProducto: 7,
         sku: 'CPU-7',
         nomProducto: 'Procesador',
+        stockActual: 8,
         estado: 1,
       },
     ]),
   };
 
+  const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
   await TestBed.configureTestingModule({
     imports: [EntradaForm],
     providers: [
@@ -100,7 +98,7 @@ async function setup(
       { provide: OrdersService, useValue: orders },
       { provide: ProductosService, useValue: productos },
       { provide: AuthService, useValue: { valid: () => true } },
-      { provide: MatDialog, useValue: {} },
+      { provide: MatDialog, useValue: dialog },
       {
         provide: ActivatedRoute,
         useValue: {
@@ -119,6 +117,7 @@ async function setup(
 
   return {
     form: fixture.componentInstance,
+    dialog,
     entradas,
     orders,
     fixture,
@@ -257,5 +256,103 @@ describe('Sanitización de textos libres en entradas', () => {
     form.form.controls.observaciones.setValue('Llegó completo; se revisó caja por caja.');
 
     expect(form.form.controls.observaciones.hasError('emoji')).toBe(false);
+  });
+});
+
+describe('Confirmación D08 de entradas', () => {
+  it('cancelar conserva el formulario y no escribe; el resumen muestra stock, producto y cantidad', async () => {
+    const { form, entradas, dialog } = await setup();
+    form.form.controls.idOrden.setValue(4);
+    await form.selectOrder(4);
+    form.form.controls.numeroGuiaRemision.setValue('GUIA-TEST-9');
+    form.lines.at(0).controls.cantidad.setValue(3);
+    dialog.open.mockReturnValue({ afterClosed: () => of(false) });
+    await form.submit();
+    expect(entradas.save).not.toHaveBeenCalled();
+    expect(form.lines.at(0).controls.cantidad.value).toBe(3);
+    expect(dialog.open.mock.calls[0][1].data.inventory).toEqual([
+      {
+        producto: 'CPU-7 · Procesador · ID 7',
+        stockPrevio: 8,
+        reversion: 0,
+        cantidad: 3,
+        cambioNeto: 3,
+        stockResultado: 11,
+      },
+    ]);
+    expect(form.busy()).toBe(false);
+  });
+
+  it('rectificación resume original y reemplazo e impide otra apertura mientras espera', async () => {
+    const { form, entradas, dialog } = await setup(true);
+    form.form.controls.motivoCorreccion.setValue('Cantidad corregida');
+    form.lines.at(0).controls.cantidad.setValue(3);
+    const answer = new Subject<boolean>();
+    dialog.open.mockReturnValue({ afterClosed: () => answer });
+    const pending = form.submit();
+    await form.submit();
+    expect(dialog.open).toHaveBeenCalledTimes(1);
+    expect(dialog.open.mock.calls[0][1].data.inventory[0]).toMatchObject({
+      reversion: 2,
+      cantidad: 3,
+      stockPrevio: 8,
+      cambioNeto: 1,
+      stockResultado: 9,
+    });
+    expect(entradas.save).not.toHaveBeenCalled();
+    answer.next(false);
+    answer.complete();
+    await pending;
+    expect(form.busy()).toBe(false);
+  });
+
+  it('el selector carga otra página solo por acción explícita', async () => {
+    const { form, orders } = await setup();
+    orders.list.mockResolvedValueOnce({
+      content: [{ ...order, idOrden: 20 }],
+      totalElements: 21,
+      totalPages: 2,
+      number: 1,
+    });
+    await form.loadOrderOptions();
+    expect(orders.list).toHaveBeenLastCalledWith({ page: 1, size: 20, q: '', admisibles: true });
+    expect(form.ordersList().map((item) => item.idOrden)).toEqual([4, 20]);
+  });
+
+  it('la última búsqueda de órdenes prevalece sobre una respuesta anterior pendiente', async () => {
+    const { form, orders } = await setup();
+    type PaginaOrdenes = Awaited<ReturnType<OrdersService['list']>>;
+    let finishFirst!: (page: PaginaOrdenes) => void;
+    let finishLatest!: (page: PaginaOrdenes) => void;
+    orders.list
+      .mockReturnValueOnce(new Promise<PaginaOrdenes>((resolve) => (finishFirst = resolve)))
+      .mockReturnValueOnce(new Promise<PaginaOrdenes>((resolve) => (finishLatest = resolve)));
+
+    const first = form.searchOrders('Proveedor A');
+    const latest = form.searchOrders('Proveedor B');
+    finishLatest({
+      content: [{ ...order, idOrden: 22 }],
+      totalElements: 1,
+      totalPages: 1,
+      number: 0,
+    });
+    await latest;
+    finishFirst({
+      content: [{ ...order, idOrden: 11 }],
+      totalElements: 1,
+      totalPages: 1,
+      number: 0,
+    });
+    await first;
+
+    expect(orders.list).toHaveBeenLastCalledWith({
+      page: 0,
+      size: 20,
+      q: 'Proveedor B',
+      admisibles: true,
+    });
+    expect(form.ordersList().map((item) => item.idOrden)).toEqual([22]);
+    expect(form.orderPage()).toBe(0);
+    expect(form.loadingOrders()).toBe(false);
   });
 });

@@ -44,5 +44,6 @@ public class EntradaRequest {
 
     @Valid
     @NotEmpty(message = "La entrada debe contener al menos un movimiento")
+    @Size(max = 100, message = "La entrada admite hasta 100 productos")
     private List<MovimientoRequest> movimientos;
 }

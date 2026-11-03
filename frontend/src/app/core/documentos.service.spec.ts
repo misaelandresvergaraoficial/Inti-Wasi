@@ -52,11 +52,11 @@ describe('Consulta HTTP de Documentos', () => {
 
   it('consulta listado y detalle sin enviar acciones de escritura', async () => {
     const listing = service.list();
-    const getAll = http.expectOne('/api/documentos');
+    const getAll = http.expectOne((request) => request.url === '/api/documentos');
     expect(getAll.request.method).toBe('GET');
     expect(getAll.request.headers.get('Authorization')).toBe('Bearer jwt-admin');
-    getAll.flush([documento]);
-    expect((await listing)[0].idDocumentoOrigen).toBe(4);
+    getAll.flush({ content: [documento], totalElements: 1, totalPages: 1, number: 0 });
+    expect((await listing).content[0].idDocumentoOrigen).toBe(4);
 
     const detail = service.get(7);
     const getOne = http.expectOne('/api/documentos/7');
@@ -68,7 +68,7 @@ describe('Consulta HTTP de Documentos', () => {
   it('conserva el rechazo de permisos del backend', async () => {
     const listing = service.list();
     http
-      .expectOne('/api/documentos')
+      .expectOne((request) => request.url === '/api/documentos')
       .flush(
         { message: 'No tiene permisos suficientes para realizar esta operación' },
         { status: 403, statusText: 'Forbidden' },

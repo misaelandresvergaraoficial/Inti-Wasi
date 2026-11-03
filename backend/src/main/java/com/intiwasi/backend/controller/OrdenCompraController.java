@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/ordenes-compra")
@@ -28,8 +30,15 @@ public class OrdenCompraController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Administrador', 'Operador de Almacén')")
-    public ResponseEntity<List<OrdenCompraResponse>> listarTodas() {
-        return ResponseEntity.ok(ordenCompraService.listarTodas());
+    public ResponseEntity<Page<OrdenCompraResponse>> listarTodas(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) LocalDate desde,
+            @RequestParam(required = false) LocalDate hasta,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(defaultValue = "false") boolean admisibles) {
+        return ResponseEntity.ok(ordenCompraService.consultar(page, size, q, estado, desde, hasta, sort, admisibles));
     }
 
     @GetMapping("/{id}")

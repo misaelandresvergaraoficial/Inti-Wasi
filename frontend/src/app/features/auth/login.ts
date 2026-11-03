@@ -30,6 +30,10 @@ export class Login {
   readonly inactive = this.route.snapshot.queryParamMap.get('sesion') === 'inactiva';
   readonly accountChanged = this.route.snapshot.queryParamMap.get('cuenta') === 'actualizada';
   readonly errorText = fieldError;
+  skipToForm(event: Event): void {
+    event.preventDefault();
+    this.formElement()?.nativeElement.querySelector<HTMLInputElement>('input')?.focus();
+  }
   async submit(): Promise<void> {
     if (this.busy()) return;
     this.error.set('');

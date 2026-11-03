@@ -20,6 +20,10 @@ public class CategoriaRequest {
     )
     private String nomCategoria;
 
+    public void setNomCategoria(String nomCategoria) {
+        this.nomCategoria = Patrones.normalizarNombre(nomCategoria);
+    }
+
     @NotNull(message = "El estado de la categoría es obligatorio")
     @Min(value = 0, message = "El estado de la categoría debe ser 0 (Inactivo) o 1 (Activo)")
     @Max(value = 1, message = "El estado de la categoría debe ser 0 (Inactivo) o 1 (Activo)")

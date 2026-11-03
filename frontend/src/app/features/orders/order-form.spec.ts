@@ -1,10 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  ActivatedRoute,
-  convertToParamMap,
-  provideRouter,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../core/auth.service';
 import { OrdenResponse, ProductoOpcion } from '../../core/order-models';
@@ -92,17 +88,15 @@ describe('Formulario de órdenes y proveedor del producto', () => {
     form.form.controls.idProveedor.setValue(1);
     fixture.detectChanges();
 
-    const options = [
-      ...fixture.nativeElement.querySelectorAll('#line-product-0 option'),
-    ].map((option: HTMLOptionElement) => option.textContent ?? '');
+    const options = [...fixture.nativeElement.querySelectorAll('#line-product-0 option')].map(
+      (option: HTMLOptionElement) => option.textContent ?? '',
+    );
 
     expect(options.join(' ')).toContain('CPU-12');
     expect(options.join(' ')).not.toContain('RAM-13');
     expect(options.join(' ')).not.toContain('SSD-14');
 
-    const select = fixture.nativeElement.querySelector(
-      '#line-product-0',
-    ) as HTMLSelectElement;
+    const select = fixture.nativeElement.querySelector('#line-product-0') as HTMLSelectElement;
 
     select.value = [...select.options].find((option) =>
       option.textContent?.includes('CPU-12'),
@@ -133,17 +127,13 @@ describe('Formulario de órdenes y proveedor del producto', () => {
     expect(form.lines.at(0).controls.precioUnitario.value).toBe('620');
     expect(form.productMismatch(12)).toBe(true);
 
-    expect(fixture.nativeElement.textContent).toContain(
-      'no está asignado al proveedor elegido',
-    );
+    expect(fixture.nativeElement.textContent).toContain('no está asignado al proveedor elegido');
 
     await form.submit();
 
     expect(form.error()).toContain('productos asignados a ese proveedor');
 
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => resolve()),
-    );
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     expect((document.activeElement as HTMLElement).id).toBe('line-product-0');
   });

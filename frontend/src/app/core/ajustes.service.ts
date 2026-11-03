@@ -1,23 +1,37 @@
-import { HttpClient } from '@angular/common/http';
+import { Pagina } from './pagination';
+import { FiltrosHistorialInventario } from './inventario-history-models';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
 import { AjusteRequest, AjusteResponse } from './ajuste-models';
-import { ApiRequestError } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class AjustesService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/ajustes';
 
-  list(): Promise<AjusteResponse[]> {
-    return this.request(this.http.get<AjusteResponse[]>(this.base));
+  list(
+    filtros: FiltrosHistorialInventario = {},
+    page = 0,
+    size = 20,
+  ): Promise<Pagina<AjusteResponse>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', filtros.sort ?? 'desc');
+    for (const [key, value] of Object.entries(filtros)) {
+      if (value !== undefined && value !== '') params = params.set(key, value);
+    }
+    return this.request(this.http.get<Pagina<AjusteResponse>>(this.base, { params }));
   }
 
   get(id: number): Promise<AjusteResponse> {
     return this.request(this.http.get<AjusteResponse>(`${this.base}/${id}`));
+  }
+
+  byDocument(idDocumento: number): Promise<AjusteResponse> {
+    return this.request(this.http.get<AjusteResponse>(`${this.base}/documento/${idDocumento}`));
   }
 
   save(data: AjusteRequest, id?: number): Promise<AjusteResponse> {
@@ -36,12 +50,7 @@ export class AjustesService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Sesión expirada. Por favor, ingresa de nuevo.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

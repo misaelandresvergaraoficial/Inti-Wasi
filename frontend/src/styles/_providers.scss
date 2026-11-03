@@ -1,5 +1,5 @@
 .supplier-table {
-  min-width: 1120px;
+  min-width: 1060px;
 }
 .supplier-name {
   display: block;
@@ -23,8 +23,8 @@
 .supplier-form-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px 24px;
-  padding: 28px;
+  gap: 20px;
+  padding: 24px;
 }
 .supplier-form-fields .field {
   min-width: 0;

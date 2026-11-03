@@ -44,6 +44,9 @@
         @if (form.get('sku')?.hasError('required') || form.get('sku')?.hasError('blank')) {
           <mat-error>Ingresa un SKU.</mat-error>
         }
+        @if (form.get('sku')?.hasError('server')) {
+          <mat-error>{{ form.get('sku')?.getError('server') }}</mat-error>
+        }
         @if (form.get('sku')?.hasError('maxlength')) {
           <mat-error>Máximo 30 caracteres.</mat-error>
         }
@@ -53,6 +56,9 @@
         <mat-label>Categoría</mat-label>
         <mat-select formControlName="idCategoria">
           <mat-option [value]="0">Selecciona una categoría</mat-option>
+          @if (categoriaNoDisponible(); as current) {
+            <mat-option [value]="current.id" disabled>{{ current.nombre }} (inactiva)</mat-option>
+          }
           @for (c of categorias(); track c.idCategoria) {
             <mat-option [value]="c.idCategoria">{{ c.nomCategoria }}</mat-option>
           }
@@ -71,6 +77,9 @@
         ) {
           <mat-error>Ingresa el nombre del producto.</mat-error>
         }
+        @if (form.get('nomProducto')?.hasError('server')) {
+          <mat-error>{{ form.get('nomProducto')?.getError('server') }}</mat-error>
+        }
         @if (form.get('nomProducto')?.hasError('maxlength')) {
           <mat-error>Máximo 150 caracteres.</mat-error>
         }
@@ -83,11 +92,22 @@
         <mat-label>Proveedor (opcional)</mat-label>
         <mat-select formControlName="idProveedor">
           <mat-option [value]="null">Sin proveedor</mat-option>
+          @if (proveedorNoDisponible(); as current) {
+            <mat-option [value]="current.id" disabled>{{ current.nombre }} (inactivo)</mat-option>
+          }
           @for (p of proveedores(); track p.idProveedor) {
-            <mat-option [value]="p.idProveedor">{{ p.nomProveedor }}</mat-option>
+            <mat-option [value]="p.idProveedor"
+              >{{ p.nomProveedor }} · RUC {{ p.ruc }} · ID {{ p.idProveedor }}</mat-option
+            >
           }
         </mat-select>
         <mat-hint>Asígnalo para poder incluir este producto en órdenes de compra.</mat-hint>
+        @if (form.controls.idProveedor.hasError('inactiveRelation')) {
+          <mat-error
+            >Activa primero el proveedor, selecciona uno activo o deja el producto sin
+            proveedor.</mat-error
+          >
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" subscriptSizing="dynamic">

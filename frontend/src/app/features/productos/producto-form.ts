@@ -1,3 +1,5 @@
+import { ApiRequestError } from '../../core/models';
+import { normalizarNombre } from '../../shared/form-errors';
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -49,6 +51,8 @@ export class ProductoForm implements PendingChanges {
   readonly error = signal('');
   readonly categorias = signal<CategoriaResponse[]>([]);
   readonly proveedores = signal<ProveedorResponse[]>([]);
+  readonly categoriaNoDisponible = signal<{ id: number; nombre: string } | null>(null);
+  readonly proveedorNoDisponible = signal<{ id: number; nombre: string } | null>(null);
 
   private productId?: number;
 
@@ -60,18 +64,14 @@ export class ProductoForm implements PendingChanges {
         Validators.required,
         notBlank,
         Validators.maxLength(150),
-        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,&\+\/\\(\\)\"'\\-]{2,150}$/),
+        Validators.pattern(/^[\p{L}\p{M}0-9 .,&+\/()"'’\-]{2,150}$/u),
       ],
     ],
     idCategoria: [0, [Validators.required, Validators.min(1)]],
     idProveedor: [null as number | null],
     precio: [
       0,
-      [
-        Validators.required,
-        Validators.min(0),
-        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/),
-      ],
+      [Validators.required, Validators.min(0), Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/)],
     ],
     stockMinimo: [
       0,
@@ -127,6 +127,21 @@ export class ProductoForm implements PendingChanges {
 
       if (this.productId) {
         const p = await this.srv.get(this.productId);
+        if (!cat.some((c) => c.idCategoria === p.idCategoria)) {
+          this.categoriaNoDisponible.set({ id: p.idCategoria, nombre: p.nomCategoria });
+          this.form.controls.idCategoria.addValidators((control) =>
+            control.value === p.idCategoria ? { inactiveRelation: true } : null,
+          );
+        }
+        if (p.idProveedor && !prov.some((supplier) => supplier.idProveedor === p.idProveedor)) {
+          this.proveedorNoDisponible.set({
+            id: p.idProveedor,
+            nombre: p.nomProveedor || 'Proveedor asignado',
+          });
+          this.form.controls.idProveedor.addValidators((control) =>
+            control.value === p.idProveedor ? { inactiveRelation: true } : null,
+          );
+        }
         this.form.patchValue({
           sku: p.sku,
           nomProducto: p.nomProducto,
@@ -145,6 +160,7 @@ export class ProductoForm implements PendingChanges {
   }
 
   async save(): Promise<void> {
+    this.form.controls.nomProducto.setValue(normalizarNombre(this.form.controls.nomProducto.value));
     if (this.saving() || this.loading() || this.errorInit()) return;
     this.error.set('');
     this.form.markAllAsTouched();
@@ -173,6 +189,16 @@ export class ProductoForm implements PendingChanges {
       );
       await this.router.navigate(['/productos']);
     } catch (err) {
+      if (err instanceof ApiRequestError && err.field && err.field in this.form.controls) {
+        this.form.controls[err.field as keyof typeof this.form.controls].setErrors({
+          server: err.message,
+        });
+        requestAnimationFrame(() =>
+          this.element()
+            ?.nativeElement.querySelector<HTMLElement>('input.ng-invalid, mat-select.ng-invalid')
+            ?.focus(),
+        );
+      }
       this.error.set(err instanceof Error ? err.message : 'Error de validación o conflicto.');
     } finally {
       this.saving.set(false);

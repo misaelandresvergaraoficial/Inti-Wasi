@@ -7,6 +7,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import javax.sql.DataSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +21,18 @@ class IntegracionApiTest {
 
     @Autowired
     private MockMvc mvc;
+    @Autowired
+    private DataSource dataSource;
+
+    @Test
+    void conexionDeNegocioUsaHoraLimaSinAlterarLaZonaGlobal() throws Exception {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.createStatement();
+             var result = statement.executeQuery("SELECT @@session.time_zone")) {
+            result.next();
+            assertEquals("-05:00", result.getString(1));
+        }
+    }
 
     @Test
     void loginConCredencialesInvalidasDevuelve401() throws Exception {
@@ -63,7 +77,8 @@ class IntegracionApiTest {
     }
 
     @Test
-    void documentacionOpenApiDisponible() throws Exception {
+    @WithMockUser(roles = "Administrador")
+    void documentacionOpenApiDisponibleParaAdministrador() throws Exception {
         mvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.info.title").exists())

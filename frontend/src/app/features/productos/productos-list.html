@@ -140,7 +140,9 @@
               </th>
               <td>
                 <span class="person-name">
-                  {{ p.nomProducto }}
+                  <a class="catalog-record-link" [routerLink]="['/productos', p.idProducto]">{{
+                    p.nomProducto
+                  }}</a>
                   @if (p.estado === 0) {
                     <span class="status-tag">Inactivo</span>
                   }
@@ -154,7 +156,8 @@
                 }
               </td>
               <td>
-                <span class="font-medium">{{ p.stockActual }}</span>
+                <span class="font-medium">{{ p.stockActual }}</span
+                ><span class="person-email">Mín. {{ p.stockMinimo }}</span>
                 @if (p.estado === 1 && p.stockActual <= p.stockMinimo) {
                   <span class="status-tag">Stock bajo</span>
                 }
@@ -163,6 +166,12 @@
               @if (auth.isAdmin()) {
                 <td>
                   <div class="row-actions">
+                    <a
+                      mat-button
+                      [routerLink]="['/productos', p.idProducto]"
+                      [attr.aria-label]="'Ver ' + p.nomProducto + ', ID ' + p.idProducto"
+                      >Ver</a
+                    >
                     <a
                       mat-button
                       [routerLink]="['/productos', p.idProducto, 'editar']"

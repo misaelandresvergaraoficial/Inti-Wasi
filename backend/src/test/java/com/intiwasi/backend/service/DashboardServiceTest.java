@@ -27,7 +27,7 @@ class DashboardServiceTest {
 
     @Test
     void completaTreintaDiasYSeparaEntradasDeSalidas() {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(java.time.ZoneId.of("America/Lima"));
         when(stockBajo.findTop20ByOrderByUnidadesPorReponerDesc()).thenReturn(List.of());
         when(ordenes.countByEstadoIn(List.of("Pendiente", "Parcial"))).thenReturn(3L);
         when(documentos.contarActividad(any(), any())).thenReturn(List.<Object[]>of(

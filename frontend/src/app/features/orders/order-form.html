@@ -66,12 +66,16 @@
                 @if (original(); as order) {
                   @if (!hasSupplierOption(order.idProveedor)) {
                     <option [ngValue]="order.idProveedor">
-                      {{ order.nomProveedor }} (inactivo; elige otro)
+                      {{ order.nomProveedor }} · RUC {{ order.rucProveedor }} · ID
+                      {{ order.idProveedor }} (inactivo; elige otro)
                     </option>
                   }
                 }
                 @for (supplier of suppliers(); track supplier.idProveedor) {
-                  <option [ngValue]="supplier.idProveedor">{{ supplier.nomProveedor }}</option>
+                  <option [ngValue]="supplier.idProveedor">
+                    {{ supplier.nomProveedor }} · RUC {{ supplier.ruc }} · ID
+                    {{ supplier.idProveedor }}
+                  </option>
                 }
               </select>
               @if (

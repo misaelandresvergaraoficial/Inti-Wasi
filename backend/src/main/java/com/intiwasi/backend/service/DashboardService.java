@@ -29,7 +29,7 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardResponse resumen() {
-        LocalDateTime inicio = LocalDate.now().atStartOfDay();
+        LocalDateTime inicio = LocalDate.now(java.time.ZoneId.of("America/Lima")).atStartOfDay();
         LocalDateTime fin = inicio.plusDays(1);
         return DashboardResponse.builder()
                 .totalProductosActivos(productoRepository.countByEstado((byte) 1))

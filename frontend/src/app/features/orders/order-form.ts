@@ -27,8 +27,15 @@ import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Icon } from '../../shared/icon';
 
 function fechaLocal(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
 function productsUnique(control: AbstractControl): ValidationErrors | null {
@@ -163,6 +170,10 @@ export class OrderForm implements PendingChanges {
   }
 
   addLine(): void {
+    if (this.lines.length >= 100) {
+      this.error.set('La operación admite hasta 100 productos.');
+      return;
+    }
     this.lines.push(this.newLine());
     this.form.markAsDirty();
   }

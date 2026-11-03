@@ -15,7 +15,7 @@ import { OrdenResponse } from '../../core/order-models';
 import { OrdersService } from '../../core/orders.service';
 import { ProductoResponse } from '../../core/producto-models';
 import { ProductosService } from '../../core/productos.service';
-import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { ConfirmDialog, ConfirmData } from '../../shared/confirm-dialog';
 import { sinEmojis } from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
@@ -33,8 +33,7 @@ export class EntradaForm implements PendingChanges {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly fb = inject(FormBuilder).nonNullable;
-  private readonly element =
-    viewChild<ElementRef<HTMLFormElement>>('entradaForm');
+  private readonly element = viewChild<ElementRef<HTMLFormElement>>('entradaForm');
   private readonly route = inject(ActivatedRoute);
 
   readonly id = this.route.snapshot.paramMap.has('id')
@@ -61,6 +60,45 @@ export class EntradaForm implements PendingChanges {
   readonly submitted = signal(false);
 
   private orderRequestId = 0;
+  private orderOptionsRequestId = 0;
+  readonly orderPages = signal(1);
+  readonly orderPage = signal(0);
+  readonly loadingOrders = signal(false);
+  readonly orderQuery = signal('');
+
+  async searchOrders(value: string): Promise<void> {
+    this.orderQuery.set(value);
+    this.orderPage.set(0);
+    await this.loadOrderOptions(false);
+  }
+
+  async loadOrderOptions(append = true): Promise<void> {
+    if (append && this.loadingOrders()) return;
+    const requestId = ++this.orderOptionsRequestId;
+    this.loadingOrders.set(true);
+    try {
+      const page = append ? this.orderPage() + 1 : 0;
+      const result = await this.orders.list({
+        page,
+        size: 20,
+        q: this.orderQuery(),
+        admisibles: true,
+      });
+      if (requestId !== this.orderOptionsRequestId) return;
+      this.ordersList.update((current) =>
+        append ? [...current, ...result.content] : result.content,
+      );
+      this.orderPage.set(result.number);
+      this.orderPages.set(result.totalPages);
+    } catch (error) {
+      if (requestId !== this.orderOptionsRequestId) return;
+      this.error.set(
+        error instanceof Error ? error.message : 'No se pudieron consultar más órdenes.',
+      );
+    } finally {
+      if (requestId === this.orderOptionsRequestId) this.loadingOrders.set(false);
+    }
+  }
 
   constructor() {
     this.form.controls.numeroGuiaRemision.addValidators((control) => {
@@ -120,10 +158,7 @@ export class EntradaForm implements PendingChanges {
   mostrarErrorGuia(): boolean {
     const control = this.form.controls.numeroGuiaRemision;
 
-    return (
-      control.invalid &&
-      (control.dirty || control.touched || this.submitted())
-    );
+    return control.invalid && (control.dirty || control.touched || this.submitted());
   }
 
   get lines() {
@@ -150,28 +185,23 @@ export class EntradaForm implements PendingChanges {
     this.loadError.set('');
 
     try {
-      if (
-        this.id !== undefined &&
-        (!Number.isInteger(this.id) || this.id < 1)
-      ) {
+      if (this.id !== undefined && (!Number.isInteger(this.id) || this.id < 1)) {
         throw new Error('El número de entrada no es válido.');
       }
 
       const [orders, products, original] = await Promise.all([
-        this.orders.list(),
+        this.orders.list({ page: 0, size: 20, admisibles: true }),
         this.productos.list(),
-        this.id === undefined
-          ? Promise.resolve(null)
-          : this.entradas.get(this.id),
+        this.id === undefined ? Promise.resolve(null) : this.entradas.get(this.id),
       ]);
 
-      this.ordersList.set(orders);
+      this.ordersList.set(orders.content);
+      this.orderPages.set(orders.totalPages);
       this.products.set(products);
       this.original.set(original);
 
       const selectedId =
-        original?.idOrden ??
-        Number(this.route.snapshot.queryParamMap.get('orden'));
+        original?.idOrden ?? Number(this.route.snapshot.queryParamMap.get('orden'));
 
       if (selectedId > 0) {
         this.form.controls.idOrden.setValue(selectedId);
@@ -194,9 +224,7 @@ export class EntradaForm implements PendingChanges {
       this.form.markAsPristine();
     } catch (error) {
       this.loadError.set(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo cargar el formulario.',
+        error instanceof Error ? error.message : 'No se pudo cargar el formulario.',
       );
     } finally {
       this.loading.set(false);
@@ -218,6 +246,11 @@ export class EntradaForm implements PendingChanges {
       if (requestId !== this.orderRequestId) return;
 
       this.order.set(selected);
+      this.ordersList.update((current) =>
+        current.some((item) => item.idOrden === selected.idOrden)
+          ? current
+          : [selected, ...current],
+      );
       this.form.controls.numeroGuiaRemision.updateValueAndValidity();
 
       if (
@@ -233,11 +266,7 @@ export class EntradaForm implements PendingChanges {
       }
     } catch (error) {
       if (requestId === this.orderRequestId) {
-        this.error.set(
-          error instanceof Error
-            ? error.message
-            : 'No se pudo cargar la orden.',
-        );
+        this.error.set(error instanceof Error ? error.message : 'No se pudo cargar la orden.');
       }
     }
   }
@@ -263,8 +292,7 @@ export class EntradaForm implements PendingChanges {
         (item) =>
           this.balance(item.idProducto) > 0 &&
           this.products().some(
-            (product) =>
-              product.idProducto === item.idProducto && product.estado === 1,
+            (product) => product.idProducto === item.idProducto && product.estado === 1,
           ),
       ) ?? []
     );
@@ -275,8 +303,7 @@ export class EntradaForm implements PendingChanges {
     if (!detail) return 0;
 
     const previouslyReceived =
-      this.original()?.movimientos.find((item) => item.idProducto === id)
-        ?.cantidad ?? 0;
+      this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
 
     return this.order()?.estado === 'Cancelada'
       ? previouslyReceived
@@ -288,10 +315,7 @@ export class EntradaForm implements PendingChanges {
   }
 
   originalQuantity(id: number): number {
-    return (
-      this.original()?.movimientos.find((item) => item.idProducto === id)
-        ?.cantidad ?? 0
-    );
+    return this.original()?.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
   }
 
   clearLineError(id: number): void {
@@ -308,13 +332,16 @@ export class EntradaForm implements PendingChanges {
     return (
       id > 0 &&
       this.lines.controls.some(
-        (line, other) =>
-          other !== index && line.controls.idProducto.value === id,
+        (line, other) => other !== index && line.controls.idProducto.value === id,
       )
     );
   }
 
   addLine(): void {
+    if (this.lines.length >= 100) {
+      this.error.set('La operación admite hasta 100 productos.');
+      return;
+    }
     this.lines.push(this.newLine());
     this.form.markAsDirty();
   }
@@ -343,8 +370,7 @@ export class EntradaForm implements PendingChanges {
       (this.id !== undefined && !value.motivoCorreccion.trim())
     ) {
       this.error.set(
-        this.guiaError() ||
-          'Completa los campos obligatorios y revisa las cantidades.',
+        this.guiaError() || 'Completa los campos obligatorios y revisa las cantidades.',
       );
       this.focusInvalid();
       return;
@@ -355,13 +381,10 @@ export class EntradaForm implements PendingChanges {
     if (
       !order ||
       order.idOrden !== value.idOrden ||
-      (this.id === undefined &&
-        !['Pendiente', 'Parcial'].includes(order.estado)) ||
+      (this.id === undefined && !['Pendiente', 'Parcial'].includes(order.estado)) ||
       (this.id !== undefined && this.original()?.estadoDocumento !== 1)
     ) {
-      this.error.set(
-        'La entrada o la orden ya no admite esta operación. Actualiza la página.',
-      );
+      this.error.set('La entrada o la orden ya no admite esta operación. Actualiza la página.');
       return;
     }
 
@@ -369,9 +392,7 @@ export class EntradaForm implements PendingChanges {
       value.movimientos.some(
         (line, index) =>
           this.duplicate(index) ||
-          !this.availableProducts().some(
-            (item) => item.idProducto === line.idProducto,
-          ) ||
+          !this.availableProducts().some((item) => item.idProducto === line.idProducto) ||
           line.cantidad > this.balance(line.idProducto),
       )
     ) {
@@ -390,37 +411,62 @@ export class EntradaForm implements PendingChanges {
         idProducto: line.idProducto,
         cantidad: Number(line.cantidad),
       })),
-      ...(this.id !== undefined
-        ? { motivoCorreccion: value.motivoCorreccion.trim() }
-        : {}),
+      ...(this.id !== undefined ? { motivoCorreccion: value.motivoCorreccion.trim() } : {}),
     };
 
     this.busy.set(true);
 
     try {
+      const ids = new Set([
+        ...value.movimientos.map((line) => line.idProducto),
+        ...(this.original()?.movimientos.map((line) => line.idProducto) ?? []),
+      ]);
+      const data: ConfirmData = {
+        title: this.id === undefined ? '¿Registrar entrada?' : '¿Rectificar entrada?',
+        action: this.id === undefined ? 'Registrar entrada' : 'Rectificar entrada',
+        message: `Orden N.° ${order.idOrden} · ${order.nomProveedor} · ${request.numeroGuiaRemision}. ${this.id !== undefined ? 'Se revierte íntegramente el original antes del reemplazo; si falta stock, se rechazará toda la operación.' : 'La recepción incrementa el stock de los productos indicados.'}`,
+        inventory: [...ids].map((id) => {
+          const product = this.products().find((item) => item.idProducto === id);
+          const previous = this.original()?.movimientos.find((item) => item.idProducto === id);
+          const stock = product?.stockActual ?? previous?.stockActual ?? 0;
+          const original = previous?.cantidad ?? 0;
+          const nueva = value.movimientos.find((line) => line.idProducto === id)?.cantidad ?? 0;
+          return {
+            producto: `${product?.sku ?? previous?.sku ?? ''} · ${product?.nomProducto ?? previous?.nomProducto ?? ''} · ID ${id}`,
+            cantidad: nueva,
+            stockPrevio: stock,
+            cambioNeto: nueva - original,
+            stockResultado: stock - original + nueva,
+            reversion: original,
+          };
+        }),
+      };
+      const confirmed = await firstValueFrom(
+        this.dialog
+          .open(ConfirmDialog, {
+            width: '780px',
+            maxWidth: 'calc(100vw - 32px)',
+            autoFocus: 'first-tabbable',
+            data,
+          })
+          .afterClosed(),
+      );
+      if (!confirmed) return;
       const saved = await this.entradas.save(request, this.id);
 
       this.form.markAsPristine();
 
       this.notice.showNext(
         `Entrada N.° ${saved.idEntrada} ${
-          this.id === undefined
-            ? 'registrada'
-            : 'creada como rectificación'
+          this.id === undefined ? 'registrada' : 'creada como rectificación'
         } correctamente.`,
       );
 
       await this.router.navigate(['/entradas', saved.idEntrada]);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'No se pudo guardar la entrada.';
+      const message = error instanceof Error ? error.message : 'No se pudo guardar la entrada.';
 
-      if (
-        error instanceof ApiRequestError &&
-        error.field === 'numeroGuiaRemision'
-      ) {
+      if (error instanceof ApiRequestError && error.field === 'numeroGuiaRemision') {
         const control = this.form.controls.numeroGuiaRemision;
 
         control.setErrors({
@@ -434,10 +480,7 @@ export class EntradaForm implements PendingChanges {
         return;
       }
 
-      if (
-        !(error instanceof ApiRequestError) ||
-        ![409, 422].includes(error.status)
-      ) {
+      if (!(error instanceof ApiRequestError) || ![409, 422].includes(error.status)) {
         this.error.set(message);
         return;
       }
@@ -459,10 +502,7 @@ export class EntradaForm implements PendingChanges {
 
       if (updatedOrder.status === 'fulfilled') {
         for (const line of value.movimientos) {
-          if (
-            line.idProducto &&
-            line.cantidad > this.balance(line.idProducto)
-          ) {
+          if (line.idProducto && line.cantidad > this.balance(line.idProducto)) {
             lineErrors[line.idProducto] =
               `El máximo disponible ahora es ${this.balance(line.idProducto)}.`;
           }
@@ -473,9 +513,7 @@ export class EntradaForm implements PendingChanges {
 
       if (
         affectedId &&
-        value.movimientos.some(
-          (line) => line.idProducto === affectedId,
-        ) &&
+        value.movimientos.some((line) => line.idProducto === affectedId) &&
         !lineErrors[affectedId]
       ) {
         lineErrors[affectedId] = message;
@@ -484,8 +522,7 @@ export class EntradaForm implements PendingChanges {
       this.lineErrors.set(lineErrors);
 
       const refreshed =
-        updatedOrder.status === 'fulfilled' &&
-        updatedProducts.status === 'fulfilled';
+        updatedOrder.status === 'fulfilled' && updatedProducts.status === 'fulfilled';
 
       if (!refreshed) {
         this.error.set(

@@ -76,7 +76,9 @@
       </div>
       <div>
         <dt>Responsable</dt>
-        <dd>{{ item.usuarioResponsable }}</dd>
+        <dd>
+          {{ item.usuarioResponsable }} · {{ item.correoResponsable }} · ID {{ item.idUsuario }}
+        </dd>
       </div>
       @if (item.idDocumentoOrigen) {
         <div>
@@ -173,3 +175,8 @@
     </section>
   }
 }
+
+<p class="footnote">
+  Las etiquetas corresponden al catálogo actual. Se conservan las identidades, cantidades, precios
+  pactados y vínculos originales.
+</p>

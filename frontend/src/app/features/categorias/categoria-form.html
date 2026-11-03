@@ -55,6 +55,9 @@
         ) {
           <mat-error>Ingresa el nombre de la categoría.</mat-error>
         }
+        @if (form.get('nomCategoria')?.hasError('server')) {
+          <mat-error>{{ form.get('nomCategoria')?.getError('server') }}</mat-error>
+        }
         @if (form.get('nomCategoria')?.hasError('maxlength')) {
           <mat-error>Máximo 100 caracteres.</mat-error>
         }
@@ -63,21 +66,27 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
-        <mat-label>Estado</mat-label>
-        <mat-select formControlName="estado">
-          <mat-option [value]="1">Activo</mat-option>
-          <mat-option [value]="0">Inactivo</mat-option>
-        </mat-select>
-        <mat-hint>
-          Al marcar la categoría como Inactivo, los productos activos que la usan también se
-          desactivarán. Al reactivarla, volverán solo los productos que se desactivaron por
-          esta categoría.
-        </mat-hint>
-        @if (form.get('estado')?.invalid) {
-          <mat-error>Selecciona un estado.</mat-error>
-        }
-      </mat-form-field>
+      @if (isEdit()) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:col-span-2">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="estado">
+            <mat-option [value]="1">Activo</mat-option>
+            <mat-option [value]="0">Inactivo</mat-option>
+          </mat-select>
+          <mat-hint>
+            Al marcar la categoría como Inactivo, los productos activos que la usan también se
+            desactivarán. Al reactivarla, volverán solo los productos que se desactivaron por esta
+            categoría.
+          </mat-hint>
+          @if (form.get('estado')?.invalid) {
+            <mat-error>Selecciona un estado.</mat-error>
+          }
+        </mat-form-field>
+      } @else {
+        <p class="footnote sm:col-span-2">
+          Se creará activa. Puedes desactivarla después desde el catálogo, con confirmación.
+        </p>
+      }
 
       @if (error()) {
         <div class="notice error sm:col-span-2" role="alert">

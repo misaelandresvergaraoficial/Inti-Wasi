@@ -24,7 +24,7 @@ public class MovimientoConsultaService {
     @Transactional(readOnly = true)
     public java.util.List<ResponsableMovimientoResponse> responsables() {
         return kardexRepository.listarResponsables().stream()
-                .map(fila -> new ResponsableMovimientoResponse((Integer) fila[0], (String) fila[1]))
+                .map(fila -> new ResponsableMovimientoResponse((Integer) fila[0], (String) fila[1], ((Number) fila[2]).intValue(), (String) fila[3]))
                 .toList();
     }
 
@@ -32,7 +32,7 @@ public class MovimientoConsultaService {
     public java.util.List<ProductoMovimientoResponse> productos() {
         return kardexRepository.listarProductos().stream()
                 .map(fila -> new ProductoMovimientoResponse((Integer) fila[0],
-                        (String) fila[1], (String) fila[2]))
+                        (String) fila[1], (String) fila[2], ((Number) fila[3]).intValue()))
                 .toList();
     }
 
@@ -45,6 +45,9 @@ public class MovimientoConsultaService {
             Integer idUsuario,
             Pageable pageable) {
         validarRango(fechaInicial, fechaFinal);
+        if (pageable.getPageSize() > 200) {
+            throw new IllegalArgumentException("La consulta admite hasta 200 registros por página");
+        }
         LocalDateTime inicio = fechaInicial == null ? null : fechaInicial.atStartOfDay();
         LocalDateTime finExclusivo = fechaFinal == null ? null : fechaFinal.plusDays(1).atStartOfDay();
         return kardexRepository.buscar(inicio, finExclusivo, idProducto, tipoDocumento, idUsuario, pageable)

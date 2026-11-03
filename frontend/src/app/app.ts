@@ -18,8 +18,13 @@ export class App {
     effect(() => {
       if (this.auth.idleSecondsRemaining() !== null) {
         this.warning ??= this.dialog.open(SessionWarningDialog, {
-          width: '460px', maxWidth: 'calc(100vw - 32px)',
-          disableClose: true, closeOnNavigation: false, role: 'alertdialog',
+          width: '460px',
+          maxWidth: 'calc(100vw - 32px)',
+          disableClose: true,
+          closeOnNavigation: false,
+          role: 'alertdialog',
+          ariaDescribedBy: 'session-warning-message',
+          panelClass: 'session-warning',
         });
       } else if (this.warning) {
         this.warning.close();

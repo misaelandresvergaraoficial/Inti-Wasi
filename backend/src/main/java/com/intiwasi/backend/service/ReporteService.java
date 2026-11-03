@@ -4,6 +4,7 @@ import com.intiwasi.backend.dto.inventario.MovimientoConsultaResponse;
 import com.intiwasi.backend.dto.inventario.StockBajoResponse;
 import com.intiwasi.backend.dto.reporte.InventarioActualResponse;
 import com.intiwasi.backend.entity.Producto;
+import com.intiwasi.backend.entity.KardexMovimiento;
 import com.intiwasi.backend.entity.StockBajo;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 import com.intiwasi.backend.exception.ReglaNegocioException;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,21 +38,24 @@ public class ReporteService {
 
     @Transactional(readOnly = true)
     public Page<InventarioActualResponse> inventario(Integer idProducto, Pageable pageable) {
-        return productoRepository.buscarInventario(idProducto, limitar(pageable)).map(this::convertirProducto);
+        var orden = Sort.by(Producto::getIdProducto);
+        return productoRepository.buscarInventario(idProducto, limitar(pageable, orden)).map(this::convertirProducto);
     }
 
     @Transactional(readOnly = true)
     public Page<StockBajoResponse> reposicion(Integer idProducto, Pageable pageable) {
-        return stockBajoRepository.buscar(idProducto, limitar(pageable)).map(this::convertirStockBajo);
+        var orden = Sort.by(StockBajo::getIdProducto);
+        return stockBajoRepository.buscar(idProducto, limitar(pageable, orden)).map(this::convertirStockBajo);
     }
 
     @Transactional(readOnly = true)
     public Page<MovimientoConsultaResponse> movimientos(LocalDate inicio, LocalDate fin, Integer idProducto,
                                                          TipoDocumento tipo, Integer idUsuario, Pageable pageable) {
-        return movimientoConsultaService.consultar(inicio, fin, idProducto, tipo, idUsuario, limitar(pageable));
+        var orden = Sort.by(KardexMovimiento::getFechaEmision, KardexMovimiento::getIdMovimiento);
+        return movimientoConsultaService.consultar(inicio, fin, idProducto, tipo, idUsuario, limitar(pageable, orden));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Optional<byte[]> exportar(String reporte, String formato, LocalDate inicio, LocalDate fin,
                             Integer idProducto, TipoDocumento tipo, Integer idUsuario) {
         if (!List.of("pdf", "csv").contains(formato.toLowerCase())) {
@@ -58,9 +63,11 @@ public class ReporteService {
         }
         Tabla tabla = consultarTabla(reporte, inicio, fin, idProducto, tipo, idUsuario);
         if (tabla.filas().isEmpty()) return Optional.empty();
+        String generado = java.time.ZonedDateTime.now(java.time.ZoneId.of("America/Lima"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss XXX"));
         return Optional.of(switch (formato.toLowerCase()) {
-            case "pdf" -> pdfWriter.escribir(reporte, tabla.encabezados(), tabla.filas());
-            case "csv" -> generarCsv(tabla);
+            case "pdf" -> pdfWriter.escribir(reporte, tabla.encabezados(), tabla.filas(), generado);
+            case "csv" -> generarCsv(tabla, generado);
             default -> throw new IllegalStateException("Formato validado no reconocido");
         });
     }
@@ -72,7 +79,7 @@ public class ReporteService {
                     reunir(pagina -> inventario(idProducto, pagina)).stream()
                             .map(i -> List.of(i.getSku(), i.getNomProducto(), i.getCategoria(), nulo(i.getProveedor()),
                                     i.getPrecio().toPlainString(), i.getStockActual().toString(), i.getStockMinimo().toString(),
-                                    i.getStockActual() <= i.getStockMinimo() ? "Stock bajo" : "Normal")).toList());
+                                    i.getStockActual().equals(i.getStockMinimo()) ? "En el mínimo" : i.getStockActual() < i.getStockMinimo() ? "Stock bajo" : "Normal")).toList());
             case "movimientos" -> new Tabla(List.of("Fecha", "Tipo", "SKU", "Producto", "Cantidad", "Motivo", "Usuario"),
                     reunir(pagina -> movimientos(inicio, fin, idProducto, tipo, idUsuario, pagina)).stream()
                             .map(m -> List.of(m.getFechaEmision().toString(), m.getTipoDocumento().getValor(), m.getSku(),
@@ -98,10 +105,10 @@ public class ReporteService {
         return filas;
     }
 
-    private Pageable limitar(Pageable pageable) {
+    private Pageable limitar(Pageable pageable, Sort ordenEstable) {
         int pagina = Math.max(0, pageable.getPageNumber());
         int tamano = Math.max(1, Math.min(MAX_PAGINA, pageable.getPageSize()));
-        return PageRequest.of(pagina, tamano, pageable.getSort());
+        return PageRequest.of(pagina, tamano, pageable.getSort().isSorted() ? pageable.getSort().and(ordenEstable) : ordenEstable);
     }
 
     private InventarioActualResponse convertirProducto(Producto p) {
@@ -118,10 +125,16 @@ public class ReporteService {
                 .unidadesPorReponer(s.getUnidadesPorReponer()).build();
     }
 
-    private byte[] generarCsv(Tabla tabla) {
+    private byte[] generarCsv(Tabla tabla, String generado) {
         StringBuilder csv = new StringBuilder("\uFEFF");
-        agregarFilaCsv(csv, tabla.encabezados());
-        tabla.filas().forEach(fila -> agregarFilaCsv(csv, fila));
+        List<String> encabezados = new ArrayList<>(tabla.encabezados());
+        encabezados.add("Generado (America/Lima)");
+        agregarFilaCsv(csv, encabezados);
+        tabla.filas().forEach(fila -> {
+            List<String> datos = new ArrayList<>(fila);
+            datos.add(generado);
+            agregarFilaCsv(csv, datos);
+        });
         return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
 
@@ -129,10 +142,10 @@ public class ReporteService {
         for (int i = 0; i < fila.size(); i++) {
             if (i > 0) csv.append(',');
             String valor = nulo(fila.get(i));
-            String inicio = valor.stripLeading();
+            String inicio = valor.replaceFirst("^[\\p{javaWhitespace}\\p{Cc}]*", "");
             if (!inicio.isEmpty() && (inicio.charAt(0) == '=' || inicio.charAt(0) == '+'
                     || inicio.charAt(0) == '@' || inicio.charAt(0) == '-'
-                    && (inicio.length() == 1 || !Character.isDigit(inicio.charAt(1))))) {
+                    && !inicio.matches("-\\d+(?:\\.\\d+)?"))) {
                 valor = "'" + valor;
             }
             csv.append('"').append(valor.replace("\"", "\"\"")).append('"');

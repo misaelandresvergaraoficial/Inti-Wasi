@@ -26,13 +26,20 @@ import com.intiwasi.backend.repository.UsuarioRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.core.TypedPropertyPath;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.time.LocalDate;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +50,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EntradaService {
-
     private final EntradaRepository entradaRepository;
     private final GuiaRemisionRepository guiaRepository;
     private final DocumentoRepository documentoRepository;
@@ -55,10 +61,45 @@ public class EntradaService {
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
+    public Page<EntradaResponse> consultar(int page, int size, String q, String estado,
+            LocalDate desde, LocalDate hasta, String sort) {
+        if (page < 0 || size < 1 || size > 200) throw new IllegalArgumentException("La página debe ser positiva y admitir entre 1 y 200 registros");
+        if (desde != null && hasta != null && desde.isAfter(hasta)) throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final");
+        if (!Set.of("asc", "desc").contains(sort)) throw new IllegalArgumentException("Orden de emisión no válido");
+        String texto = q == null ? "" : q.trim().toLowerCase(java.util.Locale.ROOT);
+        if (texto.length() > 255) throw new IllegalArgumentException("La búsqueda admite hasta 255 caracteres");
+        String patron = "%" + texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        Integer idBuscado;
+        try { idBuscado = Integer.valueOf(texto); } catch (NumberFormatException ex) { idBuscado = -1; }
+        final Integer identidad = idBuscado;
+        Specification<Entrada> filtro = (root, query, cb) -> {
+            List<Predicate> filtros = new ArrayList<>();
+            if (!texto.isEmpty()) filtros.add(cb.or(cb.like(cb.lower(root.get("guia").get("numeroGuia")), patron, '\\'), cb.like(cb.lower(root.get("documento").get("usuario").get("nomUsuario")), patron, '\\'), cb.equal(root.get("idEntrada"), identidad), cb.equal(root.get("ordenCompra").get("idOrden"), identidad)));
+            if (estado != null && !estado.isBlank()) {
+                if (!Set.of("0", "1", "2").contains(estado)) throw new IllegalArgumentException("Estado de entrada no válido");
+                filtros.add(cb.equal(root.get("documento").get("estado"), Byte.valueOf(estado)));
+            }
+            if (desde != null) filtros.add(cb.greaterThanOrEqualTo(root.get("documento").<java.time.LocalDateTime>get("fechaEmision"), desde.atStartOfDay()));
+            if (hasta != null) filtros.add(cb.lessThan(root.get("documento").<java.time.LocalDateTime>get("fechaEmision"), hasta.plusDays(1).atStartOfDay()));
+            return cb.and(filtros.toArray(Predicate[]::new));
+        };
+        var orden = Sort.by(TypedPropertyPath.of(Entrada::getDocumento).then(Documento::getFechaEmision),
+                Entrada::getIdEntrada);
+        return entradaRepository.findAll(filtro, PageRequest.of(page, size,
+                "asc".equals(sort) ? orden.ascending() : orden.descending())).map(this::convertir);
+    }
+
+    @Transactional(readOnly = true)
     public List<EntradaResponse> listar() {
         return entradaRepository.findAllConRelaciones().stream()
                 .map(this::convertir)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public EntradaResponse obtenerPorDocumento(Integer idDocumento) {
+        return convertir(entradaRepository.findByDocumento_IdDocumento(idDocumento)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Entrada no encontrada para el documento")));
     }
 
     @Transactional(readOnly = true)
@@ -75,9 +116,7 @@ public class EntradaService {
     public EntradaResponse actualizar(Integer id, EntradaRequest request) {
         validarRequest(request);
         validarMotivoCorreccion(request.getMotivoCorreccion());
-
         Entrada original = buscarEntrada(id);
-
         if (!original.getGuia().getNumeroGuia().equalsIgnoreCase(
                 request.getNumeroGuiaRemision().trim()
         )) {
@@ -85,19 +124,16 @@ public class EntradaService {
                     "La rectificación debe conservar la guía de remisión original"
             );
         }
-
         if (!original.getOrdenCompra().getIdOrden().equals(request.getIdOrden())) {
             throw new ReglaNegocioException(
                     "La entrada corregida debe pertenecer a la misma orden"
             );
         }
-
         OrdenCompra ordenActual = ordenCompraRepository
                 .findByIdConDetallesForUpdate(request.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Orden de compra no encontrada"
                 ));
-
         if ("Cancelada".equals(ordenActual.getEstado())) {
             Map<Integer, Integer> cantidadesOriginales = movimientoRepository
                     .findByDocumento_IdDocumentoOrderByIdMovimientoAsc(
@@ -108,7 +144,6 @@ public class EntradaService {
                             movimiento -> movimiento.getProducto().getIdProducto(),
                             MovimientoInventario::getCantidad
                     ));
-
             for (MovimientoRequest item : request.getMovimientos()) {
                 if (item.getCantidad() > cantidadesOriginales.getOrDefault(
                         item.getIdProducto(), 0
@@ -119,7 +154,6 @@ public class EntradaService {
                 }
             }
         }
-
         Documento origen = correccionService.revertir(
                 original.getDocumento().getIdDocumento(),
                 TipoDocumento.ENTRADA,
@@ -127,21 +161,18 @@ public class EntradaService {
                 request.getMotivoCorreccion(),
                 (byte) 2
         );
-
         return registrarInterno(request, origen, original.getGuia());
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void anular(Integer id, String motivo) {
         Entrada original = buscarEntrada(id);
-
         ordenCompraRepository.findByIdConDetallesForUpdate(
                         original.getOrdenCompra().getIdOrden()
                 )
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Orden de compra no encontrada"
                 ));
-
         correccionService.revertir(
                 original.getDocumento().getIdDocumento(),
                 TipoDocumento.ENTRADA,
@@ -157,34 +188,28 @@ public class EntradaService {
             GuiaRemision guiaOriginal
     ) {
         validarRequest(request);
-
         OrdenCompra orden = ordenCompraRepository
                 .findByIdConDetallesForUpdate(request.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Orden de compra no encontrada con ID: " + request.getIdOrden()
                 ));
-
         if (origen == null
                 && !Set.of("Pendiente", "Parcial").contains(orden.getEstado())) {
             throw new ReglaNegocioException(
                     "La orden de compra no admite nuevas recepciones"
             );
         }
-
         GuiaRemision guia;
-
         if (origen == null) {
             entityManager.lock(
                     orden.getProveedor(),
                     LockModeType.PESSIMISTIC_WRITE
             );
             entityManager.refresh(orden.getProveedor());
-
             String numero = GuiaRemisionFormato.validarNueva(
                     request.getNumeroGuiaRemision(),
                     orden.getProveedor().getPrefijoGuia()
             );
-
             if (guiaRepository.existsByProveedor_IdProveedorAndNumeroGuia(
                     orden.getProveedor().getIdProveedor(), numero
             )) {
@@ -193,7 +218,6 @@ public class EntradaService {
                                 + "registrada para este proveedor"
                 );
             }
-
             guia = new GuiaRemision();
             guia.setProveedor(orden.getProveedor());
             guia.setNumeroGuia(numero);
@@ -201,78 +225,67 @@ public class EntradaService {
         } else {
             guia = guiaOriginal;
         }
-
         Map<Integer, DetalleOrdenCompra> detallePorProducto =
                 orden.getDetalles().stream()
                         .collect(Collectors.toMap(
                                 detalle -> detalle.getProducto().getIdProducto(),
                                 Function.identity()
                         ));
-
         List<Integer> ids = request.getMovimientos().stream()
                 .map(MovimientoRequest::getIdProducto)
                 .sorted()
                 .toList();
-
         List<Producto> bloqueados = productoRepository.findAllByIdForUpdate(ids);
-
         if (bloqueados.size() != ids.size()) {
             throw new RecursoNoEncontradoException(
                     "Uno o más productos no existen"
             );
         }
-
         Map<Integer, Producto> productos = bloqueados.stream()
                 .collect(Collectors.toMap(
                         Producto::getIdProducto,
                         Function.identity()
                 ));
-
         for (MovimientoRequest movimiento : request.getMovimientos()) {
             Producto producto = productos.get(movimiento.getIdProducto());
-
             if (!Byte.valueOf((byte) 1).equals(producto.getEstado())) {
                 throw new ReglaNegocioException(
                         "El producto está inactivo: " + producto.getIdProducto()
                 );
             }
-
+            if ((long) producto.getStockActual() + movimiento.getCantidad() > Integer.MAX_VALUE) {
+                throw new ReglaNegocioException("La recepción supera el stock máximo permitido para el producto: " + producto.getIdProducto());
+            }
             DetalleOrdenCompra detalle = detallePorProducto.get(
                     producto.getIdProducto()
             );
-
             if (detalle == null) {
                 throw new ReglaNegocioException(
                         "El producto no pertenece a la orden de compra: "
                                 + producto.getIdProducto()
                 );
             }
-
             int recibida = entradaRepository.cantidadRecibida(
                     orden.getIdOrden(), producto.getIdProducto()
             );
-
-            if (recibida + movimiento.getCantidad() > detalle.getCantidad()) {
+            if ((long) recibida + movimiento.getCantidad() > detalle.getCantidad()) {
                 throw new ReglaNegocioException(
                         "La cantidad recibida supera el saldo de la orden "
                                 + "para el producto: " + producto.getIdProducto()
                 );
             }
         }
-
         Documento documento = nuevoDocumento(
                 TipoDocumento.ENTRADA, usuarioActual()
         );
         documento.setDocumentoOrigen(origen);
         documento = documentoRepository.saveAndFlush(documento);
-
         Entrada entrada = new Entrada();
         entrada.setDocumento(documento);
         entrada.setOrdenCompra(orden);
         entrada.setGuia(guia);
         entrada.setObservaciones(normalizar(request.getObservaciones()));
         entrada = entradaRepository.saveAndFlush(entrada);
-
         for (MovimientoRequest item : request.getMovimientos()) {
             MovimientoInventario movimiento = new MovimientoInventario();
             movimiento.setDocumento(documento);
@@ -280,12 +293,9 @@ public class EntradaService {
             movimiento.setCantidad(item.getCantidad());
             movimientoRepository.save(movimiento);
         }
-
         movimientoRepository.flush();
-
         Integer idEntrada = entrada.getIdEntrada();
         entityManager.clear();
-
         return convertir(buscarEntrada(idEntrada));
     }
 
@@ -304,7 +314,6 @@ public class EntradaService {
                 .stream()
                 .map(this::convertirMovimiento)
                 .toList();
-
         return EntradaResponse.builder()
                 .idEntrada(entrada.getIdEntrada())
                 .idDocumento(entrada.getDocumento().getIdDocumento())
@@ -324,6 +333,7 @@ public class EntradaService {
                 .usuarioResponsable(
                         entrada.getDocumento().getUsuario().getNomUsuario()
                 )
+                .correoResponsable(entrada.getDocumento().getUsuario().getCorreo())
                 .estadoOrden(entrada.getOrdenCompra().getEstado())
                 .movimientos(movimientos)
                 .build();
@@ -333,7 +343,6 @@ public class EntradaService {
             MovimientoInventario movimiento
     ) {
         Producto producto = movimiento.getProducto();
-
         return MovimientoResponse.builder()
                 .idMovimiento(movimiento.getIdMovimiento())
                 .idProducto(producto.getIdProducto())
@@ -350,7 +359,6 @@ public class EntradaService {
                     "La orden de compra es obligatoria"
             );
         }
-
         if (request.getNumeroGuiaRemision() == null
                 || request.getNumeroGuiaRemision().isBlank()
                 || request.getNumeroGuiaRemision().length() > 50) {
@@ -359,31 +367,26 @@ public class EntradaService {
                             + "y no debe exceder 50 caracteres"
             );
         }
-
         validarMovimientos(request.getMovimientos());
     }
 
     private void validarMovimientos(List<MovimientoRequest> movimientos) {
-        if (movimientos == null || movimientos.isEmpty()) {
+        if (movimientos == null || movimientos.isEmpty() || movimientos.size() > 100) {
             throw new IllegalArgumentException(
-                    "Debe incluir al menos un movimiento"
+                    "Debe incluir entre 1 y 100 movimientos"
             );
         }
-
         Set<Integer> ids = new HashSet<>();
-
         for (MovimientoRequest movimiento : movimientos) {
             if (movimiento == null || movimiento.getIdProducto() == null) {
                 throw new IllegalArgumentException("El producto es obligatorio");
             }
-
             if (movimiento.getCantidad() == null
                     || movimiento.getCantidad() <= 0) {
                 throw new IllegalArgumentException(
                         "La cantidad debe ser entera y mayor que cero"
                 );
             }
-
             if (!ids.add(movimiento.getIdProducto())) {
                 throw new ReglaNegocioException(
                         "No se permiten productos repetidos"
@@ -395,7 +398,6 @@ public class EntradaService {
     private Usuario usuarioActual() {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getName())) {
@@ -403,7 +405,6 @@ public class EntradaService {
                     "Usuario autenticado no encontrado"
             );
         }
-
         return usuarioRepository.findByCorreoAndEstado(
                         authentication.getName(), 1
                 )

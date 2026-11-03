@@ -1,20 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError } from './models';
-import {
-  ProductoRequest,
-  ProductoResponse,
-} from './producto-models';
+import { ProductoRequest, ProductoResponse } from './producto-models';
 import { CategoriaResponse } from './categoria-models';
 import { ProveedorResponse } from './proveedor-models';
 
 @Injectable({ providedIn: 'root' })
 export class ProductosService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/productos';
 
   list(includeInactive = false): Promise<ProductoResponse[]> {
@@ -57,12 +51,7 @@ export class ProductosService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Sesión expirada. Por favor, ingresa de nuevo.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

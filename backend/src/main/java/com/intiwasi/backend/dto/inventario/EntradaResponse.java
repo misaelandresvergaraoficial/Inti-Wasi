@@ -23,6 +23,7 @@ public class EntradaResponse {
     private LocalDateTime fechaEmision;
     private Integer idUsuario;
     private String usuarioResponsable;
+    private String correoResponsable;
     private String estadoOrden;
     private List<MovimientoResponse> movimientos;
 }

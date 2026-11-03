@@ -3,13 +3,16 @@ package com.intiwasi.backend.repository;
 import com.intiwasi.backend.entity.Salida;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface SalidaRepository extends JpaRepository<Salida, Integer> {
+public interface SalidaRepository extends JpaRepository<Salida, Integer>, JpaSpecificationExecutor<Salida> {
+    Optional<Salida> findByDocumento_IdDocumento(Integer idDocumento);
+
     @EntityGraph(attributePaths = {"documento", "documento.usuario"})
     @Query("select s from Salida s order by s.idSalida desc")
     List<Salida> findAllConRelaciones();

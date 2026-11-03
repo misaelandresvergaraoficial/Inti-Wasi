@@ -44,6 +44,7 @@ export class AjusteForm implements PendingChanges {
   readonly original = signal<AjusteResponse | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
+  readonly confirming = signal(false);
   readonly loadError = signal('');
   readonly error = signal('');
   readonly lineErrors = signal<Record<number, string>>({});
@@ -150,6 +151,10 @@ export class AjusteForm implements PendingChanges {
   }
 
   addLine(): void {
+    if (this.lines.length >= 100) {
+      this.error.set('La operación admite hasta 100 productos.');
+      return;
+    }
     this.lines.push(this.newLine());
     this.form.markAsDirty();
   }
@@ -159,8 +164,42 @@ export class AjusteForm implements PendingChanges {
     this.form.markAsDirty();
   }
 
+  inventorySummary(): {
+    producto: string;
+    cantidad: number;
+    stockPrevio: number;
+    cambioNeto: number;
+    stockResultado: number;
+    reversion?: number;
+  }[] {
+    const value = this.form.getRawValue();
+    const ids = new Set([
+      ...value.movimientos.map((item) => item.idProducto),
+      ...(this.original()?.movimientos.map((item) => item.idProducto) ?? []),
+    ]);
+    return [...ids].map((id) => {
+      const cantidad = value.movimientos.find((item) => item.idProducto === id)?.cantidad ?? 0;
+      const anterior = this.original()?.movimientos.find((item) => item.idProducto === id);
+      const stockPrevio = this.currentStock(id);
+      const reversion =
+        (anterior?.cantidad ?? 0) * (this.original()?.tipoAjuste === 'Incremento' ? -1 : 1);
+      const cambioNeto = reversion + cantidad * (value.tipoAjuste === 'Incremento' ? 1 : -1);
+      return {
+        producto:
+          this.products().find((item) => item.idProducto === id)?.nomProducto ??
+          anterior?.nomProducto ??
+          `Producto ${id}`,
+        cantidad,
+        stockPrevio,
+        cambioNeto,
+        stockResultado: stockPrevio + cambioNeto,
+        ...(this.original() ? { reversion } : {}),
+      };
+    });
+  }
+
   async submit(): Promise<void> {
-    if (this.busy()) return;
+    if (this.busy() || this.confirming()) return;
     this.submitted.set(true);
     this.error.set('');
     this.lineErrors.set({});
@@ -203,24 +242,30 @@ export class AjusteForm implements PendingChanges {
       this.focusInvalid();
       return;
     }
-    const confirmado = await firstValueFrom(
-      this.dialog
-        .open(ConfirmDialog, {
-          width: '460px',
-          maxWidth: 'calc(100vw - 32px)',
-          data: {
-            title:
-              this.id === undefined ? '¿Registrar ajuste?' : '¿Rectificar ajuste?',
-            message:
-              this.id === undefined
-                ? `Se registrará un ajuste de tipo ${value.tipoAjuste} con ${value.movimientos.length} ${value.movimientos.length === 1 ? 'producto' : 'productos'}.`
-                : 'Se registrará la corrección inversa, el original quedará Rectificado y se creará el reemplazo.',
-            action: this.id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste',
-            danger: value.tipoAjuste === 'Decremento',
-          },
-        })
-        .afterClosed(),
-    );
+    this.confirming.set(true);
+    let confirmado: boolean;
+    try {
+      confirmado = !!(await firstValueFrom(
+        this.dialog
+          .open(ConfirmDialog, {
+            width: '780px',
+            maxWidth: 'calc(100vw - 32px)',
+            data: {
+              title: this.id === undefined ? '¿Registrar ajuste?' : '¿Rectificar ajuste?',
+              message:
+                this.id === undefined
+                  ? `Se registrará un ajuste de tipo ${value.tipoAjuste} con ${value.movimientos.length} ${value.movimientos.length === 1 ? 'producto' : 'productos'}.`
+                  : 'Se registrará la corrección inversa, el original quedará Rectificado y se creará el reemplazo.',
+              action: this.id === undefined ? 'Registrar ajuste' : 'Rectificar ajuste',
+              danger: value.tipoAjuste === 'Decremento',
+              inventory: this.inventorySummary(),
+            },
+          })
+          .afterClosed(),
+      ));
+    } finally {
+      this.confirming.set(false);
+    }
     if (!confirmado) return;
     const request: AjusteRequest = {
       tipoAjuste: value.tipoAjuste as TipoAjuste,
@@ -294,7 +339,7 @@ export class AjusteForm implements PendingChanges {
 
   async canLeave(): Promise<boolean> {
     if (!this.auth.valid() || !this.form.dirty) return true;
-    if (this.busy()) return false;
+    if (this.busy() || this.confirming()) return false;
     return !!(await firstValueFrom(
       this.dialog
         .open(ConfirmDialog, {

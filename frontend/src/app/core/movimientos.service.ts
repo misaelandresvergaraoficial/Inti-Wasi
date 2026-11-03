@@ -1,9 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError } from './models';
 import {
   FiltrosMovimiento,
   MovimientoConsultaResponse,
@@ -15,7 +13,6 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MovimientosService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/movimientos';
 
   list(
@@ -51,12 +48,7 @@ export class MovimientosService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Tu sesión ha caducado. Inicia sesión nuevamente.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

@@ -24,4 +24,12 @@ describe('Sanitización del formulario de categorías', () => {
 
     expect(form.controls.nomCategoria.hasError('pattern')).toBe(false);
   });
+
+  it('admite apóstrofos y guiones en nombres normalizados', async () => {
+    const form = await setup();
+    for (const value of ['D’Angelo', 'María-José']) {
+      form.controls.nomCategoria.setValue(value);
+      expect(form.controls.nomCategoria.hasError('pattern')).toBe(false);
+    }
+  });
 });

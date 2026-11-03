@@ -62,9 +62,13 @@ public class CorreccionInventarioService {
         for (MovimientoInventario anterior : movimientos) {
             Producto producto = productos.get(anterior.getProducto().getIdProducto());
             entityManager.refresh(producto);
+            if (!reversoDescuenta && (long) producto.getStockActual() + anterior.getCantidad() > Integer.MAX_VALUE) {
+                throw new ReglaNegocioException("La reversión excede el stock máximo del producto: " + producto.getIdProducto());
+            }
             if (reversoDescuenta && producto.getStockActual() < anterior.getCantidad()) {
-                throw new ReglaNegocioException("La corrección dejaría stock negativo para el producto: "
-                        + producto.getIdProducto());
+                throw new ReglaNegocioException("No se puede revertir el producto: " + producto.getIdProducto()
+                        + ". Stock disponible: " + producto.getStockActual()
+                        + "; cantidad necesaria: " + anterior.getCantidad());
             }
         }
 

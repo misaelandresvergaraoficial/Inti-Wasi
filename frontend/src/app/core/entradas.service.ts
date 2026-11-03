@@ -1,19 +1,35 @@
-import { HttpClient } from '@angular/common/http';
+import { Pagina } from './pagination';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError } from './models';
 import { EntradaRequest, EntradaResponse } from './entrada-models';
 
 @Injectable({ providedIn: 'root' })
 export class EntradasService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/entradas';
 
-  list(): Promise<EntradaResponse[]> {
-    return this.request(this.http.get<EntradaResponse[]>(this.base));
+  list(
+    filters: {
+      page?: number;
+      size?: number;
+      q?: string;
+      estado?: string;
+      desde?: string;
+      hasta?: string;
+      sort?: string;
+    } = {},
+  ): Promise<Pagina<EntradaResponse>> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== '') params = params.set(key, String(value));
+    }
+    return this.request(this.http.get<Pagina<EntradaResponse>>(this.base, { params }));
+  }
+
+  byDocument(idDocumento: number): Promise<EntradaResponse> {
+    return this.request(this.http.get<EntradaResponse>(`${this.base}/documento/${idDocumento}`));
   }
 
   get(id: number): Promise<EntradaResponse> {
@@ -36,12 +52,7 @@ export class EntradasService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Sesión expirada. Por favor, ingresa de nuevo.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

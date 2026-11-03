@@ -40,7 +40,8 @@
         <option value="">Todos los productos</option>
         @for (product of products(); track product.idProducto) {
           <option [value]="product.idProducto">
-            {{ product.sku }} · {{ product.nomProducto }}
+            {{ product.sku }} · {{ product.nomProducto
+            }}{{ product.estado === 0 ? ' · Inactivo' : '' }}
           </option>
         }
       </select>
@@ -68,7 +69,10 @@
       >
         <option value="">Todos los usuarios</option>
         @for (user of users(); track user.idUsuario) {
-          <option [value]="user.idUsuario">{{ user.nomUsuario }}</option>
+          <option [value]="user.idUsuario">
+            {{ user.nomUsuario }} · {{ user.correoUsuario }} · ID {{ user.idUsuario
+            }}{{ user.estado === 0 ? ' · Inactivo' : '' }}
+          </option>
         }
       </select>
     </div>
@@ -189,3 +193,8 @@
     <div class="empty-state"><p>Aplica los filtros para consultar movimientos.</p></div>
   }
 </section>
+
+<p class="report-summary">
+  Los nombres y etiquetas corresponden al catálogo actual; se conservan IDs, cantidades y vínculos
+  del documento original. Fechas de negocio: America/Lima.
+</p>

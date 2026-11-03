@@ -30,7 +30,9 @@ describe('Sanitización del formulario de proveedores', () => {
     const form = await setup();
     for (const value of ['Jorge 2', 'Jorge_Del_Solar', 'Jorge 😀']) {
       form.controls.contacto.setValue(value);
-      expect(form.controls.contacto.hasError('pattern')).toBe(true);
+      expect(form.controls.contacto.hasError(value.includes('😀') ? 'emoji' : 'pattern')).toBe(
+        true,
+      );
     }
   });
 
@@ -55,6 +57,14 @@ describe('Sanitización del formulario de proveedores', () => {
     for (const value of ['979348552', '014150000']) {
       form.controls.telefono.setValue(value);
       expect(form.controls.telefono.hasError('pattern')).toBe(false);
+    }
+  });
+
+  it('admite apóstrofos y guiones en nombres normalizados', async () => {
+    const form = await setup();
+    for (const value of ['D’Angelo S.A.C.', 'María-José SAC']) {
+      form.controls.nomProveedor.setValue(value);
+      expect(form.controls.nomProveedor.hasError('pattern')).toBe(false);
     }
   });
 });

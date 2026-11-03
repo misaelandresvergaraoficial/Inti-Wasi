@@ -121,6 +121,12 @@
                 <div class="row-actions">
                   <a
                     mat-button
+                    [routerLink]="['/categorias', c.idCategoria]"
+                    [attr.aria-label]="'Ver ' + c.nomCategoria + ', ID ' + c.idCategoria"
+                    >Ver</a
+                  >
+                  <a
+                    mat-button
                     [routerLink]="['/categorias', c.idCategoria, 'editar']"
                     [attr.aria-label]="'Editar ' + c.nomCategoria"
                   >

@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -38,6 +38,13 @@ describe('Sesión conectada al backend', () => {
   });
 
   afterEach(() => {
+    for (const request of http.match(
+      (request) =>
+        request.method === 'POST' &&
+        ['/api/auth/logout', '/api/auth/actividad'].includes(request.url),
+    )) {
+      if (!request.cancelled) request.flush(null);
+    }
     http.verify();
     TestBed.resetTestingModule();
     vi.useRealTimers();
@@ -55,6 +62,50 @@ describe('Sesión conectada al backend', () => {
     return auth.session()!.expiresAt;
   }
 
+  it('cerrar sesión solicita revocación con el token anterior y borra la sesión local', async () => {
+    await openSession();
+    const previousToken = auth.token();
+    auth.logout();
+    const request = http.expectOne('/api/auth/logout');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Authorization')).toBe(`Bearer ${previousToken}`);
+    expect(auth.session()).toBeNull();
+    request.flush(null);
+  });
+
+  it('solo comunica actividad humana, sin renovar por consultas automáticas', async () => {
+    await openSession();
+    vi.advanceTimersByTime(60_000);
+    auth.token();
+    http.expectNone('/api/auth/actividad');
+    document.dispatchEvent(new Event('keydown'));
+    const request = http.expectOne('/api/auth/actividad');
+    expect(request.request.method).toBe('POST');
+    request.flush(null);
+  });
+
+  it('una respuesta 401 de la API descarta la sesión revocada', async () => {
+    await openSession();
+    const client = TestBed.inject(HttpClient);
+    client.get('/api/productos').subscribe({ error: () => {} });
+    http.expectOne('/api/productos').flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(auth.session()).toBeNull();
+  });
+
+  it('el rechazo tardío de un token anterior no cierra una sesión nueva', async () => {
+    await openSession();
+    TestBed.inject(HttpClient)
+      .get('/api/productos')
+      .subscribe({ error: () => {} });
+    const previousRequest = http.expectOne('/api/productos');
+    vi.advanceTimersByTime(1000);
+    await openSession();
+    const currentToken = auth.token();
+    previousRequest.flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(auth.token()).toBe(currentToken);
+    http.expectNone('/api/auth/logout');
+  });
+
   it('avisa a los quince minutos y cierra treinta segundos después sin confirmación', async () => {
     await openSession();
     vi.advanceTimersByTime(15 * 60_000 - 1);
@@ -67,7 +118,9 @@ describe('Sesión conectada al backend', () => {
     auth.valid();
     expect(auth.session()).toBeNull();
     expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
-    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'inactiva' } });
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], {
+      queryParams: { sesion: 'inactiva' },
+    });
   });
 
   it('confirmar reinicia inactividad sin extender la expiración absoluta', async () => {
@@ -123,7 +176,9 @@ describe('Sesión conectada al backend', () => {
     vi.setSystemTime(expiresAt);
     auth.continueSession();
     expect(auth.session()).toBeNull();
-    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'caducada' } });
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], {
+      queryParams: { sesion: 'caducada' },
+    });
   });
 
   it('envía las credenciales y consulta la identidad real antes de abrir la sesión', async () => {
@@ -181,6 +236,37 @@ describe('Sesión conectada al backend', () => {
     expect(await validation).toBe(false);
     expect(auth.session()).toBeNull();
     expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
+  });
+
+  it('un fallo tardío al comprobar la identidad no borra un nuevo login', async () => {
+    sessionStorage.setItem(
+      'intiwasi.session',
+      JSON.stringify({
+        token,
+        idUsuario: user.idUsuario,
+        correo: user.correo,
+        nombre: user.nomUsuario,
+        rol: user.rol,
+        expiresAt: expiry * 1000,
+      }),
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+    auth = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    const validation = auth.ensure();
+    const previous = http.expectOne('/api/auth/me');
+    await openSession();
+    const current = auth.session()!.token;
+    previous.flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(await validation).toBe(false);
+    expect(auth.session()?.token).toBe(current);
   });
 
   it('descarta una sesión que ya había vencido al restaurarla', () => {

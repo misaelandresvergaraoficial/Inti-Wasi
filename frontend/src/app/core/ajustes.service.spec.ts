@@ -69,10 +69,10 @@ describe('Contrato HTTP de Ajustes', () => {
 
   it('consulta listado y detalle con la sesión del administrador', async () => {
     const list = service.list();
-    const listing = http.expectOne('/api/ajustes');
+    const listing = http.expectOne((request) => request.url === '/api/ajustes');
     expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-admin');
-    listing.flush([ajuste]);
-    expect((await list)[0].idAjuste).toBe(3);
+    listing.flush({ content: [ajuste], totalElements: 1, totalPages: 1, number: 0 });
+    expect((await list).content[0].idAjuste).toBe(3);
     const detail = service.get(3);
     http.expectOne('/api/ajustes/3').flush(ajuste);
     expect((await detail).movimientos[0].cantidad).toBe(2);

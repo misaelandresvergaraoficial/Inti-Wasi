@@ -1,14 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError, UsuarioRequest, UsuarioResponse } from './models';
+import { UsuarioRequest, UsuarioResponse } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/usuarios';
 
   list(): Promise<UsuarioResponse[]> {
@@ -37,12 +35,7 @@ export class UsersService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Tu sesión ha caducado. Inicia sesión nuevamente.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/ajustes")
@@ -28,10 +32,25 @@ public class AjusteController {
     private final AjusteService ajusteService;
 
     @GetMapping
-    public List<AjusteResponse> listar() { return ajusteService.listar(); }
+    public Page<AjusteResponse> listar(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Byte estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String sort) {
+        return ajusteService.listar(q, estado, desde, hasta, tipo, page, size, sort);
+    }
 
     @GetMapping("/{id}")
     public AjusteResponse obtener(@PathVariable Integer id) { return ajusteService.obtener(id); }
+
+    @GetMapping("/documento/{idDocumento}")
+    public AjusteResponse porDocumento(@PathVariable Integer idDocumento) {
+        return ajusteService.porDocumento(idDocumento);
+    }
 
     @PostMapping
     public ResponseEntity<AjusteResponse> registrar(@Valid @RequestBody AjusteRequest request) {

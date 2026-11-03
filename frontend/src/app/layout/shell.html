@@ -1,0 +1,106 @@
+<a class="skip-link" href="#contenido" (click)="skipToContent($event)">Saltar al contenido</a>
+<div class="app-layout" [class.menu-open]="menuOpen()" (keydown.escape)="closeMenu()">
+  <aside
+    #sidebar
+    class="sidebar"
+    id="modulos"
+    aria-label="Menú principal"
+    [attr.role]="compact() ? 'dialog' : null"
+    [attr.aria-modal]="compact() && menuOpen() ? 'true' : null"
+    [attr.inert]="compact() && !menuOpen() ? '' : null"
+    [cdkTrapFocus]="compact() && menuOpen()"
+  >
+    <a [routerLink]="auth.landingRoute()" class="brand">
+      <img src="marca.svg" width="40" height="40" alt="" />
+      <span>Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span>
+    </a>
+    <button
+      mat-icon-button
+      class="menu-close"
+      type="button"
+      aria-label="Cerrar menú"
+      (click)="closeMenu()"
+    >
+      <iw-icon name="close" />
+    </button>
+    <nav aria-label="Módulos">
+      @if (auth.isAdmin()) {
+        <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><iw-icon name="dashboard" />Dashboard</a
+        >
+      }
+      @for (group of navigation; track group.label) {
+        <div class="nav-group-label">{{ group.label }}</div>
+        @for (item of group.items; track item.path) {
+          @if (!item.admin || auth.isAdmin()) {
+            <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page"
+              ><iw-icon [name]="item.icon" />{{ item.label }}</a
+            >
+          }
+        }
+      }
+      @if (auth.isAdmin()) {
+        <div class="nav-group-label">Administración</div>
+        <a routerLink="/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><iw-icon name="users" />Usuarios</a
+        >
+      }
+    </nav>
+    <div class="sidebar-bottom">
+      <strong>Distribuidora Inti Wasi S.A.C.</strong><span>Inventario y almacén</span>
+    </div>
+  </aside>
+  @if (compact() && menuOpen()) {
+    <button
+      class="menu-scrim"
+      type="button"
+      tabindex="-1"
+      aria-label="Cerrar menú"
+      (click)="closeMenu()"
+    ></button>
+  }
+  <div class="workspace">
+    <header class="topbar">
+      <button
+        #menuButton
+        mat-icon-button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir menú"
+        aria-controls="modulos"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="openMenu()"
+      >
+        <iw-icon name="menu" />
+      </button>
+      <div class="location">
+        <span>Almacén</span><iw-icon name="next" /><strong>{{ pageTitle() }}</strong>
+      </div>
+      <div class="account">
+        <button
+          mat-icon-button
+          type="button"
+          class="theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-pressed]="theme.isDark()"
+          [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+        >
+          <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+        </button>
+        <span class="avatar small" aria-hidden="true">{{ initials() }}</span>
+        <div class="account-text">
+          <strong>{{ auth.session()?.nombre }}</strong
+          ><span>{{ auth.session()?.rol }}</span>
+        </div>
+        <span class="topbar-divider" aria-hidden="true"></span>
+        <button mat-button type="button" (click)="auth.logout()" aria-label="Cerrar sesión">
+          <iw-icon name="logout" /><span class="logout-label">Cerrar sesión</span>
+        </button>
+      </div>
+    </header>
+    <main #content id="contenido" class="main-content" tabindex="-1"><router-outlet /></main>
+    <footer class="app-footer">
+      <span>Inti Wasi · Inventario y almacén</span><span>{{ auth.session()?.rol }}</span>
+    </footer>
+  </div>
+</div>

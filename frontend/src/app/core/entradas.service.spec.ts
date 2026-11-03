@@ -73,11 +73,17 @@ describe('Contrato HTTP de Entradas', () => {
     const listing = http.expectOne('/api/entradas');
     expect(listing.request.method).toBe('GET');
     expect(listing.request.headers.get('Authorization')).toBe('Bearer jwt-prueba');
-    listing.flush([entry]);
-    expect((await list)[0].estadoDocumento).toBe(1);
+    listing.flush({ content: [entry], totalElements: 1, totalPages: 1, number: 0 });
+    expect((await list).content[0].estadoDocumento).toBe(1);
     const detail = service.get(8);
     http.expectOne('/api/entradas/8').flush(entry);
     expect((await detail).movimientos[0].cantidad).toBe(2);
+  });
+
+  it('consulta por documento sin descargar todo el historial', async () => {
+    const result = service.byDocument(31);
+    http.expectOne('/api/entradas/documento/31').flush(entry);
+    expect((await result).idEntrada).toBe(8);
   });
 
   it('registra y rectifica con motivo separado, sin asignar usuario ni estado desde el cliente', async () => {

@@ -17,8 +17,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer>{
 
     List<Producto> findByEstado(Byte estado);
 
-    List<Producto> findByCategoria_IdCategoriaAndEstado(Integer idCategoria, Byte estado);
-    List<Producto> findByCategoria_IdCategoriaAndDesactivadoPorCategoria(Integer idCategoria, Byte valor);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Producto p where p.categoria.idCategoria = :idCategoria and p.estado = :estado order by p.idProducto")
+    List<Producto> findByCategoria_IdCategoriaAndEstado(@Param("idCategoria") Integer idCategoria, @Param("estado") Byte estado);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Producto p where p.categoria.idCategoria = :idCategoria and p.desactivadoPorCategoria = :valor order by p.idProducto")
+    List<Producto> findByCategoria_IdCategoriaAndDesactivadoPorCategoria(@Param("idCategoria") Integer idCategoria, @Param("valor") Byte valor);
 
     boolean existsBySku(String sku);
 

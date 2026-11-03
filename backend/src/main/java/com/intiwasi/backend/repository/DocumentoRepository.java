@@ -3,6 +3,7 @@ package com.intiwasi.backend.repository;
 import com.intiwasi.backend.entity.Documento;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import com.intiwasi.backend.entity.enums.TipoDocumento;
 
-public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
+public interface DocumentoRepository extends JpaRepository<Documento, Integer>, JpaSpecificationExecutor<Documento> {
+    List<Documento> findAllByDocumentoOrigen_IdDocumentoOrderByIdDocumentoAsc(Integer idDocumento);
+
     Optional<Documento> findByDocumentoOrigen_IdDocumentoAndTipoDocumento(Integer idDocumento, TipoDocumento tipo);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"usuario", "documentoOrigen"})

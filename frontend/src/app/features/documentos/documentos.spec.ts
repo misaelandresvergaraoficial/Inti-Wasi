@@ -38,22 +38,24 @@ const replacement: DocumentoResponse = {
 const documents = [original, correction, replacement];
 
 describe('Pantallas de Documentos', () => {
-  it('filtra por tipo y estado sin ocultar los históricos por defecto', async () => {
+  it('envía tipo y estado al servidor y conserva total y página de respuesta', async () => {
+    const list = vi
+      .fn()
+      .mockResolvedValue({ content: documents, totalElements: 33, totalPages: 4, number: 0 });
     await TestBed.configureTestingModule({
       imports: [DocumentosList],
-      providers: [
-        provideRouter([]),
-        { provide: DocumentosService, useValue: { list: vi.fn().mockResolvedValue(documents) } },
-      ],
+      providers: [provideRouter([]), { provide: DocumentosService, useValue: { list } }],
     }).compileComponents();
     const fixture = TestBed.createComponent(DocumentosList);
     await fixture.componentInstance.load();
-    fixture.detectChanges();
-    expect(fixture.componentInstance.filtered().length).toBe(3);
+    expect(fixture.componentInstance.total()).toBe(33);
+    list.mockResolvedValue({ content: [correction], totalElements: 1, totalPages: 1, number: 0 });
     fixture.componentInstance.changeFilter('tipo', 'Correccion');
-    expect(fixture.componentInstance.filtered().map((item) => item.idDocumento)).toEqual([7]);
+    await fixture.componentInstance.load();
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ tipo: 'Correccion' }), 0, 10);
+    expect(fixture.componentInstance.visible().map((item) => item.idDocumento)).toEqual([7]);
     fixture.componentInstance.changeFilter('estado', '0');
-    expect(fixture.componentInstance.filtered()).toEqual([]);
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ estado: '0' }), 0, 10);
   });
 
   it('muestra la corrección y el reemplazo vinculados al original', async () => {
@@ -70,12 +72,12 @@ describe('Pantallas de Documentos', () => {
           provide: DocumentosService,
           useValue: {
             get: vi.fn().mockResolvedValue(original),
-            list: vi.fn().mockResolvedValue(documents),
+            related: vi.fn().mockResolvedValue([correction, replacement]),
           },
         },
         {
           provide: EntradasService,
-          useValue: { list: vi.fn().mockResolvedValue([{ idDocumento: 4, idEntrada: 3 }]) },
+          useValue: { byDocument: vi.fn().mockResolvedValue({ idDocumento: 4, idEntrada: 3 }) },
         },
         { provide: SalidasService, useValue: { list: vi.fn() } },
         { provide: AjustesService, useValue: { list: vi.fn() } },
@@ -103,12 +105,12 @@ describe('Pantallas de Documentos', () => {
           provide: DocumentosService,
           useValue: {
             get: vi.fn().mockResolvedValue(original),
-            list: vi.fn().mockResolvedValue(documents),
+            related: vi.fn().mockResolvedValue([correction, replacement]),
           },
         },
         {
           provide: EntradasService,
-          useValue: { list: vi.fn().mockRejectedValue(new Error('Sin conexión')) },
+          useValue: { byDocument: vi.fn().mockRejectedValue(new Error('Sin conexión')) },
         },
         { provide: SalidasService, useValue: { list: vi.fn() } },
         { provide: AjustesService, useValue: { list: vi.fn() } },
@@ -135,7 +137,7 @@ describe('Pantallas de Documentos', () => {
           provide: DocumentosService,
           useValue: {
             get: vi.fn().mockResolvedValue(adjustment),
-            list: vi.fn().mockResolvedValue([adjustment]),
+            related: vi.fn().mockResolvedValue([]),
           },
         },
         { provide: EntradasService, useValue: { list: vi.fn() } },

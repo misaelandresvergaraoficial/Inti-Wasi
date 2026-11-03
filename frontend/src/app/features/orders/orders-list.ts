@@ -4,11 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
-import {
-  enRangoDeEmision,
-  ordenarPorEmision,
-  OrdenEmision,
-} from '../../core/emission-filter';
+import { formatBusinessDate } from '../../core/business-time';
+import { OrdenEmision } from '../../core/emission-filter';
 import { NoticeService } from '../../core/notice.service';
 import {
   OrdenResponse,
@@ -48,6 +45,7 @@ export class OrdersList {
   readonly pageSize = 8;
 
   readonly fecha = fechaVisible;
+  readonly fechaEmision = formatBusinessDate;
   readonly importe = importeVisible;
 
   readonly dateError = computed(() =>
@@ -65,81 +63,81 @@ export class OrdersList {
       this.sort() !== 'desc',
   );
 
-  readonly filtered = computed(() => {
-    if (this.dateError()) return [];
+  readonly total = signal(0);
+  readonly pages = signal(1);
+  readonly filtered = computed(() => this.records());
+  readonly visible = computed(() => this.records());
+  readonly rangeEnd = computed(() => Math.min((this.page() + 1) * this.pageSize, this.total()));
+  private requestId = 0;
 
-    const query = this.query().trim().toLocaleLowerCase();
-
-    const records = this.records().filter(
-      (order) =>
-        (!this.status() || order.estado === this.status()) &&
-        enRangoDeEmision(order.fechaEmision, this.desde(), this.hasta()) &&
-        `${order.idOrden} ${order.nomProveedor}`
-          .toLocaleLowerCase()
-          .includes(query),
-    );
-
-    return ordenarPorEmision(records, this.sort(), (order) => order.idOrden);
-  });
-
-  readonly visible = computed(() =>
-    this.filtered().slice(
-      this.page() * this.pageSize,
-      (this.page() + 1) * this.pageSize,
-    ),
-  );
-
-  readonly pages = computed(() =>
-    Math.max(1, Math.ceil(this.filtered().length / this.pageSize)),
-  );
-
-  readonly rangeEnd = computed(() =>
-    Math.min((this.page() + 1) * this.pageSize, this.filtered().length),
-  );
+  changePage(page: number): void {
+    if (!Number.isInteger(page) || page < 0 || page >= this.pages() || page === this.page()) return;
+    this.page.set(page);
+    void this.load();
+  }
 
   constructor() {
     void this.load();
   }
 
   async load(): Promise<void> {
+    const requestId = ++this.requestId;
+    if (this.dateError()) {
+      this.records.set([]);
+      this.total.set(0);
+      this.loading.set(false);
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
 
     try {
-      this.records.set(await this.orders.list());
-
+      const result = await this.orders.list({
+        page: this.page(),
+        size: this.pageSize,
+        q: this.query(),
+        estado: this.status(),
+        desde: this.desde(),
+        hasta: this.hasta(),
+        sort: this.sort(),
+      });
+      if (requestId !== this.requestId) return;
+      this.records.set(result.content);
+      this.total.set(result.totalElements);
+      this.pages.set(Math.max(1, result.totalPages));
       if (this.page() >= this.pages()) {
-        this.page.set(this.pages() - 1);
+        this.changePage(this.pages() - 1);
       }
     } catch (error) {
-      this.error.set(
-        error instanceof Error
-          ? error.message
-          : 'No se pudieron cargar las órdenes.',
-      );
+      if (requestId !== this.requestId) return;
+      this.error.set(error instanceof Error ? error.message : 'No se pudieron cargar las órdenes.');
     } finally {
-      this.loading.set(false);
+      if (requestId === this.requestId) this.loading.set(false);
     }
   }
 
   search(value: string): void {
     this.query.set(value);
     this.page.set(0);
+    void this.load();
   }
 
   filterStatus(value: string): void {
     this.status.set(value);
     this.page.set(0);
+    void this.load();
   }
 
   changeDate(field: 'desde' | 'hasta', value: string): void {
     (field === 'desde' ? this.desde : this.hasta).set(value);
     this.page.set(0);
+    void this.load();
   }
 
   changeSort(value: string): void {
     this.sort.set(value === 'asc' ? 'asc' : 'desc');
     this.page.set(0);
+    void this.load();
   }
 
   reset(): void {
@@ -149,6 +147,7 @@ export class OrdersList {
     this.hasta.set('');
     this.sort.set('desc');
     this.page.set(0);
+    void this.load();
   }
 
   canEdit(order: OrdenResponse): boolean {
@@ -160,31 +159,19 @@ export class OrdersList {
   }
 
   receivedUnits(order: OrdenResponse): number {
-    return order.detalles.reduce(
-      (total, item) => total + item.cantidadRecibida,
-      0,
-    );
+    return order.detalles.reduce((total, item) => total + item.cantidadRecibida, 0);
   }
 
   requestedUnits(order: OrdenResponse): number {
-    return order.detalles.reduce(
-      (total, item) => total + item.cantidad,
-      0,
-    );
+    return order.detalles.reduce((total, item) => total + item.cantidad, 0);
   }
 
   async cancel(order: OrdenResponse): Promise<void> {
-    if (
-      !this.auth.isAdmin() ||
-      !this.canCancel(order) ||
-      this.busyId() !== null
-    ) {
+    if (!this.auth.isAdmin() || !this.canCancel(order) || this.busyId() !== null) {
       return;
     }
 
-    const received = order.detalles.some(
-      (item) => item.cantidadRecibida > 0,
-    );
+    const received = order.detalles.some((item) => item.cantidadRecibida > 0);
 
     const confirmed = await firstValueFrom(
       this.dialog
@@ -196,9 +183,7 @@ export class OrdersList {
             title: `¿Cancelar la orden N.° ${order.idOrden}?`,
             message:
               'La orden quedará Cancelada y no admitirá nuevas recepciones.' +
-              (received
-                ? ' Las cantidades ya recibidas y su historial se conservarán.'
-                : ''),
+              (received ? ' Las cantidades ya recibidas y su historial se conservarán.' : ''),
             action: 'Cancelar orden',
             danger: true,
           },
@@ -216,23 +201,13 @@ export class OrdersList {
       await this.orders.cancel(order.idOrden);
       await this.load();
 
-      this.notice.show(
-        `La orden N.° ${order.idOrden} quedó Cancelada.`,
-      );
+      this.notice.show(`La orden N.° ${order.idOrden} quedó Cancelada.`);
 
       requestAnimationFrame(() =>
-        document
-          .querySelector<HTMLElement>(
-            `[data-order-link="${order.idOrden}"]`,
-          )
-          ?.focus(),
+        document.querySelector<HTMLElement>(`[data-order-link="${order.idOrden}"]`)?.focus(),
       );
     } catch (error) {
-      this.error.set(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo cancelar la orden.',
-      );
+      this.error.set(error instanceof Error ? error.message : 'No se pudo cancelar la orden.');
     } finally {
       this.busyId.set(null);
     }

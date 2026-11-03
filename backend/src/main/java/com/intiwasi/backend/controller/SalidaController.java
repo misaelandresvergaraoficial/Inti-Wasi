@@ -18,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/salidas")
@@ -28,10 +31,25 @@ public class SalidaController {
     private final SalidaService salidaService;
 
     @GetMapping
-    public List<SalidaResponse> listar() { return salidaService.listar(); }
+    public Page<SalidaResponse> listar(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Byte estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String sort) {
+        return salidaService.listar(q, estado, desde, hasta, tipo, page, size, sort);
+    }
 
     @GetMapping("/{id}")
     public SalidaResponse obtener(@PathVariable Integer id) { return salidaService.obtener(id); }
+
+    @GetMapping("/documento/{idDocumento}")
+    public SalidaResponse porDocumento(@PathVariable Integer idDocumento) {
+        return salidaService.porDocumento(idDocumento);
+    }
 
     @PostMapping
     public ResponseEntity<SalidaResponse> registrar(@Valid @RequestBody SalidaRequest request) {

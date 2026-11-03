@@ -159,9 +159,19 @@
           (input)="motivo.set($any($event.target).value)"
         ></textarea>
       </div>
-      <button mat-button class="subtle-danger" [disabled]="busy()" (click)="annul()">
+      <button
+        mat-button
+        class="subtle-danger"
+        [disabled]="busy() || confirming()"
+        (click)="annul()"
+      >
         {{ busy() ? 'Anulando…' : 'Anular ajuste' }}
       </button>
     </section>
   }
 }
+
+<p class="report-summary">
+  Los nombres y etiquetas corresponden al catálogo actual; se conservan IDs, cantidades y vínculos
+  del documento original. Fechas de negocio: America/Lima.
+</p>

@@ -18,12 +18,15 @@ public class OrdenCompraResponse {
     private Integer idOrden;
     private Integer idProveedor;
     private String nomProveedor;
+    private String rucProveedor;
     private String prefijoGuia;
     private Integer idUsuario;
     private String nomUsuario;
+    private String correoUsuario;
     private LocalDate fechaEmision;
     private LocalDate fechaEstimadaEntrega;
     private String estado;
+    private boolean editable;
     private List<DetalleOrdenCompraResponse> detalles;
     private BigDecimal totalOrden;
 }

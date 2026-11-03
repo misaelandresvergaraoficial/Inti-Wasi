@@ -13,13 +13,16 @@ import { NoticeService } from '../../core/notice.service';
 import { ApiRequestError, Rol } from '../../core/models';
 import { PendingChanges } from '../../core/guards';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
-import { fieldError, focusFirstInvalid } from '../../shared/form-errors';
+import {
+  fieldError,
+  focusFirstInvalid,
+  nombrePersonal,
+  normalizarNombre,
+} from '../../shared/form-errors';
 import { Icon } from '../../shared/icon';
 
 const notBlank = (control: AbstractControl) =>
-  typeof control.value === 'string' && !control.value.trim()
-    ? { blank: true }
-    : null;
+  typeof control.value === 'string' && !control.value.trim() ? { blank: true } : null;
 
 export function institutionalEmail(control: AbstractControl) {
   if (!control.value) return null;
@@ -31,9 +34,7 @@ export function institutionalEmail(control: AbstractControl) {
   const role = control.parent?.get('rol')?.value;
   const prefix = role === 'Administrador' ? 'admin.' : 'operador.';
 
-  return role && !control.value.startsWith(prefix)
-    ? { roleEmail: true }
-    : null;
+  return role && !control.value.startsWith(prefix) ? { roleEmail: true } : null;
 }
 
 @Component({
@@ -54,60 +55,29 @@ export class UserForm implements PendingChanges {
   private readonly notice = inject(NoticeService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
-  private readonly element =
-    viewChild<ElementRef<HTMLFormElement>>('userForm');
+  private readonly element = viewChild<ElementRef<HTMLFormElement>>('userForm');
 
   readonly rawId = inject(ActivatedRoute).snapshot.paramMap.get('id');
   readonly id = this.rawId === null ? undefined : Number(this.rawId);
 
   readonly invalidId =
-    this.rawId !== null &&
-    (!Number.isInteger(this.id) || (this.id as number) <= 0);
+    this.rawId !== null && (!Number.isInteger(this.id) || (this.id as number) <= 0);
 
   readonly form = inject(FormBuilder).nonNullable.group({
-    nomUsuario: [
-      '',
-      [
-        Validators.required,
-        notBlank,
-        Validators.maxLength(50),
-        Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,50}$/),
-      ],
-    ],
-    correo: [
-      '',
-      [
-        Validators.required,
-        institutionalEmail,
-        Validators.maxLength(88),
-      ],
-    ],
-    contrasena: [
-      '',
-      [Validators.minLength(6), Validators.maxLength(20)],
-    ],
+    nomUsuario: ['', [Validators.required, notBlank, nombrePersonal(50)]],
+    correo: ['', [Validators.required, institutionalEmail, Validators.maxLength(88)]],
+    contrasena: ['', [Validators.minLength(6), Validators.maxLength(20)]],
     rol: ['Operador de Almacén' as Rol, Validators.required],
-    telefono: [
-      '',
-      [
-        Validators.maxLength(9),
-        Validators.pattern(/^9\d{8}$/),
-      ],
-    ],
+    telefono: ['', [Validators.maxLength(9), Validators.pattern(/^9\d{8}$/)]],
   });
 
   readonly busy = signal(false);
   readonly loading = signal(this.rawId !== null && !this.invalidId);
   readonly error = signal('');
-  readonly loadError = signal(
-    this.invalidId ? 'El identificador del usuario no es válido.' : '',
-  );
+  readonly loadError = signal(this.invalidId ? 'El identificador del usuario no es válido.' : '');
   readonly showPassword = signal(false);
 
-  readonly errorText = (
-    control: AbstractControl,
-    label: string,
-  ): string => {
+  readonly errorText = (control: AbstractControl, label: string): string => {
     if (control.hasError('institutional')) {
       return 'Usa admin.nombre u operador.nombre, solo con letras minúsculas.';
     }
@@ -116,10 +86,7 @@ export class UserForm implements PendingChanges {
       return 'El correo no coincide con el rol seleccionado. Revisa el prefijo admin u operador.';
     }
 
-    if (
-      control === this.form.controls.telefono &&
-      control.hasError('pattern')
-    ) {
+    if (control === this.form.controls.telefono && control.hasError('pattern')) {
       return 'El teléfono debe tener 9 dígitos y comenzar con 9 (ej. 979348552).';
     }
 
@@ -137,18 +104,13 @@ export class UserForm implements PendingChanges {
   }
 
   constructor() {
-    this.form.controls.rol.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => {
-        this.form.controls.correo.updateValueAndValidity();
-        this.form.controls.correo.markAsTouched();
-      });
+    this.form.controls.rol.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.form.controls.correo.updateValueAndValidity();
+      this.form.controls.correo.markAsTouched();
+    });
 
     if (this.rawId === null) {
-      this.form.controls.contrasena.addValidators([
-        Validators.required,
-        notBlank,
-      ]);
+      this.form.controls.contrasena.addValidators([Validators.required, notBlank]);
     } else if (!this.invalidId) {
       void this.load();
     }
@@ -173,11 +135,7 @@ export class UserForm implements PendingChanges {
       this.form.controls.correo.updateValueAndValidity();
       this.form.markAsPristine();
     } catch (error) {
-      this.loadError.set(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo cargar el usuario.',
-      );
+      this.loadError.set(error instanceof Error ? error.message : 'No se pudo cargar el usuario.');
     } finally {
       this.loading.set(false);
     }
@@ -186,6 +144,7 @@ export class UserForm implements PendingChanges {
   async submit(): Promise<void> {
     if (this.busy() || this.loading() || this.loadError()) return;
 
+    this.form.controls.nomUsuario.setValue(normalizarNombre(this.form.controls.nomUsuario.value));
     this.error.set('');
     this.form.markAllAsTouched();
 
@@ -224,22 +183,14 @@ export class UserForm implements PendingChanges {
       this.auth.refreshUser(user);
 
       this.notice.showNext(
-        `${user.nomUsuario}: ${
-          this.id ? 'cambios guardados' : 'usuario creado correctamente'
-        }.`,
+        `${user.nomUsuario}: ${this.id ? 'cambios guardados' : 'usuario creado correctamente'}.`,
       );
 
       // Tras guardar, regresar siempre al listado de Usuarios (CA02-1).
       await this.router.navigate(['/usuarios']);
     } catch (error) {
-      if (
-        error instanceof ApiRequestError &&
-        error.field &&
-        error.field in this.form.controls
-      ) {
-        this.form.controls[
-          error.field as keyof typeof this.form.controls
-        ].setErrors({
+      if (error instanceof ApiRequestError && error.field && error.field in this.form.controls) {
+        this.form.controls[error.field as keyof typeof this.form.controls].setErrors({
           server: error.message,
         });
 
@@ -247,9 +198,7 @@ export class UserForm implements PendingChanges {
       }
 
       this.error.set(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo guardar. Inténtalo de nuevo.',
+        error instanceof Error ? error.message : 'No se pudo guardar. Inténtalo de nuevo.',
       );
     } finally {
       this.busy.set(false);
@@ -267,8 +216,7 @@ export class UserForm implements PendingChanges {
           maxWidth: 'calc(100vw - 32px)',
           data: {
             title: '¿Salir sin guardar?',
-            message:
-              'Los cambios que realizaste en este formulario se perderán.',
+            message: 'Los cambios que realizaste en este formulario se perderán.',
             action: 'Salir sin guardar',
           },
         })

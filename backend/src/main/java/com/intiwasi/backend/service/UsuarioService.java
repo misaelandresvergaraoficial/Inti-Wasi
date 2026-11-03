@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.intiwasi.backend.exception.ReglaNegocioException;
 
 import java.util.List;
+import com.intiwasi.backend.security.SessionRegistry;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessions;
 
     public List<UsuarioResponse> listarActivos() {
         return usuarioRepository.findByEstado(1).stream()
@@ -54,10 +58,6 @@ public class UsuarioService {
             throw new ConflictoException("El correo ya está en uso. Puedes añadir la inicial del apellido al nombre");
         }
 
-        if (usuarioRepository.existsByNomUsuario(request.getNomUsuario())) {
-            throw new ConflictoException("El nombre de usuario ya se encuentra registrado");
-        }
-
         if (request.getTelefono() != null && !request.getTelefono().isBlank()
                 && usuarioRepository.existsByTelefono(request.getTelefono())) {
             throw new ConflictoException("El teléfono ya se encuentra registrado");
@@ -84,17 +84,13 @@ public class UsuarioService {
         List<Usuario> usuarios = usuarioRepository.bloquearUsuarios();
         Usuario usuario = buscarBloqueado(usuarios, id);
         validarAdministrador(usuarios, usuario, request.getRol(), usuario.getEstado());
+        String correoAnterior = usuario.getCorreo();
+        boolean cambiaCredenciales = !correoAnterior.equalsIgnoreCase(request.getCorreo())
+                || request.getContrasena() != null && !request.getContrasena().isBlank();
 
         if (!usuario.getCorreo().equalsIgnoreCase(request.getCorreo())
                 && usuarioRepository.existsByCorreo(request.getCorreo())) {
             throw new ConflictoException("El correo ya está en uso. Puedes añadir la inicial del apellido al nombre");
-        }
-
-        if (!usuario.getNomUsuario().equalsIgnoreCase(request.getNomUsuario())
-                && usuarioRepository.existsByNomUsuario(request.getNomUsuario())) {
-            throw new ConflictoException(
-                    "El nombre de usuario ya se encuentra registrado por otro usuario"
-            );
         }
 
         if (request.getTelefono() != null && !request.getTelefono().isBlank()
@@ -112,7 +108,9 @@ public class UsuarioService {
             usuario.setContrasena(passwordEncoder.encode(request.getContrasena()));
         }
 
-        return mapearAResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        if (cambiaCredenciales) revocarAlConfirmar(correoAnterior);
+        return mapearAResponse(guardado);
     }
 
     @Transactional
@@ -129,7 +127,19 @@ public class UsuarioService {
         Usuario usuario = buscarBloqueado(usuarios, id);
         validarAdministrador(usuarios, usuario, usuario.getRol(), estado);
         usuario.setEstado(estado);
+        if (estado == 0) revocarAlConfirmar(usuario.getCorreo());
         return mapearAResponse(usuarioRepository.save(usuario));
+    }
+
+    private void revocarAlConfirmar(String correo) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            sessions.revokeUser(correo);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() { sessions.revokeUser(correo); }
+        });
     }
 
     private Usuario buscarBloqueado(List<Usuario> usuarios, Integer id) {

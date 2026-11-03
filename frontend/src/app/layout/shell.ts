@@ -1,190 +1,137 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { A11yModule } from '@angular/cdk/a11y';
 import { filter } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth.service';
 import { ThemeService } from '../core/theme.service';
 import { Icon } from '../shared/icon';
 import { NoticeService } from '../core/notice.service';
+
 @Component({
   selector: 'iw-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, Icon],
-  template: ` <a class="skip-link" href="#contenido">Saltar al contenido</a>
-    <div class="app-layout">
-      <aside class="sidebar">
-        <a
-          [routerLink]="auth.landingRoute()"
-          class="brand"
-          ><img src="marca.svg" width="38" height="38" alt="" /><span
-            >Inti Wasi<small>GESTIÓN DE ALMACÉN</small></span
-          ></a
-        >
-        <div class="nav-section">ESPACIO DE TRABAJO</div>
-        <nav aria-label="Navegación principal">
-          <span class="nav-group-label">Operaciones</span>
-          <a
-            routerLink="/ordenes-compra"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Órdenes de compra"
-            ><iw-icon name="orders" />Órdenes de compra</a
-          >
-          <a
-            routerLink="/entradas"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Entradas"
-            ><iw-icon name="orders" />Entradas</a
-          >
-          <a
-            routerLink="/salidas"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Salidas"
-            ><iw-icon name="orders" />Salidas</a
-          >
-          @if (auth.isAdmin()) {
-            <a
-              routerLink="/ajustes"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Ajustes"
-              ><iw-icon name="orders" />Ajustes</a
-            >
-          }
-          <span class="nav-group-label">Catálogos</span>
-          <a
-            routerLink="/productos"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Productos"
-            ><iw-icon name="menu" />Productos</a
-          >
-          <a
-            routerLink="/proveedores"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Proveedores"
-            ><iw-icon name="truck" />Proveedores</a
-          >
-          @if (auth.isAdmin()) {
-            <a
-              routerLink="/categorias"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Categorías"
-              ><iw-icon name="appstore-o" />Categorías</a
-            >
-          }
-          @if (auth.isAdmin()) {
-            <span class="nav-group-label">Consultas</span>
-            <a
-              routerLink="/dashboard"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Dashboard"
-              ><iw-icon name="home" />Dashboard</a
-            >
-          }
-          @if (!auth.isAdmin()) {
-            <span class="nav-group-label">Consultas</span>
-          }
-          <a
-            routerLink="/documentos"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Documentos"
-            ><iw-icon name="orders" />Documentos</a
-          >
-          <a
-            routerLink="/movimientos"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            aria-label="Movimientos"
-            ><iw-icon name="orders" />Movimientos</a
-          >
-          @if (auth.isAdmin()) {
-            <a
-              routerLink="/reportes"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Reportes"
-              ><iw-icon name="orders" />Reportes</a
-            >
-            <span class="nav-group-label">Administración</span>
-            <a
-              routerLink="/usuarios"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              aria-label="Usuarios"
-              ><iw-icon name="users" />Usuarios</a
-            >
-          }
-        </nav>
-        <div class="sidebar-bottom">
-          <iw-icon name="shield" />
-          <p>
-            Acceso por roles<span>{{ auth.session()?.rol }}</span>
-          </p>
-        </div>
-      </aside>
-      <div class="workspace">
-        <header class="topbar">
-          <span class="company-name">Distribuidora Inti Wasi S.A.C.</span>
-          <div class="account">
-            <button
-              mat-button
-              type="button"
-              class="theme-toggle"
-              (click)="theme.toggle()"
-              [attr.aria-pressed]="theme.isDark()"
-              [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
-            >
-              <iw-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
-              <span>{{ theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro' }}</span>
-            </button>
-            <span class="avatar small">{{ initials() }}</span>
-            <div class="account-text">
-              <strong>{{ auth.session()?.nombre }}</strong
-              ><span>{{ auth.session()?.rol }}</span>
-            </div>
-            <span class="topbar-divider"></span
-            ><button mat-button (click)="auth.logout()">
-              <iw-icon name="logout" /><span>Cerrar sesión</span>
-            </button>
-          </div>
-        </header>
-        <main id="contenido" class="main-content" tabindex="-1"><router-outlet /></main>
-        <footer class="app-footer">
-          <span>Inti Wasi · Inventario y almacén</span><span>Acceso seguro por rol</span>
-        </footer>
-      </div>
-    </div>`,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, A11yModule, Icon],
+  templateUrl: './shell.html',
 })
 export class Shell {
   readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
+  private readonly router = inject(Router);
   private readonly notice = inject(NoticeService);
+  private readonly content = viewChild<ElementRef<HTMLElement>>('content');
+  private readonly sidebar = viewChild<ElementRef<HTMLElement>>('sidebar');
+  private readonly menuButton = viewChild('menuButton', { read: ElementRef });
+  readonly compact = signal(false);
+  readonly menuOpen = signal(false);
+  readonly pageTitle = signal('');
+  readonly navigation = [
+    {
+      label: 'Operaciones',
+      items: [
+        { path: '/ordenes-compra', label: 'Órdenes de compra', icon: 'orders', admin: false },
+        { path: '/entradas', label: 'Entradas', icon: 'entrada', admin: false },
+        { path: '/salidas', label: 'Salidas', icon: 'salida', admin: false },
+        { path: '/ajustes', label: 'Ajustes', icon: 'adjust', admin: true },
+      ],
+    },
+    {
+      label: 'Catálogos',
+      items: [
+        { path: '/productos', label: 'Productos', icon: 'box', admin: false },
+        { path: '/proveedores', label: 'Proveedores', icon: 'truck', admin: false },
+        { path: '/categorias', label: 'Categorías', icon: 'appstore-o', admin: true },
+      ],
+    },
+    {
+      label: 'Consultas',
+      items: [
+        { path: '/documentos', label: 'Documentos', icon: 'document', admin: false },
+        { path: '/movimientos', label: 'Movimientos', icon: 'movement', admin: false },
+        { path: '/reportes', label: 'Reportes', icon: 'chart', admin: true },
+      ],
+    },
+  ];
+
   constructor() {
-    inject(Router)
-      .events.pipe(
+    this.updateTitle();
+    inject(BreakpointObserver)
+      .observe('(max-width: 699px)')
+      .pipe(takeUntilDestroyed())
+      .subscribe((state) => {
+        const wasCompact = this.compact();
+        const wasOpen = this.menuOpen();
+        this.compact.set(state.matches);
+        if (!state.matches) {
+          this.menuOpen.set(false);
+          if (
+            wasCompact &&
+            (wasOpen ||
+              document.activeElement === document.body ||
+              document.activeElement?.matches('.menu-close, .menu-toggle'))
+          ) {
+            requestAnimationFrame(() => {
+              const sidebar = this.sidebar()?.nativeElement;
+              const link =
+                sidebar?.querySelector<HTMLElement>('a[aria-current="page"]') ??
+                sidebar?.querySelector<HTMLElement>('a');
+              link?.focus();
+            });
+          }
+        }
+      });
+    this.router.events
+      .pipe(
         filter((event) => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
       .subscribe(() => {
         this.notice.onNavigation();
-        requestAnimationFrame(() => document.querySelector<HTMLElement>('main h1')?.focus());
+        this.menuOpen.set(false);
+        this.updateTitle();
+        requestAnimationFrame(() => {
+          const heading = this.content()?.nativeElement.querySelector<HTMLElement>('h1');
+          if (heading) heading.tabIndex = -1;
+          (heading ?? this.content()?.nativeElement)?.focus();
+        });
       });
   }
+
+  skipToContent(event: Event): void {
+    event.preventDefault();
+    this.content()?.nativeElement.focus();
+  }
+
+  openMenu(): void {
+    this.menuOpen.set(true);
+    requestAnimationFrame(() => {
+      if (this.compact() && this.menuOpen())
+        this.sidebar()?.nativeElement.querySelector<HTMLElement>('.menu-close')?.focus();
+    });
+  }
+
+  closeMenu(): void {
+    if (!this.menuOpen()) return;
+    this.menuOpen.set(false);
+    this.menuButton()?.nativeElement.focus();
+  }
+
   initials(): string {
     return (
       this.auth
         .session()
-        ?.nombre.split(' ')
+        ?.nombre.split(/\s+/)
+        .filter(Boolean)
         .slice(0, 2)
         .map((word) => word[0])
         .join('') ?? ''
     );
+  }
+
+  private updateTitle(): void {
+    let route = this.router.routerState.snapshot.root;
+    while (route.firstChild) route = route.firstChild;
+    this.pageTitle.set(route.title?.split(' · ')[0] ?? 'Almacén');
   }
 }

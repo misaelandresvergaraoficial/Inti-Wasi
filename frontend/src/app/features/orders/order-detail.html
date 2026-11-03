@@ -12,7 +12,9 @@
   @if (record(); as order) {
     <div class="order-heading-actions">
       @if (order.estado === 'Pendiente' || order.estado === 'Parcial') {
-        <a mat-flat-button routerLink="/entradas/nueva" [queryParams]="{ orden: order.idOrden }">Registrar entrada</a>
+        <a mat-flat-button routerLink="/entradas/nueva" [queryParams]="{ orden: order.idOrden }"
+          >Registrar entrada</a
+        >
       }
       @if (auth.isAdmin() && canEdit(order)) {
         <a mat-stroked-button [routerLink]="['/ordenes-compra', order.idOrden, 'editar']"
@@ -59,7 +61,10 @@
     <div class="panel-heading">
       <div>
         <h2 id="order-summary-title">Información de la orden</h2>
-        <p>Registrada por {{ order.nomUsuario }}</p>
+        <p>
+          Registrada por {{ order.nomUsuario }} · {{ order.correoUsuario }} · ID
+          {{ order.idUsuario }}
+        </p>
       </div>
       <span
         class="order-status"
@@ -73,7 +78,9 @@
     <dl class="order-facts">
       <div>
         <dt>Proveedor</dt>
-        <dd>{{ order.nomProveedor }}</dd>
+        <dd>
+          {{ order.nomProveedor }} · RUC {{ order.rucProveedor }} · ID {{ order.idProveedor }}
+        </dd>
       </div>
       <div>
         <dt>Fecha de emisión</dt>
@@ -85,7 +92,7 @@
       </div>
       <div>
         <dt>Registrada por</dt>
-        <dd>{{ order.nomUsuario }}</dd>
+        <dd>{{ order.nomUsuario }} · {{ order.correoUsuario }} · ID {{ order.idUsuario }}</dd>
       </div>
     </dl>
   </section>
@@ -158,3 +165,8 @@
     recepción de productos se registra en Entradas.
   </p>
 }
+
+<p class="footnote">
+  Las etiquetas corresponden al catálogo actual. Se conservan las identidades, cantidades, precios
+  pactados y vínculos originales.
+</p>

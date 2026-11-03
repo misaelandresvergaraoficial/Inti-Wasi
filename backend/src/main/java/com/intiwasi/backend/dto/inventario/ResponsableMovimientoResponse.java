@@ -1,3 +1,3 @@
 package com.intiwasi.backend.dto.inventario;
 
-public record ResponsableMovimientoResponse(Integer idUsuario, String nomUsuario) {}
+public record ResponsableMovimientoResponse(Integer idUsuario, String nomUsuario, Integer estado, String correoUsuario) {}

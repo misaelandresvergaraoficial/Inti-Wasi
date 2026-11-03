@@ -1,3 +1,5 @@
+import { formatBusinessDate } from '../../core/business-time';
+import { tieneEmojis } from '../../shared/form-errors';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,6 +26,7 @@ export class SalidaDetail {
   readonly record = signal<SalidaResponse | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
+  readonly confirming = signal(false);
   readonly error = signal('');
   readonly actionError = signal('');
   readonly motivo = signal('');
@@ -48,36 +51,67 @@ export class SalidaDetail {
   }
 
   date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(
-      new Date(value),
-    );
+    return formatBusinessDate(value, 'long');
   }
 
   async annul(): Promise<void> {
-    if (this.busy() || this.record()?.estadoDocumento !== 1) return;
+    if (this.busy() || this.confirming() || this.record()?.estadoDocumento !== 1) return;
     const reason = this.motivo().trim();
+    if (tieneEmojis(reason)) {
+      this.actionError.set('No uses emojis en el motivo de anulación.');
+      document.getElementById('motivo-anulacion')?.focus();
+      return;
+    }
     this.actionError.set('');
     if (!reason || reason.length > 255) {
       this.actionError.set('Escribe un motivo de anulación de hasta 255 caracteres.');
       document.getElementById('motivo-anulacion')?.focus();
       return;
     }
-    const confirmed = await firstValueFrom(
-      this.dialog
-        .open(ConfirmDialog, {
-          width: '480px',
-          maxWidth: 'calc(100vw - 32px)',
-          autoFocus: 'first-tabbable',
-          data: {
-            title: `¿Anular la salida N.° ${this.id}?`,
-            message:
-              'Se registrará una corrección que devolverá las unidades al stock. La salida original se conservará.',
-            action: 'Anular salida',
-            danger: true,
-          },
-        })
-        .afterClosed(),
-    );
+    this.confirming.set(true);
+    let confirmed: boolean;
+    try {
+      const current = await this.salidas.get(this.id);
+      this.record.set(current);
+      if (current.estadoDocumento !== 1) {
+        this.actionError.set('La operación ya no está vigente. Revisa el estado actualizado.');
+        return;
+      }
+      confirmed = !!(await firstValueFrom(
+        this.dialog
+          .open(ConfirmDialog, {
+            width: '780px',
+            maxWidth: 'calc(100vw - 32px)',
+            autoFocus: 'first-tabbable',
+            data: {
+              title: `¿Anular la salida N.° ${this.id}?`,
+              message:
+                'Se registrará una corrección que devolverá las unidades al stock. La salida original se conservará.',
+              action: 'Anular salida',
+              danger: true,
+              inventory: current.movimientos.map((line) => {
+                const cambioNeto = line.cantidad;
+                return {
+                  producto: line.nomProducto,
+                  cantidad: line.cantidad,
+                  stockPrevio: line.stockActual,
+                  cambioNeto,
+                  stockResultado: line.stockActual + cambioNeto,
+                  reversion: cambioNeto,
+                };
+              }),
+            },
+          })
+          .afterClosed(),
+      ));
+    } catch (error) {
+      this.actionError.set(
+        error instanceof Error ? error.message : 'No se pudo actualizar el stock para confirmar.',
+      );
+      return;
+    } finally {
+      this.confirming.set(false);
+    }
     if (!confirmed) return;
     this.busy.set(true);
     try {

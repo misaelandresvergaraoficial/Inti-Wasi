@@ -44,12 +44,7 @@ export interface MovimientoReporte {
 export type TipoReporte = 'inventario' | 'movimientos' | 'reposicion';
 export type FilaReporte = InventarioActual | MovimientoReporte | StockBajo;
 
-export interface Pagina<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-}
+export type { Pagina } from './pagination';
 
 export interface FiltrosReporte {
   idProducto?: number;

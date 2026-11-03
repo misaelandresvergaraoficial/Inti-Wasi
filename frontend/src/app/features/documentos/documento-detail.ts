@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '../../core/business-time';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -65,22 +66,20 @@ export class DocumentoDetail {
       const document = await this.documentos.get(this.id());
       if (currentRequest !== this.requestId) return;
       this.record.set(document);
-      let all: DocumentoResponse[];
+      let source = document;
       try {
-        all = await this.documentos.list();
+        const related = await this.documentos.related(document.idDocumento);
+        if (currentRequest !== this.requestId) return;
+        this.related.set(related);
+        if (document.tipoDocumento === 'Correccion' && document.idDocumentoOrigen) {
+          source = await this.documentos.get(document.idDocumentoOrigen);
+        }
       } catch (error) {
         if (currentRequest !== this.requestId) return;
         this.relatedError.set(
           error instanceof Error ? error.message : 'No se pudieron cargar los vínculos.',
         );
-        return;
       }
-      if (currentRequest !== this.requestId) return;
-      this.related.set(all.filter((item) => item.idDocumentoOrigen === document.idDocumento));
-      const source =
-        document.tipoDocumento === 'Correccion'
-          ? all.find((item) => item.idDocumento === document.idDocumentoOrigen)
-          : document;
       if (source) {
         try {
           const link = await this.findOperation(source.tipoDocumento, source.idDocumento);
@@ -105,22 +104,20 @@ export class DocumentoDetail {
     idDocumento: number,
   ): Promise<OperationLink | null> {
     if (tipo === 'Entrada') {
-      const item = (await this.entradas.list()).find((entry) => entry.idDocumento === idDocumento);
+      const item = await this.entradas.byDocument(idDocumento);
       return item
         ? { label: 'Ver entrada N.° ' + item.idEntrada, path: ['/entradas', item.idEntrada] }
         : null;
     }
     if (tipo === 'Salida') {
-      const item = (await this.salidas.list()).find((exit) => exit.idDocumento === idDocumento);
+      const item = await this.salidas.byDocument(idDocumento);
       return item
         ? { label: 'Ver salida N.° ' + item.idSalida, path: ['/salidas', item.idSalida] }
         : null;
     }
     if (tipo === 'Ajuste') {
       if (!this.auth.isAdmin()) return null;
-      const item = (await this.ajustes.list()).find(
-        (adjustment) => adjustment.idDocumento === idDocumento,
-      );
+      const item = await this.ajustes.byDocument(idDocumento);
       return item
         ? { label: 'Ver ajuste N.° ' + item.idAjuste, path: ['/ajustes', item.idAjuste] }
         : null;
@@ -129,8 +126,6 @@ export class DocumentoDetail {
   }
 
   date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(
-      new Date(value),
-    );
+    return formatBusinessDate(value, 'long');
   }
 }

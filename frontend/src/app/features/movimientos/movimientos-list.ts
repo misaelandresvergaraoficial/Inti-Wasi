@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '../../core/business-time';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -101,7 +102,12 @@ export class MovimientosList {
     this.loading.set(true);
     this.error.set('');
     try {
-      const result = await this.movimientos.list(this.filters(), this.page(), this.sort(), this.size());
+      const result = await this.movimientos.list(
+        this.filters(),
+        this.page(),
+        this.sort(),
+        this.size(),
+      );
       if (currentRequest === this.requestId) this.result.set(result);
     } catch (error) {
       if (currentRequest !== this.requestId) return;
@@ -121,9 +127,7 @@ export class MovimientosList {
   }
 
   date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short' }).format(
-      new Date(value),
-    );
+    return formatBusinessDate(value, 'medium');
   }
 
   type(value: TipoDocumento): string {

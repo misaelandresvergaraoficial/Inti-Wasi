@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +39,7 @@ public class Documento {
     @JoinColumn(name = "IdUsuario", nullable = false)
     private Usuario usuario;
 
-    @CreationTimestamp
+    @CreationTimestamp(source = SourceType.DB)
     @Column(name = "FechaEmision", nullable = false, updatable = false)
     private LocalDateTime fechaEmision;
 

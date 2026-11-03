@@ -20,6 +20,10 @@ public class ProveedorRequest {
     )
     private String nomProveedor;
 
+    public void setNomProveedor(String nomProveedor) {
+        this.nomProveedor = Patrones.normalizarNombre(nomProveedor);
+    }
+
     @NotBlank(message = "El prefijo de guía es obligatorio")
     @Size(
             max = 30,
@@ -35,22 +39,22 @@ public class ProveedorRequest {
     @NotBlank(message = "El RUC es obligatorio")
     @Pattern(
             regexp = "^[0-9]{11}$",
-            message = "El RUC debe tener 11 dígitos numéricos exactos"
+            message = "El RUC debe contener exactamente 11 dígitos numéricos"
     )
     private String ruc;
 
     @Size(
-            max = 100,
-            message = "El contacto no debe exceder los 100 caracteres"
+            min = 2, max = 100,
+            message = "El contacto debe tener entre 2 y 100 caracteres"
     )
     @Pattern(
-            regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,100}$",
-            message = "El contacto solo admite letras y espacios; sin números, signos ni emojis"
+            regexp = Patrones.NOMBRE_PERSONAL,
+            message = "El contacto admite letras, tildes, espacios, apóstrofos y guiones; sin números ni emojis"
     )
     private String contacto;
 
     public void setContacto(String contacto) {
-        this.contacto = contacto == null || contacto.isBlank() ? null : contacto;
+        this.contacto = contacto == null || contacto.isBlank() ? null : Patrones.normalizarNombre(contacto);
     }
 
     @NotBlank(message = "El teléfono es obligatorio")
@@ -68,5 +72,6 @@ public class ProveedorRequest {
             max = 150,
             message = "La dirección no debe exceder los 150 caracteres"
     )
+    @Pattern(regexp = Patrones.SIN_EMOJIS, message = "La dirección no admite emojis")
     private String direccion;
 }

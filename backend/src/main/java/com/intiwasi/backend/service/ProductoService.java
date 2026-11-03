@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +62,7 @@ public class ProductoService {
     @Transactional
     public ProductoResponse crearProducto(ProductoRequest request) {
         if (productoRepository.existsBySku(request.getSku())) {
-            throw new ConflictoException("El SKU ya se encuentra registrado: " + request.getSku());
+            throw new ConflictoException("sku: El SKU ingresado ya está asignado a otro producto");
         }
 
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
@@ -96,13 +97,13 @@ public class ProductoService {
 
     @Transactional
     public ProductoResponse actualizarProducto(Integer id, ProductoRequest request) {
-        Producto producto = productoRepository.findById(id)
+        Producto producto = obtenerProductoBloqueado(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con el ID: " + id
                 ));
 
         if (!producto.getSku().equalsIgnoreCase(request.getSku()) && productoRepository.existsBySku(request.getSku())) {
-            throw new ConflictoException("El SKU ingresado ya pertenece a otro producto.");
+            throw new ConflictoException("sku: El SKU ingresado ya está asignado a otro producto");
         }
 
         Categoria categoria = categoriaRepository.findById(request.getIdCategoria())
@@ -134,7 +135,7 @@ public class ProductoService {
 
     @Transactional
     public void desactivarProducto(Integer id) {
-        Producto producto = productoRepository.findById(id)
+        Producto producto = obtenerProductoBloqueado(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con el ID: " + id
                 ));
@@ -148,7 +149,7 @@ public class ProductoService {
         if (estado == null || (estado != 0 && estado != 1)) {
             throw new IllegalArgumentException("El estado del producto debe ser 0 o 1");
         }
-        Producto producto = productoRepository.findById(id)
+        Producto producto = obtenerProductoBloqueado(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con el ID: " + id
                 ));
@@ -165,6 +166,10 @@ public class ProductoService {
         return convertirAResponse(actualizado);
     }
 
+
+    private Optional<Producto> obtenerProductoBloqueado(Integer id) {
+        return productoRepository.findAllByIdForUpdate(List.of(id)).stream().findFirst();
+    }
 
     private ProductoResponse convertirAResponse(Producto producto) {
         ProductoResponse response = new ProductoResponse();
@@ -208,6 +213,6 @@ public class ProductoService {
 
 
 
-    
+
 
 }

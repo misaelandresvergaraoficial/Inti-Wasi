@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secreto",
+      "type": "java.lang.String",
+      "description": "Clave externa utilizada para firmar y verificar los tokens JWT."
+    },
+    {
+      "name": "jwt.expiracion-ms",
+      "type": "java.lang.Long",
+      "description": "Duración de los tokens JWT en milisegundos."
+    },
+    {
+      "name": "app.cors.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Orígenes HTTP o HTTPS permitidos, separados por comas."
+    }
+  ]
+}

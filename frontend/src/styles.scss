@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use './styles/tokens';
 @use './styles/layout';
 @use './styles/login';
 @use './styles/users';
@@ -35,9 +36,9 @@ html {
       filled-container-shape: 6px,
       outlined-container-shape: 6px,
       text-container-shape: 6px,
-      filled-container-height: 44px,
-      outlined-container-height: 44px,
-      text-container-height: 44px,
+      filled-container-height: 38px,
+      outlined-container-height: 38px,
+      text-container-height: 38px,
       filled-label-text-weight: 600,
       outlined-label-text-weight: 600,
     )
@@ -47,8 +48,10 @@ html {
       outlined-container-shape: 6px,
       outlined-outline-color: var(--field-border),
       outlined-hover-outline-color: var(--primary),
-      subscript-text-size: 14px,
-      container-text-size: 16px,
+      subscript-text-size: 12px,
+      container-text-size: 14px,
+      container-height: 44px,
+      container-vertical-padding: 10px,
     )
   );
   @include mat.dialog-overrides(
@@ -59,18 +62,18 @@ html {
     )
   );
   font:
-    16px/1.5 'Inter Variable',
+    14px/1.5 'Inter Variable',
     Arial,
     sans-serif;
   color: var(--ink);
   background: var(--canvas);
 }
 :root {
-  --ink: #202b33;
-  --muted: #596871;
-  --primary: #175b65;
+  --ink: var(--slate-950);
+  --muted: var(--slate-600);
+  --primary: var(--teal-800);
   --on-primary: #fff;
-  --line: #e0e6e9;
+  --line: var(--slate-200);
   --surface: #fff;
   --canvas: #f5f7f8;
   --surface-alt: #fafcfc;
@@ -113,7 +116,14 @@ html {
 }
 html[data-theme='dark'] {
   color-scheme: dark;
-  @include mat.theme((color: (primary: mat.$cyan-palette, theme-type: dark)));
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$cyan-palette,
+        theme-type: dark,
+      ),
+    )
+  );
   --ink: #e5eef0;
   --muted: #c0d0d5;
   --primary: #8fd6da;
@@ -158,15 +168,17 @@ html[data-theme='dark'] {
   --avatar-fg: #e5eef0;
   --intro-separator: #81989f;
   --card-shadow: #00000040;
-  @include mat.theme-overrides((
-    primary: var(--primary),
-    on-primary: var(--on-primary),
-    surface: var(--surface),
-    on-surface: var(--ink),
-    on-surface-variant: var(--muted),
-    outline: var(--field-border),
-    error: var(--danger),
-  ));
+  @include mat.theme-overrides(
+    (
+      primary: var(--primary),
+      on-primary: var(--on-primary),
+      surface: var(--surface),
+      on-surface: var(--ink),
+      on-surface-variant: var(--muted),
+      outline: var(--field-border),
+      error: var(--danger),
+    )
+  );
 }
 * {
   box-sizing: border-box;
@@ -204,19 +216,19 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.2;
   font-weight: 650;
-  letter-spacing: -1px;
+  letter-spacing: -0.7px;
 }
 h2 {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.4;
   font-weight: 650;
   letter-spacing: -0.3px;
 }
 h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
 }
 .skip-link {
@@ -251,7 +263,7 @@ h3 {
 }
 .eyebrow {
   color: var(--primary);
-  font-size: 14px;
+  font-size: 10px;
   letter-spacing: 1px;
   font-weight: 600;
   margin-bottom: 10px;
@@ -272,12 +284,12 @@ h3 {
   height: 23px;
 }
 .field {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 .field > label,
 .filter-bar label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--ink);
@@ -286,7 +298,7 @@ mat-form-field {
   width: 100%;
 }
 .field-description {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   margin-top: 8px;
 }
@@ -301,7 +313,7 @@ mat-form-field {
   border: 1px solid;
   border-radius: 6px;
   padding: 14px 16px;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 20px;
 }
 .notice > iw-icon {
@@ -346,7 +358,7 @@ a[mat-stroked-button],
 button[mat-stroked-button],
 button[mat-button],
 a[mat-button] {
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0;
 }
 button iw-icon,
@@ -402,5 +414,42 @@ button[mat-icon-button] iw-icon {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+.stock-confirmation {
+  margin-block: 20px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.stock-confirmation table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.stock-confirmation th,
+.stock-confirmation td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.stock-confirmation thead {
+  background: var(--table-head);
+}
+.stock-confirmation .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 699px) {
+  html {
+    @include mat.button-overrides(
+      (
+        filled-container-height: 44px,
+        outlined-container-height: 44px,
+        text-container-height: 44px,
+      )
+    );
   }
 }

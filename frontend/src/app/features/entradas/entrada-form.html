@@ -54,15 +54,23 @@
       </div>
 
       <div class="order-form-fields">
+        @if (!original()) {
+          <div class="field entrada-order-search">
+            <label for="order-option-search">Buscar orden por número o proveedor</label>
+            <input
+              id="order-option-search"
+              type="search"
+              [value]="orderQuery()"
+              (change)="searchOrders($any($event.target).value)"
+            />
+          </div>
+        }
+
         <div class="field">
           <label for="entrada-orden">Orden de compra</label>
 
           @if (original(); as previous) {
-            <input
-              id="entrada-orden"
-              readonly
-              [value]="'N.° ' + previous.idOrden"
-            />
+            <input id="entrada-orden" readonly [value]="'N.° ' + previous.idOrden" />
           } @else {
             <select
               id="entrada-orden"
@@ -74,21 +82,34 @@
 
               @for (item of availableOrders(); track item.idOrden) {
                 <option [ngValue]="item.idOrden">
-                  N.° {{ item.idOrden }} · {{ item.nomProveedor }} · {{ item.estado }}
+                  N.° {{ item.idOrden }} · {{ item.nomProveedor }} · RUC {{ item.rucProveedor }} ·
+                  ID {{ item.idProveedor }} · {{ item.estado }}
                 </option>
               }
             </select>
+            <p class="field-description">
+              Se consultan 20 órdenes admisibles por página. Busca por número o proveedor para
+              localizar otra orden.
+            </p>
+            @if (orderPage() + 1 < orderPages()) {
+              <button
+                mat-button
+                type="button"
+                [disabled]="loadingOrders()"
+                (click)="loadOrderOptions()"
+              >
+                {{ loadingOrders() ? 'Consultando…' : 'Cargar más órdenes' }}
+              </button>
+            }
           }
 
           @if (original(); as previous) {
             <p class="field-description">
-              La rectificación conserva la orden N.° {{ previous.idOrden }}.
-              Estado actual: {{ order()?.estado ?? previous.estadoOrden }}.
+              La rectificación conserva la orden N.° {{ previous.idOrden }}. Estado actual:
+              {{ order()?.estado ?? previous.estadoOrden }}.
             </p>
           } @else {
-            <p class="field-description">
-              Solo se admiten órdenes Pendientes o Parciales.
-            </p>
+            <p class="field-description">Solo se admiten órdenes Pendientes o Parciales.</p>
           }
 
           @if (submitted() && !order()) {
@@ -113,29 +134,23 @@
 
           <p class="field-description" id="entrada-guia-ayuda">
             @if (id !== undefined) {
-              La rectificación conserva la guía original, incluso si es anterior
-              al nuevo formato.
+              La rectificación conserva la guía original, incluso si es anterior al nuevo formato.
             } @else if (order(); as selected) {
               @if (selected.prefijoGuia) {
-                Proveedor: {{ selected.nomProveedor }}.
-                Prefijo obligatorio: {{ selected.prefijoGuia }}.
-                Escribe la guía completa; ejemplo de formato:
-                {{ selected.prefijoGuia }}001-000123.
-                No reutilices una guía de otra entrega.
+                Proveedor: {{ selected.nomProveedor }} · RUC {{ selected.rucProveedor }} · ID
+                {{ selected.idProveedor }}. Prefijo obligatorio: {{ selected.prefijoGuia }}. Escribe
+                la guía completa; ejemplo de formato: {{ selected.prefijoGuia }}001-000123. No
+                reutilices una guía de otra entrega.
               } @else {
-                Este proveedor aún no tiene prefijo de guía.
-                Solicita al Administrador que lo configure.
+                Este proveedor aún no tiene prefijo de guía. Solicita al Administrador que lo
+                configure.
               }
             } @else {
               Selecciona una orden para conocer el proveedor y el prefijo obligatorio.
             }
           </p>
 
-          <p
-            id="entrada-guia-error"
-            class="order-field-error"
-            aria-live="polite"
-          >
+          <p id="entrada-guia-error" class="order-field-error" aria-live="polite">
             {{ mostrarErrorGuia() ? guiaError() : '' }}
           </p>
         </div>
@@ -201,8 +216,8 @@
 
       @if (order(); as selected) {
         <p class="field-description">
-          Orden N.° {{ selected.idOrden }} · {{ selected.estado }}.
-          El saldo mostrado puede cambiar si otra operación se confirma antes.
+          Orden N.° {{ selected.idOrden }} · {{ selected.estado }}. El saldo mostrado puede cambiar
+          si otra operación se confirma antes.
         </p>
       }
 
@@ -219,8 +234,7 @@
                   formControlName="idProducto"
                   (change)="lineErrors.set({})"
                   [attr.aria-invalid]="
-                    submitted() &&
-                    (line.controls.idProducto.invalid || duplicate(index))
+                    submitted() && (line.controls.idProducto.invalid || duplicate(index))
                   "
                 >
                   <option [ngValue]="0">Selecciona un producto</option>
@@ -233,15 +247,11 @@
                 </select>
 
                 @if (duplicate(index)) {
-                  <p class="order-field-error">
-                    Este producto ya está en la recepción.
-                  </p>
+                  <p class="order-field-error">Este producto ya está en la recepción.</p>
                 }
 
                 @if (submitted() && line.controls.idProducto.invalid) {
-                  <p class="order-field-error">
-                    Selecciona un producto pendiente de esta orden.
-                  </p>
+                  <p class="order-field-error">Selecciona un producto pendiente de esta orden.</p>
                 }
               </div>
 
@@ -256,36 +266,26 @@
                   (input)="clearLineError(line.controls.idProducto.value)"
                   [attr.aria-invalid]="
                     submitted() &&
-                    (
-                      line.controls.cantidad.invalid ||
-                      line.controls.cantidad.value >
-                        balance(line.controls.idProducto.value) ||
-                      !!lineErrors()[line.controls.idProducto.value]
-                    )
+                    (line.controls.cantidad.invalid ||
+                      line.controls.cantidad.value > balance(line.controls.idProducto.value) ||
+                      !!lineErrors()[line.controls.idProducto.value])
                   "
                 />
 
                 @if (submitted() && line.controls.cantidad.invalid) {
-                  <p class="order-field-error">
-                    Ingresa un entero mayor que cero.
-                  </p>
+                  <p class="order-field-error">Ingresa un entero mayor que cero.</p>
                 }
 
                 @if (
                   submitted() &&
                   !line.controls.cantidad.invalid &&
                   !lineErrors()[line.controls.idProducto.value] &&
-                  line.controls.cantidad.value >
-                    balance(line.controls.idProducto.value)
+                  line.controls.cantidad.value > balance(line.controls.idProducto.value)
                 ) {
                   <p class="order-field-error">
                     Supera el máximo de
                     {{ balance(line.controls.idProducto.value) }}
-                    {{
-                      balance(line.controls.idProducto.value) === 1
-                        ? 'unidad'
-                        : 'unidades'
-                    }}.
+                    {{ balance(line.controls.idProducto.value) === 1 ? 'unidad' : 'unidades' }}.
                   </p>
                 }
 
@@ -333,8 +333,8 @@
                   {{ originalQuantity(item.idProducto) }} unidades.
 
                   @if (order()?.estado === 'Cancelada') {
-                    La orden cancelada no se reabre; solo puedes sustituir hasta
-                    lo recibido en la entrada original.
+                    La orden cancelada no se reabre; solo puedes sustituir hasta lo recibido en la
+                    entrada original.
                   } @else {
                     Por eso el máximo puede superar el pendiente actual.
                   }
@@ -345,12 +345,7 @@
         }
       </div>
 
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="!order() || busy()"
-        (click)="addLine()"
-      >
+      <button mat-stroked-button type="button" [disabled]="!order() || busy()" (click)="addLine()">
         <iw-icon name="plus" />Agregar producto
       </button>
     </section>
@@ -360,19 +355,9 @@
       <button
         mat-flat-button
         type="submit"
-        [disabled]="
-          busy() ||
-          !order() ||
-          form.controls.numeroGuiaRemision.invalid
-        "
+        [disabled]="busy() || !order() || form.controls.numeroGuiaRemision.invalid"
       >
-        {{
-          busy()
-            ? 'Guardando…'
-            : id === undefined
-              ? 'Registrar entrada'
-              : 'Rectificar entrada'
-        }}
+        {{ busy() ? 'Guardando…' : id === undefined ? 'Registrar entrada' : 'Rectificar entrada' }}
       </button>
     </div>
   </form>

@@ -1,15 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 import { toApiError } from './api-error';
-import { ApiRequestError } from './models';
 import { CategoriaRequest, CategoriaResponse } from './categoria-models';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriasService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
   private readonly base = '/api/categorias';
 
   list(includeInactive = false): Promise<CategoriaResponse[]> {
@@ -42,12 +39,7 @@ export class CategoriasService {
     try {
       return await firstValueFrom(operation);
     } catch (error) {
-      const mapped = toApiError(error);
-      if (mapped.status === 401) {
-        this.auth.logout(true);
-        throw new ApiRequestError('Sesión expirada. Por favor, ingresa de nuevo.', 401);
-      }
-      throw mapped;
+      throw toApiError(error);
     }
   }
 }

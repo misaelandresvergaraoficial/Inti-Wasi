@@ -14,6 +14,7 @@ interface ResumenAxe {
     descripcion: string;
     ayuda: string;
     nodos: number;
+    objetivos: Array<{ selector: string; html: string }>;
   }>;
 }
 
@@ -27,7 +28,7 @@ async function auditar(page: Page, id: string, pagina: string, titulo: string): 
     url: page.url(),
     violaciones: resultado.violations.map((violacion) => ({
       id: violacion.id,
-      impacto: violacion.impact,
+      impacto: violacion.impact ?? null,
       descripcion: violacion.description,
       ayuda: violacion.help,
       nodos: violacion.nodes.length,

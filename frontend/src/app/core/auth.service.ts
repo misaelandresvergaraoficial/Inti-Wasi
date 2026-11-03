@@ -34,12 +34,17 @@ export class AuthService {
     const idleTimer = setInterval(() => this.checkInactivity(), 1000);
     const activity = () => {
       this.checkInactivity();
-      if (this.session() && this.idleSecondsRemaining() === null
-          && Date.now() - this.lastActivity() >= 1000) this.recordActivity();
+      if (
+        this.session() &&
+        this.idleSecondsRemaining() === null &&
+        Date.now() - this.lastActivity() >= 1000
+      )
+        this.recordActivity(true);
     };
     const resume = () => this.checkInactivity();
     const events = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
-    for (const event of events) document.addEventListener(event, activity, { passive: true, capture: true });
+    for (const event of events)
+      document.addEventListener(event, activity, { passive: true, capture: true });
     document.addEventListener('visibilitychange', resume);
     window.addEventListener('pageshow', resume);
     window.addEventListener('focus', resume);
@@ -103,26 +108,45 @@ export class AuthService {
   }
 
   logout(expired = false, accountChanged = false, inactive = false): void {
+    const token = this.session()?.token;
     this.clear();
+    if (token) {
+      this.http
+        .post<void>('/api/auth/logout', null, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 5000,
+        })
+        .subscribe({
+          error: (error) => {
+            if (error.status !== 401)
+              this.notice.showNext(
+                'Se cerró esta pestaña, pero el servidor no pudo confirmar el cierre. La sesión conserva sus límites de vencimiento.',
+              );
+          },
+        });
+    }
     void this.router.navigate(['/login'], {
-      queryParams: inactive ? { sesion: 'inactiva' } : expired
-        ? { sesion: 'caducada' }
-        : accountChanged
-          ? { cuenta: 'actualizada' }
-          : {},
+      queryParams: inactive
+        ? { sesion: 'inactiva' }
+        : expired
+          ? { sesion: 'caducada' }
+          : accountChanged
+            ? { cuenta: 'actualizada' }
+            : {},
     });
   }
 
   private async checkCurrent(): Promise<boolean> {
+    const current = this.session();
+    if (!current) return false;
     try {
-      const current = this.session()!;
       const user = await firstValueFrom(this.http.get<UsuarioResponse>('/api/auth/me'));
       if (this.session()?.token !== current.token || !this.valid()) return false;
       this.setUser(user, current.token, current.expiresAt);
       this.verified = true;
       return true;
     } catch {
-      this.clear();
+      if (this.session()?.token === current.token) this.clear();
       return false;
     }
   }
@@ -184,7 +208,7 @@ export class AuthService {
   continueSession(): void {
     this.checkInactivity();
     if (!this.valid()) return;
-    this.recordActivity();
+    this.recordActivity(true);
     this.idleSecondsRemaining.set(null);
   }
 
@@ -193,8 +217,21 @@ export class AuthService {
     return Number.isFinite(value) && value > 0 ? value : 0;
   }
 
-  private recordActivity(): void {
+  private recordActivity(notifyServer = false): void {
     sessionStorage.setItem(ACTIVITY_KEY, String(Date.now()));
+    const token = this.session()?.token;
+    if (notifyServer && token) {
+      this.http
+        .post<void>('/api/auth/actividad', null, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 5000,
+        })
+        .subscribe({
+          error: (error) => {
+            if (error.status === 401 && this.session()?.token === token) this.logout(true);
+          },
+        });
+    }
   }
 
   private checkInactivity(): void {
@@ -218,8 +255,6 @@ function tokenExpiration(token: string): number {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
     const expiresAt = Number(payload.exp) * 1000;
     if (Number.isFinite(expiresAt) && expiresAt > Date.now()) return expiresAt;
-  } catch {
-    /* El token malformado se rechaza abajo. */
-  }
+  } catch {}
   throw new Error('La sesión recibida no es válida. Inténtalo de nuevo.');
 }

@@ -1,15 +1,16 @@
+import { ConfirmDialog, ConfirmData } from '../../shared/confirm-dialog';
+import { tieneEmojis } from '../../shared/form-errors';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
-import { EntradaResponse, estadoDocumento } from '../../core/entrada-models';
+import { EntradaResponse, estadoDocumento, fechaEntrada } from '../../core/entrada-models';
 import { EntradasService } from '../../core/entradas.service';
 import { NoticeService } from '../../core/notice.service';
 import { OrdenResponse } from '../../core/order-models';
 import { OrdersService } from '../../core/orders.service';
-import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Icon } from '../../shared/icon';
 
 @Component({
@@ -60,11 +61,7 @@ export class EntradaDetail {
     }
   }
 
-  date(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(
-      new Date(value),
-    );
-  }
+  readonly date = fechaEntrada;
 
   orderLine(idProducto: number) {
     return this.order()?.detalles.find((line) => line.idProducto === idProducto);
@@ -73,31 +70,45 @@ export class EntradaDetail {
   async annul(): Promise<void> {
     if (this.busy() || this.record()?.estadoDocumento !== 1) return;
     const reason = this.motivo().trim();
+    if (tieneEmojis(reason)) {
+      this.actionError.set('No uses emojis en el motivo de anulación.');
+      document.getElementById('motivo-anulacion')?.focus();
+      return;
+    }
     this.actionError.set('');
     if (!reason || reason.length > 255) {
       this.actionError.set('Escribe un motivo de anulación de hasta 255 caracteres.');
       document.getElementById('motivo-anulacion')?.focus();
       return;
     }
-    const confirmed = await firstValueFrom(
-      this.dialog
-        .open(ConfirmDialog, {
-          width: '480px',
-          maxWidth: 'calc(100vw - 32px)',
-          autoFocus: 'first-tabbable',
-          data: {
-            title: `¿Anular la entrada N.° ${this.id}?`,
-            message:
-              'Se registrará una corrección que descontará las unidades de esta entrada. Si el stock actual no alcanza, el servidor rechazará toda la operación.',
-            action: 'Anular entrada',
-            danger: true,
-          },
-        })
-        .afterClosed(),
-    );
-    if (!confirmed) return;
+    const entry = this.record();
+    if (!entry) return;
     this.busy.set(true);
     try {
+      const data: ConfirmData = {
+        title: `¿Anular la entrada N.° ${this.id}?`,
+        action: 'Anular entrada',
+        message: `Orden N.° ${entry.idOrden} · ${entry.numeroGuiaRemision} · Motivo: ${reason}. Se revierte íntegramente la recepción; si falta stock, se rechazará toda la operación.`,
+        inventory: entry.movimientos.map((line) => ({
+          producto: `${line.sku} · ${line.nomProducto} · ID ${line.idProducto}`,
+          cantidad: line.cantidad,
+          stockPrevio: line.stockActual,
+          cambioNeto: -line.cantidad,
+          stockResultado: line.stockActual - line.cantidad,
+          reversion: line.cantidad,
+        })),
+      };
+      const confirmed = await firstValueFrom(
+        this.dialog
+          .open(ConfirmDialog, {
+            width: '780px',
+            maxWidth: 'calc(100vw - 32px)',
+            autoFocus: 'first-tabbable',
+            data,
+          })
+          .afterClosed(),
+      );
+      if (!confirmed) return;
       await this.entradas.annul(this.id, reason);
       await this.load();
       this.motivo.set('');

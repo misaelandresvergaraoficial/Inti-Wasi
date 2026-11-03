@@ -85,4 +85,82 @@ describe('Pantallas de Movimientos', () => {
     expect(fixture.nativeElement.querySelector('a[href="/documentos/8"]')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('a[href="/ordenes-compra/2"]')).toBeTruthy();
   });
+  it('distingue responsables homónimos por correo e ID y señala al inactivo', async () => {
+    const responsables = [
+      {
+        idUsuario: 7,
+        nomUsuario: 'Alex Quispe',
+        correoUsuario: 'alex.uno@intiwasi.test',
+        estado: 1,
+      },
+      {
+        idUsuario: 8,
+        nomUsuario: 'Alex Quispe',
+        correoUsuario: 'alex.dos@intiwasi.test',
+        estado: 0,
+      },
+    ];
+    await TestBed.configureTestingModule({
+      imports: [MovimientosList],
+      providers: [
+        provideRouter([]),
+        {
+          provide: MovimientosService,
+          useValue: {
+            list: vi
+              .fn()
+              .mockResolvedValue({ content: [], totalElements: 0, totalPages: 0, number: 0 }),
+            productos: vi.fn().mockResolvedValue([]),
+            responsables: vi.fn().mockResolvedValue(responsables),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(MovimientosList);
+    await fixture.componentInstance.loadOptions();
+    await fixture.componentInstance.load();
+    fixture.detectChanges();
+    const options = [
+      ...fixture.nativeElement.querySelectorAll('#movimiento-usuario option'),
+    ] as HTMLOptionElement[];
+    expect(options.find((option) => option.value === '7')?.textContent).toContain(
+      'alex.uno@intiwasi.test · ID 7',
+    );
+    expect(options.find((option) => option.value === '8')?.textContent).toContain(
+      'alex.dos@intiwasi.test · ID 8 · Inactivo',
+    );
+  });
+
+  it('identifica productos inactivos en el filtro histórico', async () => {
+    await TestBed.configureTestingModule({
+      imports: [MovimientosList],
+      providers: [
+        provideRouter([]),
+        {
+          provide: MovimientosService,
+          useValue: {
+            list: vi
+              .fn()
+              .mockResolvedValue({ content: [], totalElements: 0, totalPages: 0, number: 0 }),
+            productos: vi.fn().mockResolvedValue([
+              { idProducto: 1, sku: 'A', nomProducto: 'Activo', estado: 1 },
+              { idProducto: 2, sku: 'B', nomProducto: 'Histórico', estado: 0 },
+            ]),
+            responsables: vi.fn().mockResolvedValue([]),
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(MovimientosList);
+    await fixture.componentInstance.loadOptions();
+    await fixture.whenStable();
+    const active = fixture.nativeElement.querySelector(
+      '#movimiento-producto option[value="1"]',
+    ) as HTMLOptionElement;
+    const inactive = fixture.nativeElement.querySelector(
+      '#movimiento-producto option[value="2"]',
+    ) as HTMLOptionElement;
+    expect(active.textContent).not.toContain('Inactivo');
+    expect(inactive.textContent).toContain('B · Histórico · Inactivo');
+  });
 });

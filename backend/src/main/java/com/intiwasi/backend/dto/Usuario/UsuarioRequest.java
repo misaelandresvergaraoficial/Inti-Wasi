@@ -5,17 +5,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import com.intiwasi.backend.dto.Comun.Patrones;
 
 @Data
 public class UsuarioRequest {
 
     @NotBlank(message = "El nombre de usuario es obligatorio")
-    @Size(max = 50, message = "El nombre no debe superar los 50 caracteres")
+    @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
     @Pattern(
-            regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]{2,50}$",
-            message = "El nombre solo admite letras y espacios; sin números, signos ni emojis"
+            regexp = Patrones.NOMBRE_PERSONAL,
+            message = "El nombre admite letras, tildes, espacios, apóstrofos y guiones; sin números ni emojis"
     )
     private String nomUsuario;
+
+    public void setNomUsuario(String nomUsuario) {
+        this.nomUsuario = Patrones.normalizarNombre(nomUsuario);
+    }
 
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "Debe ingresar un formato de correo válido")

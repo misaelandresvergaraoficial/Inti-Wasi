@@ -29,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import jakarta.persistence.criteria.Predicate;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,13 +49,29 @@ public class SalidaService {
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
-    public List<SalidaResponse> listar() {
-        return salidaRepository.findAllConRelaciones().stream().map(this::convertir).toList();
+    public Page<SalidaResponse> listar(String q, Byte estado, LocalDate desde, LocalDate hasta,
+                                      String tipo, int page, int size, String sort) {
+        var pageable = HistorialInventarioFiltro.pagina(page, size, sort, false, "idSalida");
+        HistorialInventarioFiltro.validar(q, estado, desde, hasta);
+        TipoDocumento tipoDocumento = null;
+        return salidaRepository.findAll((root, query, cb) -> {
+            jakarta.persistence.criteria.Path<Documento> documento = root.get("documento");
+            var filtros = HistorialInventarioFiltro.condiciones(documento, cb, estado, desde, hasta, tipoDocumento);
+            filtros.add(HistorialInventarioFiltro.texto(cb, q, root.get("idSalida"),
+                    documento.get("usuario").get("nomUsuario"), root.get("observaciones"), root.get("motivo")));
+            return cb.and(filtros.toArray(Predicate[]::new));
+        }, pageable).map(this::convertir);
     }
 
     @Transactional(readOnly = true)
     public SalidaResponse obtener(Integer id) {
         return convertir(buscar(id));
+    }
+
+    @Transactional(readOnly = true)
+    public SalidaResponse porDocumento(Integer idDocumento) {
+        return convertir(salidaRepository.findByDocumento_IdDocumento(idDocumento)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Operación no encontrada para documento: " + idDocumento)));
     }
 
     @Transactional
@@ -170,6 +189,7 @@ public class SalidaService {
     }
 
     private void validarMovimientos(List<MovimientoRequest> movimientos) {
+        if (movimientos != null && movimientos.size() > 100) throw new IllegalArgumentException("La operación admite hasta 100 productos");
         if (movimientos == null || movimientos.isEmpty()) throw new IllegalArgumentException("Debe incluir al menos un movimiento");
         Set<Integer> ids = new HashSet<>();
         for (MovimientoRequest m : movimientos) {

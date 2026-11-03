@@ -250,6 +250,31 @@ export const routes: Routes = [
           import('./features/productos/producto-form').then((m) => m.ProductoForm),
       },
 
+      {
+        path: 'usuarios/:id',
+        title: 'Detalle de usuario · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/users/user-detail').then((m) => m.UserDetail),
+      },
+      {
+        path: 'categorias/:id',
+        title: 'Detalle de categoría · Inti Wasi',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/categorias/categoria-detail').then((m) => m.CategoriaDetail),
+      },
+      {
+        path: 'proveedores/:id',
+        title: 'Detalle de proveedor · Inti Wasi',
+        loadComponent: () =>
+          import('./features/proveedores/proveedor-detail').then((m) => m.ProveedorDetail),
+      },
+      {
+        path: 'productos/:id',
+        title: 'Detalle de producto · Inti Wasi',
+        loadComponent: () =>
+          import('./features/productos/producto-detail').then((m) => m.ProductoDetail),
+      },
       { path: '', pathMatch: 'full', redirectTo: landingRedirect },
       { path: '**', redirectTo: landingRedirect },
     ],

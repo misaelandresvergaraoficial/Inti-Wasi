@@ -48,12 +48,6 @@ public class ProveedorService {
             );
         }
 
-        if (proveedorRepository.existsByNomProveedor(request.getNomProveedor())) {
-            throw new ConflictoException(
-                    "El nombre del proveedor ya se encuentra registrado"
-            );
-        }
-
         if (proveedorRepository.existsByRuc(request.getRuc())) {
             throw new ConflictoException(
                     "El RUC ya se encuentra registrado en el sistema"
@@ -102,14 +96,6 @@ public class ProveedorService {
             );
         }
 
-        if (!proveedorExistente.getNomProveedor().equalsIgnoreCase(
-                request.getNomProveedor()
-        ) && proveedorRepository.existsByNomProveedor(request.getNomProveedor())) {
-            throw new ConflictoException(
-                    "El nombre del proveedor ya se encuentra registrado por otro proveedor"
-            );
-        }
-
         if (!proveedorExistente.getRuc().equals(request.getRuc())
                 && proveedorRepository.existsByRuc(request.getRuc())) {
             throw new ConflictoException(
@@ -140,6 +126,9 @@ public class ProveedorService {
 
     @Transactional
     public ProveedorResponse cambiarEstado(Integer id, Integer estado) {
+        if (estado == null || (estado != 0 && estado != 1)) {
+            throw new IllegalArgumentException("El estado del proveedor debe ser 0 o 1");
+        }
         Proveedor proveedor = proveedorRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Proveedor no encontrado con ID: " + id

@@ -12,10 +12,7 @@ export function toApiError(error: unknown): ApiRequestError {
   }
 
   if (error.status === 0) {
-    return new ApiRequestError(
-      'No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.',
-      0,
-    );
+    return new ApiRequestError('No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.', 0);
   }
 
   const body = error.error as Partial<ApiErrorResponse> | null;
@@ -23,18 +20,17 @@ export function toApiError(error: unknown): ApiRequestError {
 
   if (error.status === 401) {
     return new ApiRequestError(
-      message.includes('cuenta no está disponible')
-        ? 'Su cuenta no está disponible. Contacte al Administrador.'
-        : 'Correo o contraseña incorrectos. Revisa tus datos e inténtalo de nuevo.',
+      !error.url?.includes('/api/auth/login')
+        ? 'Tu sesión ha caducado. Inicia sesión nuevamente.'
+        : message.includes('cuenta no está disponible')
+          ? 'Su cuenta no está disponible. Contacte al Administrador.'
+          : 'Correo o contraseña incorrectos. Revisa tus datos e inténtalo de nuevo.',
       401,
     );
   }
 
   if (error.status === 403) {
-    return new ApiRequestError(
-      'No tienes permiso para realizar esta acción.',
-      403,
-    );
+    return new ApiRequestError('No tienes permiso para realizar esta acción.', 403);
   }
 
   if (error.status >= 500) {
@@ -54,19 +50,15 @@ export function toApiError(error: unknown): ApiRequestError {
 function fieldFromMessage(message: string): string | undefined {
   const lower = message.toLocaleLowerCase();
 
+  if (/^sku\s*:/.test(lower)) return 'sku';
+  if (/^nomproducto\s*:/.test(lower)) return 'nomProducto';
   if (lower.includes('prefijoguia')) return 'prefijoGuia';
 
-  if (
-    lower.includes('numeroguiaremision') ||
-    lower.includes('guía de remisión')
-  ) {
+  if (lower.includes('numeroguiaremision') || lower.includes('guía de remisión')) {
     return 'numeroGuiaRemision';
   }
 
-  if (
-    lower.includes('nomproveedor') ||
-    lower.includes('nombre del proveedor')
-  ) {
+  if (lower.includes('nomproveedor') || lower.includes('nombre del proveedor')) {
     return 'nomProveedor';
   }
 
@@ -76,6 +68,8 @@ function fieldFromMessage(message: string): string | undefined {
     return 'direccion';
   }
   if (lower.includes('correo')) return 'correo';
+  if (lower.includes('nomcategoria') || lower.includes('nombre de la categoría'))
+    return 'nomCategoria';
   if (lower.includes('nombre')) return 'nomUsuario';
   if (lower.includes('teléfono') || lower.includes('telefono')) {
     return 'telefono';

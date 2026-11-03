@@ -15,9 +15,17 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
+import com.intiwasi.backend.security.LoginThrottledException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LoginThrottledException.class)
+    public ResponseEntity<ErrorResponse> handleIntentosExcesivos(LoginThrottledException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", Integer.toString(ex.getRetryAfter()))
+                .body(new ErrorResponse(LocalDateTime.now(), 429, "Límite de acceso", ex.getMessage()));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidaciones(
@@ -49,7 +57,7 @@ public class GlobalExceptionHandler {
     ) {
         return crearRespuesta(
                 HttpStatus.BAD_REQUEST,
-                "El cuerpo de la solicitud contiene un JSON inválido"
+                "La solicitud contiene un JSON inválido, campos no permitidos o valores con formato incorrecto"
         );
     }
 

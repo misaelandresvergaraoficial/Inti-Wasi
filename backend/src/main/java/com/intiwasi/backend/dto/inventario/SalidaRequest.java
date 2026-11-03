@@ -40,5 +40,6 @@ public class SalidaRequest {
 
     @Valid
     @NotEmpty(message = "La salida debe contener al menos un movimiento")
+    @Size(max = 100, message = "La salida admite hasta 100 productos")
     private List<MovimientoRequest> movimientos;
 }

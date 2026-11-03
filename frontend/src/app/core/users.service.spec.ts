@@ -124,6 +124,7 @@ describe('Usuarios conectados al backend', () => {
     );
 
     await expect(result).rejects.toMatchObject({ status: 401 });
+    http.expectOne('/api/auth/logout').flush(null);
     expect(TestBed.inject(AuthService).session()).toBeNull();
     expect(sessionStorage.getItem('intiwasi.session')).toBeNull();
   });

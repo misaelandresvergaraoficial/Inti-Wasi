@@ -29,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import jakarta.persistence.criteria.Predicate;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,13 +49,29 @@ public class AjusteService {
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
-    public List<AjusteResponse> listar() {
-        return ajusteRepository.findAllConRelaciones().stream().map(this::convertir).toList();
+    public Page<AjusteResponse> listar(String q, Byte estado, LocalDate desde, LocalDate hasta,
+                                      String tipo, int page, int size, String sort) {
+        var pageable = HistorialInventarioFiltro.pagina(page, size, sort, false, "idAjuste");
+        HistorialInventarioFiltro.validar(q, estado, desde, hasta);
+        TipoDocumento tipoDocumento = null;
+        return ajusteRepository.findAll((root, query, cb) -> {
+            jakarta.persistence.criteria.Path<Documento> documento = root.get("documento");
+            var filtros = HistorialInventarioFiltro.condiciones(documento, cb, estado, desde, hasta, tipoDocumento);
+            filtros.add(HistorialInventarioFiltro.texto(cb, q, root.get("idAjuste"),
+                    documento.get("usuario").get("nomUsuario"), root.get("motivo"), root.get("observaciones"), root.get("tipoAjuste")));
+            return cb.and(filtros.toArray(Predicate[]::new));
+        }, pageable).map(this::convertir);
     }
 
     @Transactional(readOnly = true)
     public AjusteResponse obtener(Integer id) {
         return convertir(buscar(id));
+    }
+
+    @Transactional(readOnly = true)
+    public AjusteResponse porDocumento(Integer idDocumento) {
+        return convertir(ajusteRepository.findByDocumento_IdDocumento(idDocumento)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Operación no encontrada para documento: " + idDocumento)));
     }
 
     @Transactional
@@ -90,6 +109,9 @@ public class AjusteService {
         for (MovimientoRequest item : request.getMovimientos()) {
             Producto producto = productos.get(item.getIdProducto());
             if (!Byte.valueOf((byte) 1).equals(producto.getEstado())) throw new ReglaNegocioException("El producto está inactivo: " + producto.getIdProducto());
+            if (request.getTipoAjuste() == TipoAjuste.INCREMENTO && (long) producto.getStockActual() + item.getCantidad() > Integer.MAX_VALUE) {
+                throw new ReglaNegocioException("El incremento excede el stock máximo del producto: " + producto.getIdProducto());
+            }
             if (request.getTipoAjuste() == TipoAjuste.DECREMENTO && producto.getStockActual() < item.getCantidad()) {
                 throw new ReglaNegocioException("El decremento supera el stock del producto: " + producto.getIdProducto());
             }
@@ -160,10 +182,12 @@ public class AjusteService {
         if (request == null || request.getTipoAjuste() == null) throw new IllegalArgumentException("El tipo de ajuste es obligatorio");
         if (request.getMotivo() == null || request.getMotivo().isBlank()) throw new IllegalArgumentException("El motivo del ajuste es obligatorio");
         if (request.getMotivo().length() > 255) throw new IllegalArgumentException("El motivo no debe exceder 255 caracteres");
+        if (request.getObservaciones() != null && request.getObservaciones().length() > 255) throw new IllegalArgumentException("Las observaciones no deben exceder 255 caracteres");
         validarMovimientos(request.getMovimientos());
     }
 
     private void validarMovimientos(List<MovimientoRequest> movimientos) {
+        if (movimientos != null && movimientos.size() > 100) throw new IllegalArgumentException("La operación admite hasta 100 productos");
         if (movimientos == null || movimientos.isEmpty()) throw new IllegalArgumentException("Debe incluir al menos un movimiento");
         Set<Integer> ids = new HashSet<>();
         for (MovimientoRequest m : movimientos) {

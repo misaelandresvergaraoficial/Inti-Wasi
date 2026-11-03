@@ -19,6 +19,7 @@ const order: OrdenResponse = {
   fechaEmision: '2026-09-29',
   fechaEstimadaEntrega: '2026-10-03',
   estado: 'Pendiente',
+  editable: true,
   detalles: [
     {
       idDetalle: 1,
@@ -77,14 +78,36 @@ describe('Órdenes de compra conectadas al backend', () => {
     const listing = http.expectOne('/api/ordenes-compra');
     expect(listing.request.method).toBe('GET');
     expect(listing.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
-    listing.flush([order]);
-    expect((await list)[0].idOrden).toBe(12);
+    listing.flush({ content: [order], totalElements: 1, totalPages: 1, number: 0 });
+    expect((await list).content[0].idOrden).toBe(12);
 
     const detail = orders.get(12);
     const request = http.expectOne('/api/ordenes-compra/12');
     expect(request.request.method).toBe('GET');
     request.flush(order);
     expect((await detail).detalles[0].cantidadPorRecibir).toBe(5);
+  });
+
+  it('envia filtros y pagina al servidor sin filtrar ni truncar el resultado', async () => {
+    const result = orders.list({
+      page: 2,
+      size: 8,
+      q: 'Norte',
+      estado: 'Parcial',
+      desde: '2026-10-01',
+      hasta: '2026-10-31',
+      sort: 'asc',
+    });
+    const request = http.expectOne((request) => request.url === '/api/ordenes-compra');
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('8');
+    expect(request.request.params.get('q')).toBe('Norte');
+    expect(request.request.params.get('estado')).toBe('Parcial');
+    expect(request.request.params.get('desde')).toBe('2026-10-01');
+    expect(request.request.params.get('hasta')).toBe('2026-10-31');
+    expect(request.request.params.get('sort')).toBe('asc');
+    request.flush({ content: [order], totalElements: 17, totalPages: 3, number: 2 });
+    expect((await result).totalElements).toBe(17);
   });
 
   it('usa los catálogos activos solo para elegir proveedor y producto', async () => {
@@ -126,6 +149,8 @@ describe('Órdenes de compra conectadas al backend', () => {
   it('respeta los estados y conserva el rechazo de una edición con entradas', async () => {
     expect(puedeEditarOrden(order)).toBe(true);
     expect(puedeCancelarOrden(order)).toBe(true);
+    expect(puedeEditarOrden({ ...order, editable: false })).toBe(false);
+    expect(puedeEditarOrden({ ...order, editable: undefined })).toBe(false);
     expect(puedeEditarOrden({ ...order, estado: 'Parcial' })).toBe(false);
     expect(puedeCancelarOrden({ ...order, estado: 'Parcial' })).toBe(true);
     expect(puedeCancelarOrden({ ...order, estado: 'Recibida' })).toBe(false);
@@ -153,6 +178,7 @@ describe('Órdenes de compra conectadas al backend', () => {
         { status: 401, statusText: 'Unauthorized' },
       );
     await expect(result).rejects.toMatchObject({ status: 401 });
+    http.expectOne('/api/auth/logout').flush(null);
     expect(TestBed.inject(AuthService).session()).toBeNull();
   });
 });

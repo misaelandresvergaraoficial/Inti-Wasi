@@ -109,6 +109,16 @@ class SalidaServiceTest {
         verifyNoInteractions(documentos);
     }
 
+    @Test
+    void rechazaCientoUnaLineasAntesDeConsultarProductos() {
+        SalidaRequest solicitud = request(1);
+        solicitud.setMovimientos(java.util.stream.IntStream.rangeClosed(1, 101).mapToObj(id -> {
+            MovimientoRequest linea = new MovimientoRequest(); linea.setIdProducto(id); linea.setCantidad(1); return linea;
+        }).toList());
+        assertThrows(IllegalArgumentException.class, () -> service.registrar(solicitud));
+        verifyNoInteractions(productos, documentos, movimientos);
+    }
+
     private SalidaRequest request(int cantidad) {
         MovimientoRequest movimiento = new MovimientoRequest();
         movimiento.setIdProducto(12);

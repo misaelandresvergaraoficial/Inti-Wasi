@@ -6,6 +6,9 @@ import com.intiwasi.backend.dto.Comun.ErrorResponse;
 import com.intiwasi.backend.dto.Usuario.UsuarioResponse;
 import com.intiwasi.backend.repository.UsuarioRepository;
 import com.intiwasi.backend.security.JwtUtil;
+import com.intiwasi.backend.security.LoginAttemptLimiter;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.RequestHeader;
 import com.intiwasi.backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,29 +35,35 @@ public class AuthController {
     private final UsuarioService usuarioService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptLimiter loginAttempts;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
                           UsuarioService usuarioService, UsuarioRepository usuarioRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder, LoginAttemptLimiter loginAttempts) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioService = usuarioService;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttempts = loginAttempts;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request, HttpServletRequest servletRequest) {
+        loginAttempts.check(request.getCorreo(), servletRequest.getRemoteAddr());
+        long version = jwtUtil.versionSesion(request.getCorreo());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getCorreo(), request.getContrasena())
             );
-            String token = jwtUtil.generarToken(request.getCorreo());
+            String correo = authentication.getName();
+            String token = jwtUtil.generarToken(correo, version);
+            loginAttempts.success(request.getCorreo());
             String rol = authentication.getAuthorities().stream()
                     .map(authority -> authority.getAuthority())
                     .findFirst()
                     .orElse("");
-            return ResponseEntity.ok(new AuthResponse(token, request.getCorreo(), rol));
+            return ResponseEntity.ok(new AuthResponse(token, correo, rol));
         } catch (BadCredentialsException ex) {
             boolean cuentaInactiva = usuarioRepository.findByCorreo(request.getCorreo())
                     .filter(usuario -> usuario.getEstado() == 0)
@@ -75,5 +84,19 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> obtenerActual(Authentication authentication) {
         return ResponseEntity.ok(usuarioService.obtenerActual(authentication.getName()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> cerrarSesion(@RequestHeader("Authorization") String authorization) {
+        jwtUtil.cerrarSesion(authorization.substring(7));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/actividad")
+    public ResponseEntity<Void> registrarActividad(@RequestHeader("Authorization") String authorization) {
+        if (!jwtUtil.registrarActividad(authorization.substring(7))) {
+            throw new BadCredentialsException("La sesión ya no está activa");
+        }
+        return ResponseEntity.noContent().build();
     }
 }

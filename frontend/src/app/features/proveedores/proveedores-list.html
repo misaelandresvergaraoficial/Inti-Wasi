@@ -1,6 +1,4 @@
-<div class="breadcrumb">
-  <span>Catálogos</span><iw-icon name="next" /><span>Proveedores</span>
-</div>
+<div class="breadcrumb"><span>Catálogos</span><iw-icon name="next" /><span>Proveedores</span></div>
 <div class="page-heading flex flex-wrap items-start justify-between gap-4">
   <div>
     <div class="eyebrow">CATÁLOGO DE ABASTECIMIENTO</div>
@@ -107,13 +105,15 @@
     <div class="table-scroll" role="region" aria-label="Listado de proveedores" tabindex="0">
       <table class="supplier-table">
         <caption class="sr-only">
-          {{ auth.isAdmin() ? 'Proveedores activos e inactivos' : 'Proveedores activos' }} de Inti
-          Wasi
+          {{
+            auth.isAdmin() ? 'Proveedores activos e inactivos' : 'Proveedores activos'
+          }}
+          de Inti Wasi
         </caption>
         <thead>
           <tr>
             <th scope="col">Proveedor</th>
-            <th scope="col">RUC</th>
+            <th scope="col">RUC / Guía</th>
             <th scope="col">Contacto</th>
             <th scope="col">Teléfono</th>
             <th scope="col">Dirección</th>
@@ -127,19 +127,34 @@
             <tr [class.inactive-row]="supplier.estado === 0">
               <th scope="row">
                 <span class="supplier-name">
-                  {{ supplier.nomProveedor }}
+                  <a
+                    class="catalog-record-link"
+                    [routerLink]="['/proveedores', supplier.idProveedor]"
+                    >{{ supplier.nomProveedor }}</a
+                  >
                   @if (supplier.estado === 0) {
                     <span class="status-tag">Inactivo</span>
                   }
                 </span>
               </th>
-              <td class="supplier-ruc">{{ supplier.ruc }}</td>
+              <td class="supplier-ruc">
+                {{ supplier.ruc }}<span class="person-email">ID {{ supplier.idProveedor }}</span
+                ><span class="person-email">{{ supplier.prefijoGuia }}</span>
+              </td>
               <td>{{ supplier.contacto || 'Sin contacto' }}</td>
               <td class="supplier-phone">{{ supplier.telefono }}</td>
               <td class="supplier-address">{{ supplier.direccion || 'Sin dirección' }}</td>
               @if (auth.isAdmin()) {
                 <td>
                   <div class="row-actions">
+                    <a
+                      mat-button
+                      [routerLink]="['/proveedores', supplier.idProveedor]"
+                      [attr.aria-label]="
+                        'Ver ' + supplier.nomProveedor + ', ID ' + supplier.idProveedor
+                      "
+                      >Ver</a
+                    >
                     <a
                       mat-button
                       [routerLink]="['/proveedores', supplier.idProveedor, 'editar']"
@@ -180,7 +195,8 @@
     </div>
     <div class="pagination">
       <p role="status">
-        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de {{ filtered().length }} proveedores
+        Mostrando {{ page() * pageSize + 1 }}–{{ rangeEnd() }} de
+        {{ filtered().length }} proveedores
       </p>
       <div class="flex items-center gap-2">
         <button
