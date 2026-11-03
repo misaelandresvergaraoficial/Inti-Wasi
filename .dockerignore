@@ -1,0 +1,16 @@
+**
+!backend/
+!backend/pom.xml
+!backend/mvnw
+!backend/.mvn/
+!backend/.mvn/**
+!backend/src/
+!backend/src/main/
+!backend/src/main/**
+backend/src/main/resources/application-local.properties*
+backend/src/main/resources/application-production.properties*
+backend/src/main/resources/.env*
+!backend/docker/
+!backend/docker/entrypoint.sh
+!deploy/
+!deploy/application-production.properties.example
