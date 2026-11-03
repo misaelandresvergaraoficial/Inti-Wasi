@@ -87,6 +87,7 @@ Abrir `http://localhost:4200` e iniciar sesión con una cuenta activa de la base
 
 La sesión usa una cookie HttpOnly y protección CSRF. Dura hasta ocho horas; después de 15 minutos de inactividad aparece un aviso y, si no se confirma, se cierra 30 segundos después.
 
+
 ## Documentación
 
 - [Guía del frontend](frontend/README.md).

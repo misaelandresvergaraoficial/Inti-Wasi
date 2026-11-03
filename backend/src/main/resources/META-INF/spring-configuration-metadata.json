@@ -20,6 +20,54 @@
       "name": "app.cors.allowed-origins",
       "type": "java.lang.String",
       "description": "Orígenes HTTP o HTTPS permitidos, separados por comas."
+    },
+    {
+      "name": "app.api-limit.requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 300,
+      "description": "Peticiones de negocio por usuario autenticado durante cada ventana."
+    },
+    {
+      "name": "app.api-limit.window-seconds",
+      "type": "java.lang.Long",
+      "defaultValue": 60,
+      "description": "Duración de las ventanas de límite de API, en segundos."
+    },
+    {
+      "name": "app.api-limit.concurrent-requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 20,
+      "description": "Máximo de solicitudes API en procesamiento simultáneo por instancia."
+    },
+    {
+      "name": "app.api-limit.concurrent-anonymous-requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 4,
+      "description": "Máximo de solicitudes anónimas simultáneas; debe ser menor que el límite total."
+    },
+    {
+      "name": "app.api-limit.anonymous-requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 60,
+      "description": "Peticiones anónimas por IP de conexión en cada ventana; no confía en cabeceras aportadas por el cliente."
+    },
+    {
+      "name": "app.api-limit.anonymous-global-requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 120,
+      "description": "Peticiones anónimas admitidas entre todos los orígenes por ventana."
+    },
+    {
+      "name": "app.api-limit.global-requests",
+      "type": "java.lang.Integer",
+      "defaultValue": 1200,
+      "description": "Peticiones admitidas entre todas las identidades por ventana."
+    },
+    {
+      "name": "app.api-limit.concurrent-exports",
+      "type": "java.lang.Integer",
+      "defaultValue": 2,
+      "description": "Máximo de exportaciones autenticadas en procesamiento simultáneo."
     }
   ]
 }

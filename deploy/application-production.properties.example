@@ -23,6 +23,14 @@ spring.web.error.include-binding-errors=never
 
 app.cors.allowed-origins=${PROD_CORS_ORIGIN}
 app.auth.cookie-secure=true
+app.api-limit.requests=${API_REQUESTS_PER_WINDOW:300}
+app.api-limit.window-seconds=${API_WINDOW_SECONDS:60}
+app.api-limit.concurrent-requests=${API_CONCURRENT_REQUESTS:20}
+app.api-limit.concurrent-anonymous-requests=${API_CONCURRENT_ANONYMOUS_REQUESTS:4}
+app.api-limit.anonymous-requests=${API_ANONYMOUS_REQUESTS:60}
+app.api-limit.anonymous-global-requests=${API_ANONYMOUS_GLOBAL_REQUESTS:120}
+app.api-limit.global-requests=${API_GLOBAL_REQUESTS:1200}
+app.api-limit.concurrent-exports=${API_CONCURRENT_EXPORTS:2}
 
 jwt.secreto=${PROD_JWT_SECRET}
 jwt.expiracion-ms=28800000

@@ -1,6 +1,7 @@
 package com.intiwasi.backend.security;
 
 import com.intiwasi.backend.dto.Comun.ErrorResponse;
+import com.intiwasi.backend.config.ApiLimitProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,33 +15,29 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class ApiRateLimitFilter extends OncePerRequestFilter {
-    private static final int MAX_KEYS = 10_000;
-    private final Map<String, Counter> counters = new HashMap<>();
     private final Clock clock;
     private final ObjectMapper mapper;
-    private final int limit;
-    private final long windowSeconds;
+    private final RequestRateLimiter users;
+    private final RequestRateLimiter anonymousIps;
+    private final RequestRateLimiter anonymousTotal;
+    private final RequestRateLimiter global;
+    private final Semaphore anonymousRequests;
     private final Semaphore exports;
-    private Instant nextCleanup = Instant.MIN;
 
-    public ApiRateLimitFilter(Clock clock, ObjectMapper mapper, int limit, long windowSeconds, int maxExports) {
-        if (limit <= 0 || windowSeconds <= 0 || maxExports <= 0) {
-            throw new IllegalArgumentException("Los límites de API deben ser positivos");
-        }
+    public ApiRateLimitFilter(Clock clock, ObjectMapper mapper, ApiLimitProperties limits) {
         this.clock = clock;
         this.mapper = mapper;
-        this.limit = limit;
-        this.windowSeconds = windowSeconds;
-        this.exports = new Semaphore(maxExports);
+        this.users = new RequestRateLimiter(clock, limits.requests(), limits.windowSeconds());
+        this.anonymousIps = new RequestRateLimiter(clock, limits.anonymousRequests(), limits.windowSeconds());
+        this.anonymousTotal = new RequestRateLimiter(clock, limits.anonymousGlobalRequests(), limits.windowSeconds());
+        this.global = new RequestRateLimiter(clock, limits.globalRequests(), limits.windowSeconds());
+        this.anonymousRequests = new Semaphore(limits.concurrentAnonymousRequests());
+        this.exports = new Semaphore(limits.concurrentExports());
     }
 
     @Override
@@ -48,25 +45,44 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!path.startsWith("/api/") || isExcluded(path) || auth == null
-                || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+        if (!path.startsWith("/api/")) {
             chain.doFilter(request, response);
             return;
         }
-        long retry = check(auth.getName());
+        boolean anonymous = auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken;
+        long retry = 0;
+        if (anonymous) {
+            retry = anonymousIps.check(request.getRemoteAddr());
+            if (retry == 0) retry = anonymousTotal.check("anonymous");
+        } else if (!isExcluded(path)) {
+            retry = users.check(auth.getName().toLowerCase(Locale.ROOT));
+        }
         if (retry > 0) {
             reject(response, retry);
             return;
         }
-        boolean export = path.matches("/api/reportes/[^/]+/exportar");
-        if (export && !exports.tryAcquire()) {
+        if (anonymous && !anonymousRequests.tryAcquire()) {
             reject(response, 1);
             return;
         }
+        boolean exportAcquired = false;
         try {
+            retry = global.check("api");
+            if (retry > 0) {
+                reject(response, retry);
+                return;
+            }
+            if (!anonymous && path.matches("/api/reportes/[^/]+/exportar")) {
+                exportAcquired = exports.tryAcquire();
+                if (!exportAcquired) {
+                    reject(response, 1);
+                    return;
+                }
+            }
             chain.doFilter(request, response);
         } finally {
-            if (export) exports.release();
+            if (exportAcquired) exports.release();
+            if (anonymous) anonymousRequests.release();
         }
     }
 
@@ -75,33 +91,13 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
                 || path.equals("/api/auth/actividad") || path.equals("/api/auth/logout");
     }
 
-    private synchronized long check(String identity) {
-        Instant now = clock.instant();
-        if (!now.isBefore(nextCleanup)) {
-            counters.entrySet().removeIf(entry -> !now.isBefore(entry.getValue().expiresAt()));
-            nextCleanup = now.plusSeconds(windowSeconds);
-        }
-        String key = identity.toLowerCase(Locale.ROOT);
-        Counter current = counters.get(key);
-        if (current == null || !now.isBefore(current.expiresAt())) {
-            if (current == null && counters.size() >= MAX_KEYS) return windowSeconds;
-            counters.put(key, new Counter(1, now.plusSeconds(windowSeconds)));
-            return 0;
-        }
-        if (current.count() >= limit) {
-            return Math.max(1, (Duration.between(now, current.expiresAt()).toMillis() + 999) / 1000);
-        }
-        counters.put(key, new Counter(current.count() + 1, current.expiresAt()));
-        return 0;
-    }
-
     private void reject(HttpServletResponse response, long retrySeconds) throws IOException {
         response.setStatus(429);
         response.setHeader("Retry-After", Long.toString(retrySeconds));
+        response.setHeader("Cache-Control", "no-store");
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         mapper.writeValue(response.getOutputStream(), new ErrorResponse(LocalDateTime.now(clock), 429,
                 "Too Many Requests", "Límite temporal alcanzado. Intente nuevamente."));
     }
 
-    private record Counter(int count, Instant expiresAt) {}
 }

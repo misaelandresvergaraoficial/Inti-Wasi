@@ -2,6 +2,7 @@ package com.intiwasi.backend.controller;
 
 import com.intiwasi.backend.config.JsonConfig;
 import com.intiwasi.backend.config.SecurityConfig;
+import com.intiwasi.backend.config.ApiLimitProperties;
 import com.intiwasi.backend.config.TimeConfig;
 import com.intiwasi.backend.dto.Proveedor.ProveedorResponse;
 import com.intiwasi.backend.repository.UsuarioRepository;
@@ -44,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SeguridadApiTest {
     @Autowired MockMvc mvc;
     @Autowired JwtUtil jwt;
+    @Autowired ApiLimitProperties apiLimits;
+    @Autowired org.springframework.security.web.SecurityFilterChain securityChain;
     @MockitoBean AuthenticationManager authenticationManager;
     @MockitoBean UserDetailsService userDetails;
     @MockitoBean PasswordEncoder passwordEncoder;
@@ -74,6 +77,23 @@ class SeguridadApiTest {
                 throw new IllegalStateException(e);
             }
         };
+    }
+
+    @Test
+    void aplicaLimitesDeTraficoPorDefectoSinConfiguracionPrivada() {
+        assertEquals(300, apiLimits.requests());
+        assertEquals(20, apiLimits.concurrentRequests());
+        assertEquals(4, apiLimits.concurrentAnonymousRequests());
+        assertEquals(60, apiLimits.anonymousRequests());
+        assertEquals(120, apiLimits.anonymousGlobalRequests());
+        assertEquals(1200, apiLimits.globalRequests());
+        var filters = securityChain.getFilters().stream().map(Object::getClass).toList();
+        assertTrue(filters.contains(ApiConcurrencyFilter.class));
+        assertTrue(filters.indexOf(ApiConcurrencyFilter.class)
+                < filters.indexOf(org.springframework.security.web.csrf.CsrfFilter.class));
+        assertTrue(filters.indexOf(ApiRateLimitFilter.class) > filters.indexOf(JwtAuthenticationFilter.class));
+        assertTrue(filters.indexOf(ApiRateLimitFilter.class)
+                < filters.indexOf(org.springframework.security.web.csrf.CsrfFilter.class));
     }
 
     @Test

@@ -2,6 +2,8 @@ package com.intiwasi.backend.config;
 
 import com.intiwasi.backend.security.JwtAuthenticationFilter;
 import com.intiwasi.backend.security.ApiRateLimitFilter;
+import com.intiwasi.backend.security.ApiConcurrencyFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import java.time.Clock;
 import tools.jackson.databind.ObjectMapper;
 import com.intiwasi.backend.security.RestAccessDeniedHandler;
@@ -19,8 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +35,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(ApiLimitProperties.class)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -41,6 +44,7 @@ public class SecurityConfig {
     private final List<String> allowedOrigins;
     private final boolean cookieSecure;
     private final ApiRateLimitFilter apiRateLimitFilter;
+    private final ApiConcurrencyFilter apiConcurrencyFilter;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
@@ -48,11 +52,9 @@ public class SecurityConfig {
             RestAccessDeniedHandler accessDeniedHandler,
             @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins,
             @Value("${app.auth.cookie-secure:true}") boolean cookieSecure,
-            Clock clock, ObjectMapper mapper,
-            @Value("${app.api-limit.requests:600}") int requestLimit,
-            @Value("${app.api-limit.window-seconds:60}") long windowSeconds,
-            @Value("${app.api-limit.concurrent-exports:2}") int concurrentExports) {
-        this.apiRateLimitFilter = new ApiRateLimitFilter(clock, mapper, requestLimit, windowSeconds, concurrentExports);
+            Clock clock, ObjectMapper mapper, ApiLimitProperties limits) {
+        this.apiRateLimitFilter = new ApiRateLimitFilter(clock, mapper, limits);
+        this.apiConcurrencyFilter = new ApiConcurrencyFilter(clock, mapper, limits.concurrentRequests());
         this.cookieSecure = cookieSecure;
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -92,8 +94,9 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(apiRateLimitFilter, JwtAuthenticationFilter.class);
+                .addFilterBefore(apiRateLimitFilter, CsrfFilter.class)
+                .addFilterBefore(jwtAuthFilter, ApiRateLimitFilter.class)
+                .addFilterBefore(apiConcurrencyFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
