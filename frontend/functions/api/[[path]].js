@@ -31,7 +31,7 @@ export async function onRequest({ request, env }) {
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
       duplex: 'half',
       redirect: 'manual',
-    }), { cf: { cacheTtl: 0, cacheEverything: false } });
+    }), { cf: { cacheEverything: false } });
   } catch {
     return Response.json({ mensaje: 'El servicio no está disponible. Inténtalo nuevamente.' }, {
       status: 502,
@@ -46,7 +46,20 @@ export async function onRequest({ request, env }) {
     });
   }
 
-  const response = new Response(upstream.body, upstream);
-  response.headers.set('Cache-Control', 'no-store');
-  return response;
+  const outHeaders = new Headers(upstream.headers);
+  const cookies = typeof upstream.headers.getSetCookie === 'function'
+    ? upstream.headers.getSetCookie()
+    : upstream.headers.getAll('set-cookie') || [];
+  if (cookies.length) {
+    outHeaders.delete('set-cookie');
+    for (const cookie of cookies) {
+      outHeaders.append('set-cookie', cookie);
+    }
+  }
+  outHeaders.set('Cache-Control', 'no-store');
+  return new Response(upstream.body, {
+    status: upstream.status,
+    statusText: upstream.statusText,
+    headers: outHeaders,
+  });
 }
