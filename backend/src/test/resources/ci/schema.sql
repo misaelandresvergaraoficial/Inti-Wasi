@@ -2,6 +2,8 @@
 -- Generado a partir de database/01_DDL_bd_intiwasi.sql; no incluye DROP/CREATE DATABASE.
 -- Se importa sobre la base bd_intiwasi creada por el servicio MySQL del workflow.
 
+ALTER DATABASE bd_intiwasi CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci;
+
 CREATE TABLE Usuarios (
     IdUsuario       INT AUTO_INCREMENT PRIMARY KEY,
     NomUsuario      VARCHAR(100) NOT NULL,
