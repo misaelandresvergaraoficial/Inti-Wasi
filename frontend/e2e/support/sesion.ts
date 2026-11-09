@@ -48,7 +48,7 @@ export async function iniciarSesion(page: Page, perfil: Perfil = 'admin'): Promi
   const datos = credenciales(perfil);
 
   await page.goto('/login');
-  await expect(page.locator('#login-title')).toHaveText('Iniciar sesión');
+  await expect(page.locator('#login-email')).toBeVisible();
   await page.locator('#login-email').fill(datos.email);
   await page.locator('#login-password').fill(datos.password);
   await page.locator('.login-submit').click();

@@ -8,7 +8,7 @@ test('CP-T2-01: rechaza una contraseña incorrecta y permite el acceso válido',
   }
 
   await page.goto('/login');
-  await expect(page.locator('#login-title')).toHaveText('Iniciar sesión');
+  await expect(page.locator('#login-email')).toBeVisible();
 
   await page.locator('#login-email').fill(email);
   await page.locator('#login-password').fill(`${password}incorrecta`);

@@ -29,9 +29,7 @@ test.describe('Sanitización de datos en formularios', () => {
     await page.locator('#user-name').fill('Qa Prueba \u{1F600}');
     await page.locator('#user-name').blur();
 
-    await expect(
-      page.getByText('Revisa el nombre de usuario: contiene caracteres no permitidos.'),
-    ).toBeVisible();
+    await expect(page.getByText('No uses emojis en el nombre de usuario.')).toBeVisible();
 
     await evidencia(page, {
       id: 'CP-07',

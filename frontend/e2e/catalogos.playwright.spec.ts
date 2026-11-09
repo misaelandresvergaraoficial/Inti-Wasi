@@ -123,7 +123,7 @@ test.describe('Gestión de catálogos', () => {
     await page.locator('input[formcontrolname="nomCategoria"]').fill(nombre);
     await page.getByRole('button', { name: 'Crear categoría' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Ya existe una categoría');
+    await expect(page.getByRole('alert')).toContainText(/ya está registrado/i);
     await expect(page).toHaveURL(/\/categorias\/nuevo$/);
 
     await evidencia(page, {

@@ -41,7 +41,7 @@ test.describe('Autenticación y control de acceso', () => {
   test('CP-04 · el guard redirige al login sin sesión', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.locator('#login-title')).toHaveText('Iniciar sesión');
+    await expect(page.locator('#login-email')).toBeVisible();
 
     await evidencia(page, {
       id: 'CP-04',

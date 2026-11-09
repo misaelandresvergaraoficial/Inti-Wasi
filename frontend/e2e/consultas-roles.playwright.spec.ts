@@ -30,7 +30,7 @@ test.describe('Consultas y control por roles', () => {
     await expect(rango).not.toHaveText(/^1\s*[–-]\s*0/);
     const primeraPagina = (await rango.textContent()) ?? '';
 
-    const siguiente = paginador.getByRole('button', { name: /next page/i });
+    const siguiente = paginador.getByRole('button', { name: /next page|página siguiente/i });
     if (await siguiente.isEnabled()) {
       await siguiente.click();
       await expect(rango).not.toHaveText(primeraPagina);

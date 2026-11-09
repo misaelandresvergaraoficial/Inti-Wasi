@@ -47,7 +47,7 @@ test.describe('Operaciones de almacén', () => {
 
   test('CP-15 · registra una orden de compra', async ({ page }) => {
     await page.goto('/ordenes-compra/nueva');
-    await page.locator('#order-supplier').selectOption({ label: 'Grupo Deltron S.A.' });
+    await elegirOpcion(page.locator('#order-supplier'), 'Grupo Deltron S.A.');
 
     const producto = page.locator('#line-product-0');
     await esperarOpciones(producto);
@@ -84,6 +84,10 @@ test.describe('Operaciones de almacén', () => {
     await page.locator('#entrada-cantidad-0').fill('1');
     await page.getByRole('button', { name: 'Registrar entrada' }).click();
 
+    const confirmacion = page.getByRole('dialog', { name: '¿Registrar entrada?' });
+    await expect(confirmacion).toBeVisible();
+    await confirmacion.getByRole('button', { name: 'Registrar entrada', exact: true }).click();
+
     await expect(page).toHaveURL(/\/entradas\/\d+$/);
     await expect(page.getByRole('status').filter({ hasText: /registrad/i })).toBeVisible();
 
@@ -103,6 +107,10 @@ test.describe('Operaciones de almacén', () => {
     await page.locator('#entrada-cantidad-0').fill('1');
     await page.getByRole('button', { name: 'Registrar entrada' }).click();
 
+    const confirmacionDuplicada = page.getByRole('dialog', { name: '¿Registrar entrada?' });
+    await expect(confirmacionDuplicada).toBeVisible();
+    await confirmacionDuplicada.getByRole('button', { name: 'Registrar entrada', exact: true }).click();
+
     await expect(page.getByRole('alert')).toContainText(/ya está registrada/i);
 
     await evidencia(page, {
@@ -119,6 +127,10 @@ test.describe('Operaciones de almacén', () => {
     await elegirOpcion(page.locator('#salida-producto-0'), SKU);
     await page.locator('#salida-cantidad-0').fill('1');
     await page.getByRole('button', { name: 'Registrar salida' }).click();
+
+    const confirmacionSalida = page.getByRole('dialog', { name: '¿Registrar salida?' });
+    await expect(confirmacionSalida).toBeVisible();
+    await confirmacionSalida.getByRole('button', { name: 'Registrar salida', exact: true }).click();
 
     await expect(page).toHaveURL(/\/salidas\/\d+$/);
 

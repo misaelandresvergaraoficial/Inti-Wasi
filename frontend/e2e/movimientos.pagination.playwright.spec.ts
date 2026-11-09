@@ -17,6 +17,6 @@ test('CP-T3-PAG: navega entre páginas del historial de movimientos', async ({ p
 
   const range = paginator.locator('.mat-mdc-paginator-range-label');
   const firstPage = await range.textContent();
-  await paginator.getByRole('button', { name: /next page/i }).click();
+  await paginator.getByRole('button', { name: /next page|página siguiente/i }).click();
   await expect(range).not.toHaveText(firstPage ?? '');
 });
