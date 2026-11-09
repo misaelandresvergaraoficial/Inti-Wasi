@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
+    private static final ZoneId ZONA_LIMA = ZoneId.of("America/Lima");
+    private static final long HORAS_DESFASE_UTC = 5L;
     private final ProductoRepository productoRepository;
     private final DocumentoRepository documentoRepository;
     private final OrdenCompraRepository ordenCompraRepository;
@@ -29,7 +32,8 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardResponse resumen() {
-        LocalDateTime inicio = LocalDate.now(java.time.ZoneId.of("America/Lima")).atStartOfDay();
+        LocalDate hoy = LocalDate.now(ZONA_LIMA);
+        LocalDateTime inicio = hoy.atStartOfDay().plusHours(HORAS_DESFASE_UTC);
         LocalDateTime fin = inicio.plusDays(1);
         return DashboardResponse.builder()
                 .totalProductosActivos(productoRepository.countByEstado((byte) 1))
@@ -38,14 +42,16 @@ public class DashboardService {
                 .entradasDelDia(documentoRepository.countByTipoDocumentoAndEstadoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.ENTRADA, (byte) 1, inicio, fin))
                 .salidasDelDia(documentoRepository.countByTipoDocumentoAndEstadoAndFechaEmisionGreaterThanEqualAndFechaEmisionLessThan(TipoDocumento.SALIDA, (byte) 1, inicio, fin))
                 .productosPorReponer(stockBajoRepository.findTop20ByOrderByUnidadesPorReponerDesc().stream().map(this::convertir).toList())
-                .movimientosUltimos30Dias(tendencia(inicio.toLocalDate()))
+                .movimientosUltimos30Dias(tendencia(hoy))
                 .build();
     }
 
     private List<TendenciaMovimientoResponse> tendencia(LocalDate hoy) {
         LocalDate inicio = hoy.minusDays(29);
+        LocalDateTime desdeUtc = inicio.atStartOfDay().plusHours(HORAS_DESFASE_UTC);
+        LocalDateTime hastaUtc = hoy.plusDays(1).atStartOfDay().plusHours(HORAS_DESFASE_UTC);
         Map<LocalDate, long[]> conteos = new HashMap<>();
-        for (Object[] fila : documentoRepository.contarActividad(inicio.atStartOfDay(), hoy.plusDays(1).atStartOfDay())) {
+        for (Object[] fila : documentoRepository.contarActividad(desdeUtc, hastaUtc)) {
             LocalDate fecha = LocalDate.parse(fila[0].toString());
             long[] cantidades = conteos.computeIfAbsent(fecha, ignorado -> new long[2]);
             cantidades["Entrada".equals(fila[1].toString()) ? 0 : 1] = ((Number) fila[2]).longValue();

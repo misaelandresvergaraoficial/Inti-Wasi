@@ -36,10 +36,10 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer>, 
             java.time.LocalDateTime inicio,
             java.time.LocalDateTime fin);
 
-    @Query(value = "SELECT DATE(FechaEmision), TipoDocumento, COUNT(*) FROM Documentos " +
+    @Query(value = "SELECT DATE(CONVERT_TZ(FechaEmision, '+00:00', '-05:00')), TipoDocumento, COUNT(*) FROM Documentos " +
             "WHERE Estado = 1 AND TipoDocumento IN ('Entrada', 'Salida') " +
             "AND FechaEmision >= :inicio AND FechaEmision < :fin " +
-            "GROUP BY DATE(FechaEmision), TipoDocumento", nativeQuery = true)
+            "GROUP BY DATE(CONVERT_TZ(FechaEmision, '+00:00', '-05:00')), TipoDocumento", nativeQuery = true)
     List<Object[]> contarActividad(@Param("inicio") java.time.LocalDateTime inicio,
                                     @Param("fin") java.time.LocalDateTime fin);
 }
