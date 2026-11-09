@@ -1,7 +1,3 @@
--- Esquema de pruebas para CI (solo estructura, sin datos ni credenciales).
--- Generado a partir de database/01_DDL_bd_intiwasi.sql; no incluye DROP/CREATE DATABASE.
--- Se importa sobre la base bd_intiwasi creada por el servicio MySQL del workflow.
-
 ALTER DATABASE bd_intiwasi CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci;
 
 CREATE TABLE Usuarios (
@@ -354,9 +350,6 @@ CREATE TABLE MovimientosInventario (
     CONSTRAINT CK_Mov_Cantidad
         CHECK (Cantidad > 0)
 ) ENGINE = InnoDB;
-
--- Vistas requeridas por las consultas del backend (kardex, stock bajo, recepciones y resumen de ordenes).
-
 
 CREATE OR REPLACE VIEW VW_Kardex AS
 SELECT
