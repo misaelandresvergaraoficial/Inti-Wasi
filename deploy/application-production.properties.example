@@ -4,7 +4,7 @@ spring.datasource.url=${PROD_DB_URL}
 spring.datasource.username=${PROD_DB_USERNAME}
 spring.datasource.password=${PROD_DB_PASSWORD}
 spring.datasource.hikari.connection-init-sql=SET time_zone = '-05:00'
-spring.datasource.hikari.maximum-pool-size=${DB_POOL_SIZE:10}
+spring.datasource.hikari.maximum-pool-size=${DB_POOL_SIZE:5}
 spring.datasource.hikari.minimum-idle=${DB_POOL_IDLE:2}
 spring.datasource.hikari.data-source-properties.sslMode=VERIFY_IDENTITY
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -12,7 +12,6 @@ spring.jpa.hibernate.ddl-auto=none
 spring.sql.init.mode=never
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 spring.jpa.open-in-view=false
 
 server.address=${SERVER_ADDRESS:127.0.0.1}
